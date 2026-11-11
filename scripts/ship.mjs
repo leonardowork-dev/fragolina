@@ -137,7 +137,18 @@ if (state.status !== "completed") fail("La build sta durando troppo (oltre 60 mi
 // 8) Esito
 if (state.conclusion !== "success") {
   const logs = gh(["run", "view", String(runId), "--log-failed"]);
-  const text = (logs.out || logs.err).replace(/\u001b\[[0-9;]*m/g, "");
+  let text = (logs.out || logs.err).replace(/\u001b\[[0-9;]*m/g, "");
+  if (!text.trim()) {
+    // Nessun log: spesso GitHub non ha trovato un computer macOS libero. Leggo il motivo vero.
+    const jobs = gh(["api", `repos/${repoUrl.replace("https://github.com/", "")}/actions/runs/${runId}/jobs`, "--jq", ".jobs[0].id"]);
+    const note = jobs.out.trim() ? gh(["api", `repos/${repoUrl.replace("https://github.com/", "")}/check-runs/${jobs.out.trim()}/annotations`, "--jq", ".[].message"]) : { out: "" };
+    text = note.out || "";
+    if (/not acquired|capacity/i.test(text) && Number(process.env.SHIP_RETRY || 0) < 3) {
+      console.error("\nGitHub non ha trovato un computer macOS libero (succede nelle ore di punta). Riprovo da solo...");
+      const r = spawnSync(process.execPath, [process.argv[1], ...process.argv.slice(2)], { stdio: "inherit", env: { ...process.env, SHIP_RETRY: String(Number(process.env.SHIP_RETRY || 0) + 1) } });
+      process.exit(r.status ?? 2);
+    }
+  }
   fs.writeFileSync(path.join(buildDir, "last-failure.txt"), text);
   const errors = text.split("\n").filter((l) => /error:|##\[error\]|npm error|fatal/i.test(l)).map((l) => l.replace(/^.*?Z /, "")).slice(0, 12);
   console.error(`\nLa build è FALLITA (${state.conclusion}).`);
