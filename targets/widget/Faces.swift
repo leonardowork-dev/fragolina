@@ -129,13 +129,13 @@ struct SleepyStrawberry: View {
         Canvas { ctx, sz in
             let k = sz.width / 220
             ctx.scaleBy(x: k, y: k)
-            var body = Path()
-            body.move(to: CGPoint(x: 110, y: 64))
-            body.addCurve(to: CGPoint(x: 188, y: 118), control1: CGPoint(x: 150, y: 48), control2: CGPoint(x: 192, y: 66))
-            body.addCurve(to: CGPoint(x: 110, y: 222), control1: CGPoint(x: 184, y: 170), control2: CGPoint(x: 146, y: 214))
-            body.addCurve(to: CGPoint(x: 32, y: 118), control1: CGPoint(x: 74, y: 214), control2: CGPoint(x: 36, y: 170))
-            body.addCurve(to: CGPoint(x: 110, y: 64), control1: CGPoint(x: 28, y: 66), control2: CGPoint(x: 70, y: 48))
-            body.closeSubpath()
+            var bodyPath = Path()
+            bodyPath.move(to: CGPoint(x: 110, y: 64))
+            bodyPath.addCurve(to: CGPoint(x: 188, y: 118), control1: CGPoint(x: 150, y: 48), control2: CGPoint(x: 192, y: 66))
+            bodyPath.addCurve(to: CGPoint(x: 110, y: 222), control1: CGPoint(x: 184, y: 170), control2: CGPoint(x: 146, y: 214))
+            bodyPath.addCurve(to: CGPoint(x: 32, y: 118), control1: CGPoint(x: 74, y: 214), control2: CGPoint(x: 36, y: 170))
+            bodyPath.addCurve(to: CGPoint(x: 110, y: 64), control1: CGPoint(x: 28, y: 66), control2: CGPoint(x: 70, y: 48))
+            bodyPath.closeSubpath()
             func leaf(_ a: (CGFloat, CGFloat), _ c1: (CGFloat, CGFloat), _ c2: (CGFloat, CGFloat), _ b: (CGFloat, CGFloat), _ c3: (CGFloat, CGFloat), _ c4: (CGFloat, CGFloat)) -> Path {
                 var p = Path()
                 p.move(to: CGPoint(x: a.0, y: a.1))
@@ -153,13 +153,13 @@ struct SleepyStrawberry: View {
             // ombra dura
             var sh = ctx
             sh.translateBy(x: 5, y: 5)
-            sh.stroke(body, with: .color(P.ink), style: StrokeStyle(lineWidth: border + 5, lineJoin: .round))
-            sh.fill(body, with: .color(P.ink))
-            ctx.stroke(body, with: .color(P.ink), style: StrokeStyle(lineWidth: border + 5, lineJoin: .round))
-            ctx.stroke(body, with: .color(.white), style: StrokeStyle(lineWidth: border, lineJoin: .round))
-            ctx.fill(body, with: .color(.white))
-            ctx.fill(body, with: .color(P.strawberry))
-            ctx.stroke(body, with: .color(P.ink), style: StrokeStyle(lineWidth: 5, lineJoin: .round))
+            sh.stroke(bodyPath, with: .color(P.ink), style: StrokeStyle(lineWidth: border + 5, lineJoin: .round))
+            sh.fill(bodyPath, with: .color(P.ink))
+            ctx.stroke(bodyPath, with: .color(P.ink), style: StrokeStyle(lineWidth: border + 5, lineJoin: .round))
+            ctx.stroke(bodyPath, with: .color(.white), style: StrokeStyle(lineWidth: border, lineJoin: .round))
+            ctx.fill(bodyPath, with: .color(.white))
+            ctx.fill(bodyPath, with: .color(P.strawberry))
+            ctx.stroke(bodyPath, with: .color(P.ink), style: StrokeStyle(lineWidth: 5, lineJoin: .round))
             for l in leaves {
                 ctx.fill(l, with: .color(P.leaf))
                 ctx.stroke(l, with: .color(P.ink), style: StrokeStyle(lineWidth: 5, lineJoin: .round))

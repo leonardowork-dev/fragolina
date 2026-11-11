@@ -21,7 +21,7 @@ func display(_ size: CGFloat) -> Font {
     .custom("BagelFatOne-Regular", size: size)
 }
 
-func body(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
+func bodyFont(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
     .system(size: size, weight: weight, design: .default)
 }
 

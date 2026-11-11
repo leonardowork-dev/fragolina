@@ -92,7 +92,7 @@ struct SleepyView: View {
                 SleepyStrawberry(size: 62)
                 Spacer(minLength: 0)
                 Text(title).font(display(20)).foregroundStyle(P.ink).minimumScaleFactor(0.7).lineLimit(2)
-                Text(sub).font(body(12, .semibold)).foregroundStyle(P.ink).lineLimit(2)
+                Text(sub).font(bodyFont(12, .semibold)).foregroundStyle(P.ink).lineLimit(2)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         } else {
@@ -100,7 +100,7 @@ struct SleepyView: View {
                 SleepyStrawberry(size: 96)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title).font(display(28)).foregroundStyle(P.ink).minimumScaleFactor(0.7).lineLimit(2)
-                    Text(sub).font(body(14, .semibold)).foregroundStyle(P.ink).lineLimit(2)
+                    Text(sub).font(bodyFont(14, .semibold)).foregroundStyle(P.ink).lineLimit(2)
                 }
                 Spacer(minLength: 0)
             }
@@ -132,7 +132,7 @@ struct SmallView: View {
                 .font(display(46)).tracking(-1.4)
                 .foregroundStyle(P.ink)
                 .minimumScaleFactor(0.5).lineLimit(1)
-            Text("giorni insieme").font(body(12, .heavy)).foregroundStyle(P.ink)
+            Text("giorni insieme").font(bodyFont(12, .heavy)).foregroundStyle(P.ink)
         }
     }
 }
@@ -145,8 +145,8 @@ struct MediumView: View {
             StickerBox(fill: P.butter, radius: 22, offset: 4, rotation: -1.5) {
                 VStack(spacing: 4) {
                     MoodFace(moodId: entry.mood, size: 66)
-                    Text(entry.partner).font(body(13, .heavy)).foregroundStyle(P.ink).lineLimit(1).minimumScaleFactor(0.7)
-                    Text(entry.moodLabel).font(body(11, .semibold)).foregroundStyle(P.ink).lineLimit(1).minimumScaleFactor(0.6)
+                    Text(entry.partner).font(bodyFont(13, .heavy)).foregroundStyle(P.ink).lineLimit(1).minimumScaleFactor(0.7)
+                    Text(entry.moodLabel).font(bodyFont(11, .semibold)).foregroundStyle(P.ink).lineLimit(1).minimumScaleFactor(0.6)
                 }
                 .padding(.vertical, 10).padding(.horizontal, 10)
                 .frame(width: 112)
@@ -157,13 +157,13 @@ struct MediumView: View {
                     .font(display(56)).tracking(-1.8)
                     .foregroundStyle(P.ink)
                     .minimumScaleFactor(0.5).lineLimit(1)
-                Text("giorni insieme").font(body(14, .heavy)).foregroundStyle(P.ink)
+                Text("giorni insieme").font(bodyFont(14, .heavy)).foregroundStyle(P.ink)
                 Spacer(minLength: 6)
                 StickerBox(fill: P.strawberry, radius: 14, offset: 2, rotation: 1) {
                     HStack(spacing: 5) {
                         Image(systemName: "heart.fill").font(.system(size: 11, weight: .black))
                         Text(entry.thoughts == 1 ? "1 pensiero oggi" : "\(entry.thoughts) pensieri oggi")
-                            .font(body(12, .heavy))
+                            .font(bodyFont(12, .heavy))
                     }
                     .foregroundStyle(P.ink)
                     .padding(.horizontal, 9).padding(.vertical, 5)
