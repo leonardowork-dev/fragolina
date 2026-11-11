@@ -85,23 +85,33 @@ if (p.code !== 0) fail(`Push non riuscito: ${p.err}`);
 const sha = git(["rev-parse", "HEAD"]).out;
 log(`Codice caricato (${sha.slice(0, 7)})`);
 
-// 6) Avvio build
-log(`Avvio la build "${mode}" su GitHub (di solito 10-20 minuti)...`);
-const started = Date.now() - 5000;
-const trig = gh(["workflow", "run", WORKFLOW, "--ref", branch, "-f", `mode=${mode}`]);
-if (trig.code !== 0) fail(`Non riesco ad avviare la build: ${trig.err}`);
+// 6) Avvio build (GitHub a volte parte dal commit precedente se il push è appena arrivato: in quel caso annullo e riprovo)
 let runId = null;
-for (let i = 0; i < 30 && !runId; i++) {
-  await sleep(4000);
-  const l = gh(["run", "list", "--workflow", WORKFLOW, "--limit", "5", "--json", "databaseId,createdAt,headSha,event"]);
-  try {
-    const hit = JSON.parse(l.out || "[]").find((x) => x.event === "workflow_dispatch" && x.headSha === sha && new Date(x.createdAt).getTime() >= started);
-    if (hit) runId = hit.databaseId;
-  } catch {
-    /* riprova */
+for (let attempt = 1; attempt <= 3 && !runId; attempt++) {
+  log(`Avvio la build "${mode}" su GitHub (di solito 10-20 minuti)...`);
+  const started = Date.now() - 5000;
+  const trig = gh(["workflow", "run", WORKFLOW, "--ref", branch, "-f", `mode=${mode}`]);
+  if (trig.code !== 0) fail(`Non riesco ad avviare la build: ${trig.err}`);
+  let found = null;
+  for (let i = 0; i < 30 && !found; i++) {
+    await sleep(4000);
+    const l = gh(["run", "list", "--workflow", WORKFLOW, "--limit", "5", "--json", "databaseId,createdAt,headSha,event"]);
+    try {
+      found = JSON.parse(l.out || "[]").find((x) => x.event === "workflow_dispatch" && new Date(x.createdAt).getTime() >= started) ?? null;
+    } catch {
+      /* riprova */
+    }
   }
+  if (!found) fail("La build è partita ma non riesco a trovarla. Guarda la scheda Actions su GitHub.");
+  if (found.headSha !== sha) {
+    log(`La build è sul commit ${found.headSha.slice(0, 7)} invece di ${sha.slice(0, 7)}: la annullo e riprovo.`);
+    gh(["run", "cancel", String(found.databaseId)]);
+    await sleep(8000);
+    continue;
+  }
+  runId = found.databaseId;
 }
-if (!runId) fail("La build è partita ma non riesco a trovarla. Guarda la scheda Actions su GitHub.");
+if (!runId) fail("GitHub continua a partire dal commit sbagliato. Rilancia tra qualche minuto.");
 log(`Build avviata: ${repoUrl}/actions/runs/${runId}`);
 
 // 7) Attesa
