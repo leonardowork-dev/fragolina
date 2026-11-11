@@ -15,7 +15,10 @@
     "doctor": "node scripts/doctor.mjs",
     "clean": "node scripts/clean.mjs",
     "prepare-app": "node scripts/sync-user-art.mjs && node scripts/setup-web.mjs",
-    "postinstall": "node scripts/setup-web.mjs"
+    "postinstall": "node scripts/setup-web.mjs",
+    "ship": "node scripts/ship.mjs release",
+    "ship:dev": "node scripts/ship.mjs dev-client",
+    "ship:release": "node scripts/ship.mjs release"
   },
   "dependencies": {
     "@bacons/apple-targets": "^5.0.0",

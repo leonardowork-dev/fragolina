@@ -48,3 +48,6 @@ out/
 
 # canvaskit (copiato da scripts/setup-web.mjs)
 public/canvaskit.wasm
+
+# output di npm run ship
+build/
