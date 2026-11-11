@@ -12,9 +12,9 @@ on:
         options: [dev-client, release]
         default: dev-client
       runner:
-        description: "Computer macOS (cambia solo se macos-26 è sempre occupato)"
+        description: "Computer macOS (solo arm64: le immagini Intel hanno Xcode 26.3, troppo vecchio per Expo SDK 58)"
         type: choice
-        options: [macos-26, macos-15, macos-15-intel]
+        options: [macos-26, macos-15]
         default: macos-26
 
 concurrency:
@@ -82,20 +82,6 @@ jobs:
           set -euo pipefail
           CONFIG=$([ "${{ inputs.mode }}" = "release" ] && echo Release || echo Debug)
           echo "Configuration: $CONFIG"
-          # Xcode più vecchio di 26.6 (es. macos-15-intel ha 26.3): il suo Swift rifiuta un controllo di
-          # concorrenza dentro i moduli Expo scritti per Swift 6.3. Si compila in modalità Swift 5.
-          EXTRA=""
-          XV="$(xcodebuild -version)"
-          VER="$(echo "$XV" | head -1 | awk '{print $2}')"
-          if [ "$(printf '%s\n26.6\n' "$VER" | sort -V | head -1)" != "26.6" ]; then
-            echo "Xcode $VER < 26.6: uso SWIFT_VERSION=5"
-            EXTRA="SWIFT_VERSION=5 SWIFT_STRICT_CONCURRENCY=minimal"
-            # ExpoModulesJSI si compila da solo con SwiftPM in modalità Swift 6: l'override sopra non lo raggiunge.
-            JSI_PKG="node_modules/expo-modules-jsi/apple/Package.swift"
-            grep -q "swiftLanguageModes: \[.v6\]" "$JSI_PKG"
-            sed -i.bak 's/swiftLanguageModes: \[.v6\]/swiftLanguageModes: [.v5]/' "$JSI_PKG"
-            grep -n "swiftLanguageModes" "$JSI_PKG"
-          fi
           xcodebuild archive \
             -workspace "ios/$APP_NAME.xcworkspace" \
             -scheme "$APP_NAME" \
@@ -103,7 +89,7 @@ jobs:
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/$APP_NAME.xcarchive" \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" $EXTRA \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             2>&1 | tee "$RUNNER_TEMP/xcodebuild.log" | (command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat) \
             || { echo "::error::xcodebuild archive fallito"; tail -80 "$RUNNER_TEMP/xcodebuild.log"; exit 1; }
 

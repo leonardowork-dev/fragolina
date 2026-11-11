@@ -143,9 +143,9 @@ if (state.conclusion !== "success") {
     const jobs = gh(["api", `repos/${repoUrl.replace("https://github.com/", "")}/actions/runs/${runId}/jobs`, "--jq", ".jobs[0].id"]);
     const note = jobs.out.trim() ? gh(["api", `repos/${repoUrl.replace("https://github.com/", "")}/check-runs/${jobs.out.trim()}/annotations`, "--jq", ".[].message"]) : { out: "" };
     text = note.out || "";
-    if (/not acquired|capacity/i.test(text) && Number(process.env.SHIP_RETRY || 0) < 3) {
+    if (/not acquired|capacity/i.test(text) && Number(process.env.SHIP_RETRY || 0) < 12) {
       console.error("\nGitHub non ha trovato un computer macOS libero (succede nelle ore di punta). Riprovo da solo...");
-      const r = spawnSync(process.execPath, [process.argv[1], ...process.argv.slice(2)], { stdio: "inherit", env: { ...process.env, SHIP_RETRY: String(Number(process.env.SHIP_RETRY || 0) + 1), SHIP_RUNNER: ["macos-26", "macos-15", "macos-15-intel", "macos-26"][Number(process.env.SHIP_RETRY || 0) + 1] } });
+      const r = spawnSync(process.execPath, [process.argv[1], ...process.argv.slice(2)], { stdio: "inherit", env: { ...process.env, SHIP_RETRY: String(Number(process.env.SHIP_RETRY || 0) + 1), SHIP_RUNNER: ["macos-26", "macos-15"][(Number(process.env.SHIP_RETRY || 0) + 1) % 2] } });
       process.exit(r.status ?? 2);
     }
   }
