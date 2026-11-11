@@ -18,7 +18,7 @@ on:
         default: macos-26
 
 concurrency:
-  group: build-ios-${{ github.ref }}-${{ inputs.mode }}
+  group: build-ios-${{ github.ref }}-${{ inputs.mode }}-${{ inputs.runner }}
   cancel-in-progress: true
 
 env:
@@ -82,6 +82,14 @@ jobs:
           set -euo pipefail
           CONFIG=$([ "${{ inputs.mode }}" = "release" ] && echo Release || echo Debug)
           echo "Configuration: $CONFIG"
+          # Xcode più vecchio di 26.6 (es. macos-15-intel ha 26.3): il suo Swift rifiuta un controllo di
+          # concorrenza dentro i moduli Expo scritti per Swift 6.3. Si compila in modalità Swift 5.
+          EXTRA=""
+          VER="$(xcodebuild -version | head -1 | awk '{print $2}')"
+          if [ "$(printf '%s\n26.6\n' "$VER" | sort -V | head -1)" != "26.6" ]; then
+            echo "Xcode $VER < 26.6: uso SWIFT_VERSION=5"
+            EXTRA="SWIFT_VERSION=5 SWIFT_STRICT_CONCURRENCY=minimal"
+          fi
           xcodebuild archive \
             -workspace "ios/$APP_NAME.xcworkspace" \
             -scheme "$APP_NAME" \
@@ -89,7 +97,7 @@ jobs:
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/$APP_NAME.xcarchive" \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" $EXTRA \
             2>&1 | tee "$RUNNER_TEMP/xcodebuild.log" | (command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat) \
             || { echo "::error::xcodebuild archive fallito"; tail -80 "$RUNNER_TEMP/xcodebuild.log"; exit 1; }
 
