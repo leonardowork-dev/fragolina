@@ -90,6 +90,11 @@ jobs:
           if [ "$(printf '%s\n26.6\n' "$VER" | sort -V | head -1)" != "26.6" ]; then
             echo "Xcode $VER < 26.6: uso SWIFT_VERSION=5"
             EXTRA="SWIFT_VERSION=5 SWIFT_STRICT_CONCURRENCY=minimal"
+            # ExpoModulesJSI si compila da solo con SwiftPM in modalità Swift 6: l'override sopra non lo raggiunge.
+            JSI_PKG="node_modules/expo-modules-jsi/apple/Package.swift"
+            grep -q "swiftLanguageModes: \[.v6\]" "$JSI_PKG"
+            sed -i.bak 's/swiftLanguageModes: \[.v6\]/swiftLanguageModes: [.v5]/' "$JSI_PKG"
+            grep -n "swiftLanguageModes" "$JSI_PKG"
           fi
           xcodebuild archive \
             -workspace "ios/$APP_NAME.xcworkspace" \
