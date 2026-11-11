@@ -45,3 +45,6 @@ example
 # fragolina
 docs/shots/tmp/
 out/
+
+# canvaskit (copiato da scripts/setup-web.mjs)
+public/canvaskit.wasm

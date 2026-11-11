@@ -4,8 +4,8 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "dev": "expo start --dev-client",
-    "web": "expo start --web",
+    "dev": "npm run prepare-app && expo start --dev-client",
+    "web": "npm run prepare-app && expo start --web",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
@@ -13,7 +13,9 @@
     "preview-shots": "node scripts/preview-shots.mjs",
     "ipa-local-notes": "node scripts/ipa-local-notes.mjs",
     "doctor": "node scripts/doctor.mjs",
-    "clean": "node scripts/clean.mjs"
+    "clean": "node scripts/clean.mjs",
+    "prepare-app": "node scripts/sync-user-art.mjs && node scripts/setup-web.mjs",
+    "postinstall": "node scripts/setup-web.mjs"
   },
   "dependencies": {
     "@bacons/apple-targets": "^5.0.0",
@@ -51,6 +53,7 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/react": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "^58.0.4",

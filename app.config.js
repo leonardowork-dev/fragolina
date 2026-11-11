@@ -26,6 +26,7 @@ module.exports = {
         CADisableMinimumFrameDurationOnPhone: true,
         ITSAppUsesNonExemptEncryption: false,
         UIViewControllerBasedStatusBarAppearance: true,
+        FragolinaBaseAppGroup: APP_GROUP,
       },
       entitlements: { "com.apple.security.application-groups": [APP_GROUP] },
     },
