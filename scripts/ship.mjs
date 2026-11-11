@@ -179,7 +179,7 @@ try {
   fs.copyFileSync(ipaPath, path.join(out, ipa));
   let shown = out;
   if (process.platform !== "win32" && fs.existsSync("/mnt/c/Windows")) shown = run("wslpath", ["-w", out]).out || out;
-  console.log(`\nFATTO. L'app è pronta qui:\n   ${path.join(shown, ipa)}\nOra apri Sideloadly e trascinaci dentro quel file (guida: scripts/SIDELOAD.md).`);
+  console.log(`\nFATTO. L'app è pronta qui:\n   ${shown.includes("\\") ? shown + "\\" + ipa : path.join(shown, ipa)}\nOra apri Sideloadly e trascinaci dentro quel file (guida: scripts/SIDELOAD.md).`);
 } catch (e) {
   console.log(`\nIPA pronto in ${ipaPath} (non sono riuscito a copiarlo sul Desktop: ${e.message}).`);
 }
