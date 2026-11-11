@@ -24,7 +24,17 @@ export type ButtonProps = {
   fullWidth?: boolean;
 };
 
-export function Button({ id, label, onPress, variant = "primary", icon, disabled, haptic = "light", accessibilityHint, fullWidth }: ButtonProps) {
+export function Button({
+  id,
+  label,
+  onPress,
+  variant = "primary",
+  icon,
+  disabled,
+  haptic = "light",
+  accessibilityHint,
+  fullWidth,
+}: ButtonProps) {
   const { colors } = useTheme();
 
   if (variant === "ghost") {
@@ -35,7 +45,13 @@ export function Button({ id, label, onPress, variant = "primary", icon, disabled
         haptic={haptic}
         accessibilityLabel={label}
         accessibilityHint={accessibilityHint}
-        style={{ minHeight: 48, justifyContent: "center", paddingHorizontal: 8, alignSelf: fullWidth ? "stretch" : "flex-start", opacity: disabled ? 0.45 : 1 }}
+        style={{
+          minHeight: 48,
+          justifyContent: "center",
+          paddingHorizontal: 8,
+          alignSelf: fullWidth ? "stretch" : "flex-start",
+          opacity: disabled ? 0.45 : 1,
+        }}
       >
         <Text variant="bodyStrong" color={colors.accentInk}>
           {label}
@@ -60,8 +76,20 @@ export function Button({ id, label, onPress, variant = "primary", icon, disabled
       accessibilityHint={accessibilityHint}
       style={{ alignSelf: fullWidth ? "stretch" : "flex-start", opacity: disabled ? 0.45 : 1 }}
     >
-      <View style={{ minHeight: 52, paddingHorizontal: 24, paddingVertical: 10, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        {icon ? <Icon name={icon} size={22} fill={variant === "primary" ? colors.butter : colors.blush} /> : null}
+      <View
+        style={{
+          minHeight: 52,
+          paddingHorizontal: 24,
+          paddingVertical: 10,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+        }}
+      >
+        {icon ? (
+          <Icon name={icon} size={22} fill={variant === "primary" ? colors.butter : colors.blush} />
+        ) : null}
         <Text variant="bodyStrong" color={variant === "primary" ? colors.accentText : colors.ink}>
           {label}
         </Text>

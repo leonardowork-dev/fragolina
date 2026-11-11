@@ -1,5 +1,11 @@
 import React from "react";
-import { Pressable as RNPressable, type StyleProp, View, type ViewStyle, type GestureResponderEvent } from "react-native";
+import {
+  Pressable as RNPressable,
+  type StyleProp,
+  View,
+  type ViewStyle,
+  type GestureResponderEvent,
+} from "react-native";
 import Animated from "react-native-reanimated";
 
 import { tiltFor } from "@/lib/hash";
@@ -108,7 +114,12 @@ export function Sticker(props: StickerProps) {
 
   if (!interactive) {
     return (
-      <View style={wrapperStyle} testID={testID} accessibilityLabel={accessibilityLabel} accessibilityRole={accessibilityRole}>
+      <View
+        style={wrapperStyle}
+        testID={testID}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole={accessibilityRole}
+      >
         {face}
       </View>
     );

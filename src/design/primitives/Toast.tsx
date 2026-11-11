@@ -1,7 +1,20 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 
@@ -31,9 +44,11 @@ function ToastItem({ text, onGone }: { text: string; onGone: () => void }) {
   const dismiss = useCallback(() => {
     if (leaving.get()) return;
     leaving.set(true);
-    o.set(withTiming(0, { duration: 160 }, (done) => {
-      if (done) scheduleOnRN(onGone);
-    }));
+    o.set(
+      withTiming(0, { duration: 160 }, (done) => {
+        if (done) scheduleOnRN(onGone);
+      }),
+    );
     if (!reduceMotion) y.set(withTiming(-30, { duration: 160, easing: motion.easeOut }));
   }, [leaving, o, y, onGone, reduceMotion]);
 
@@ -54,23 +69,59 @@ function ToastItem({ text, onGone }: { text: string; onGone: () => void }) {
       if (e.velocityY < -300 || y.get() < -28) {
         leaving.set(true);
         y.set(withTiming(-120, { duration: 180, easing: motion.easeOut }));
-        o.set(withTiming(0, { duration: 180 }, (done) => {
-          if (done) scheduleOnRN(onGone);
-        }));
+        o.set(
+          withTiming(0, { duration: 180 }, (done) => {
+            if (done) scheduleOnRN(onGone);
+          }),
+        );
       } else {
         y.set(withSpring(0, { ...motion.springSheet, velocity: e.velocityY }));
       }
     });
 
-  const style = useAnimatedStyle(() => ({ opacity: o.get(), transform: [{ translateY: y.get() }] }));
+  const style = useAnimatedStyle(() => ({
+    opacity: o.get(),
+    transform: [{ translateY: y.get() }],
+  }));
 
   return (
     <GestureDetector gesture={pan}>
-      <Animated.View style={[{ position: "absolute", top: insets.top + 8, left: 20, right: 20, zIndex: 2000, alignItems: "flex-start" }, style]} accessibilityLiveRegion="polite">
-        <Sticker id={`toast-${text}`} fill={colors.butter} radius={20} padding={0} offset={4} tiltMax={1}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12, paddingHorizontal: 16, minHeight: 48 }}>
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            top: insets.top + 8,
+            left: 20,
+            right: 20,
+            zIndex: 2000,
+            alignItems: "flex-start",
+          },
+          style,
+        ]}
+        accessibilityLiveRegion="polite"
+      >
+        <Sticker
+          id={`toast-${text}`}
+          fill={colors.butter}
+          radius={20}
+          padding={0}
+          offset={4}
+          tiltMax={1}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              minHeight: 48,
+            }}
+          >
             <Icon name="check" size={22} />
-            <Text variant="bodyStrong" style={{ flexShrink: 1 }}>{text}</Text>
+            <Text variant="bodyStrong" style={{ flexShrink: 1 }}>
+              {text}
+            </Text>
           </View>
         </Sticker>
       </Animated.View>
@@ -89,7 +140,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {item ? <ToastItem key={item.id} text={item.text} onGone={() => setItem((c) => (c && c.id === item.id ? null : c))} /> : null}
+      {item ? (
+        <ToastItem
+          key={item.id}
+          text={item.text}
+          onGone={() => setItem((c) => (c && c.id === item.id ? null : c))}
+        />
+      ) : null}
     </ToastContext.Provider>
   );
 }

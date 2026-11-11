@@ -1,9 +1,25 @@
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { type GestureResponderEvent, Pressable, View } from "react-native";
-import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring, withSequence, withTiming } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 
-import { Icon, Mascot, MoodSticker, Sticker, Text, useEffectsBus, useMascot, useTheme } from "@/design";
+import {
+  Icon,
+  Mascot,
+  MoodSticker,
+  Sticker,
+  Text,
+  useEffectsBus,
+  useMascot,
+  useTheme,
+} from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { motion, radius } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
@@ -36,7 +52,12 @@ function ThinkHero() {
     },
     [sendThought],
   );
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
 
   return (
     <View style={{ marginTop: 44 }}>
@@ -79,7 +100,17 @@ function DaysCard() {
   const days = daysSince(start);
   const size = String(days).length >= 5 ? 34 : String(days).length === 4 ? 44 : 56;
   return (
-    <Sticker id="giorni" fill={colors.butter} radius={radius.xl} offset={5} padding={18} tiltMax={1.5} accessibilityLabel={`${S.home.daysTitle}: ${days}`} accessibilityRole="text" style={{ flex: 1.35 }}>
+    <Sticker
+      id="giorni"
+      fill={colors.butter}
+      radius={radius.xl}
+      offset={5}
+      padding={18}
+      tiltMax={1.5}
+      accessibilityLabel={`${S.home.daysTitle}: ${days}`}
+      accessibilityRole="text"
+      style={{ flex: 1.35 }}
+    >
       <View style={{ gap: 2 }}>
         <Text variant="caption">{S.home.daysTitle}</Text>
         <RollingNumber value={days} variant="hero" size={size} />
@@ -102,7 +133,8 @@ function MoodCard({ onPress }: { onPress: () => void }) {
       first.current = false;
       return;
     }
-    if (!reduceMotion) k.set(withSequence(withTiming(0.82, { duration: 0 }), withSpring(1, motion.springBouncy)));
+    if (!reduceMotion)
+      k.set(withSequence(withTiming(0.82, { duration: 0 }), withSpring(1, motion.springBouncy)));
   }, [mood, reduceMotion, k]);
   const pop = useAnimatedStyle(() => ({ transform: [{ scale: k.get() }] }));
   return (
@@ -126,7 +158,12 @@ function MoodCard({ onPress }: { onPress: () => void }) {
           <Text variant="caption" numberOfLines={1} align="center">
             {S.home.moodTitle(partner)}
           </Text>
-          <Text variant="bodyStrong" numberOfLines={2} align="center" style={{ fontSize: 16, lineHeight: 20 }}>
+          <Text
+            variant="bodyStrong"
+            numberOfLines={2}
+            align="center"
+            style={{ fontSize: 16, lineHeight: 20 }}
+          >
             {S.moods[mood]}
           </Text>
         </View>
@@ -143,7 +180,15 @@ function QuestionCard() {
   const label = { a: S.home.answerA, b: S.home.answerB } as const;
   const answered = q.myAnswer !== null;
   return (
-    <Sticker id="domanda" fill={colors.surface} radius={radius.lg} offset={4} padding={18} tiltMax={1} style={{ marginRight: 14 }}>
+    <Sticker
+      id="domanda"
+      fill={colors.surface}
+      radius={radius.lg}
+      offset={4}
+      padding={18}
+      tiltMax={1}
+      style={{ marginRight: 14 }}
+    >
       <View style={{ gap: 12 }}>
         <Text variant="caption">{S.home.questionTitle}</Text>
         <Text variant="title">{S.home.question}</Text>
@@ -164,8 +209,28 @@ function QuestionCard() {
                 accessibilityLabel={label[k]}
                 accessibilityHint={answered ? undefined : S.home.questionTitle}
               >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 52, paddingHorizontal: 16, paddingVertical: 10 }}>
-                  <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2.5, borderColor: colors.outline, backgroundColor: mine ? colors.surface : "transparent", alignItems: "center", justifyContent: "center" }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                    minHeight: 52,
+                    paddingHorizontal: 16,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      borderWidth: 2.5,
+                      borderColor: colors.outline,
+                      backgroundColor: mine ? colors.surface : "transparent",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     {mine ? <Icon name="check" size={16} /> : null}
                   </View>
                   <Text variant="bodyStrong" style={{ flexShrink: 1 }}>
@@ -213,7 +278,13 @@ export function HomeScreen() {
 
   return (
     <Screen>
-      <Pressable onPress={onTitle} accessibilityRole="header" accessibilityLabel={S.appName} hitSlop={10} style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}>
+      <Pressable
+        onPress={onTitle}
+        accessibilityRole="header"
+        accessibilityLabel={S.appName}
+        hitSlop={10}
+        style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}
+      >
         <Text variant="title">{S.home.title}</Text>
       </Pressable>
       <ThinkHero />

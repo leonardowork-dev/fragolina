@@ -12,7 +12,17 @@ import { PAGE_MARGIN } from "../tokens";
  */
 export const TAB_BAR_SPACE = 104;
 
-export function Screen({ children, scroll = true, tabBar = true, contentStyle }: { children: React.ReactNode; scroll?: boolean; tabBar?: boolean; contentStyle?: StyleProp<ViewStyle> }) {
+export function Screen({
+  children,
+  scroll = true,
+  tabBar = true,
+  contentStyle,
+}: {
+  children: React.ReactNode;
+  scroll?: boolean;
+  tabBar?: boolean;
+  contentStyle?: StyleProp<ViewStyle>;
+}) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const padding: ViewStyle = {
@@ -21,7 +31,11 @@ export function Screen({ children, scroll = true, tabBar = true, contentStyle }:
     paddingBottom: (tabBar ? TAB_BAR_SPACE : 24) + insets.bottom,
   };
   if (!scroll) {
-    return <View style={[{ flex: 1, backgroundColor: colors.ground }, padding, contentStyle]}>{children}</View>;
+    return (
+      <View style={[{ flex: 1, backgroundColor: colors.ground }, padding, contentStyle]}>
+        {children}
+      </View>
+    );
   }
   return (
     <ScrollView

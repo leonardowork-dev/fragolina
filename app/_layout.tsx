@@ -1,5 +1,10 @@
 import { BagelFatOne_400Regular } from "@expo-google-fonts/bagel-fat-one";
-import { Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold } from "@expo-google-fonts/figtree";
+import {
+  Figtree_400Regular,
+  Figtree_500Medium,
+  Figtree_600SemiBold,
+  Figtree_700Bold,
+} from "@expo-google-fonts/figtree";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -36,7 +41,9 @@ function Shell() {
   return (
     <>
       <StatusBar style={dark ? "light" : "dark"} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.ground } }}>
+      <Stack
+        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.ground } }}
+      >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
         <Stack.Screen name="design-lab" options={{ presentation: "card" }} />
@@ -49,7 +56,13 @@ function Shell() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ BagelFatOne_400Regular, Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold });
+  const [fontsLoaded] = useFonts({
+    BagelFatOne_400Regular,
+    Figtree_400Regular,
+    Figtree_500Medium,
+    Figtree_600SemiBold,
+    Figtree_700Bold,
+  });
   const hydrated = useSettings((s) => s.hydrated);
   const ready = fontsLoaded && hydrated;
 

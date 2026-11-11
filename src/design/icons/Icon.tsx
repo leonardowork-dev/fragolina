@@ -8,7 +8,8 @@ import { outline } from "../tokens";
  * Icone: glifi tozzi con contorno inchiostro, stesso tratto del sistema (2.5px a qualsiasi dimensione).
  * Nessun icon font. Uso: <Icon name="heart" size={24} fill={colors.accent} />
  */
-export type IconName = "home" | "pet" | "draw" | "play" | "us" | "heart" | "plus" | "settings" | "check" | "close";
+export type IconName =
+  "home" | "pet" | "draw" | "play" | "us" | "heart" | "plus" | "settings" | "check" | "close";
 
 type Props = { name: IconName; size?: number; color?: string; fill?: string };
 
@@ -36,14 +37,23 @@ export function Icon({ name, size = 24, color, fill }: Props) {
   const ink = color ?? colors.ink;
   const f = fill ?? "none";
   const sw = (outline.width * 24) / size;
-  const common = { stroke: ink, strokeWidth: sw, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
+  const common = {
+    stroke: ink,
+    strokeWidth: sw,
+    strokeLinejoin: "round" as const,
+    strokeLinecap: "round" as const,
+  };
 
   let body: React.ReactNode;
   switch (name) {
     case "home":
       body = (
         <>
-          <Path d="M3.5 11.2 L12 3.8 L20.5 11.2 V19.5 Q20.5 21 19 21 H5 Q3.5 21 3.5 19.5 Z" fill={f} {...common} />
+          <Path
+            d="M3.5 11.2 L12 3.8 L20.5 11.2 V19.5 Q20.5 21 19 21 H5 Q3.5 21 3.5 19.5 Z"
+            fill={f}
+            {...common}
+          />
           <Path d="M10 21 V15.5 H14 V21" fill={ink} {...common} />
         </>
       );
@@ -66,7 +76,11 @@ export function Icon({ name, size = 24, color, fill }: Props) {
     case "draw":
       body = (
         <>
-          <Path d="M4 20.5 L5.2 15 L16 4.2 Q17 3.4 18 4.2 L19.8 6 Q20.6 7 19.8 8 L9 18.8 Z" fill={f} {...common} />
+          <Path
+            d="M4 20.5 L5.2 15 L16 4.2 Q17 3.4 18 4.2 L19.8 6 Q20.6 7 19.8 8 L9 18.8 Z"
+            fill={f}
+            {...common}
+          />
           <Path d="M14 6.2 L17.8 10" {...common} />
           <Path d="M4 20.5 L5.2 15 L9 18.8 Z" fill={ink} {...common} />
         </>
@@ -87,9 +101,17 @@ export function Icon({ name, size = 24, color, fill }: Props) {
     case "us":
       body = (
         <>
-          <Path d="M3 20.5 C3 16.5 5.4 14.2 8.5 14.2 C11.6 14.2 14 16.5 14 20.5 Z" fill={f} {...common} />
+          <Path
+            d="M3 20.5 C3 16.5 5.4 14.2 8.5 14.2 C11.6 14.2 14 16.5 14 20.5 Z"
+            fill={f}
+            {...common}
+          />
           <Circle cx={8.5} cy={8.4} r={3.3} fill={f} {...common} />
-          <Path d="M13 20.5 C13 17.2 14.6 15.2 17 15.2 C19.4 15.2 21 17.2 21 20.5 Z" fill={f} {...common} />
+          <Path
+            d="M13 20.5 C13 17.2 14.6 15.2 17 15.2 C19.4 15.2 21 17.2 21 20.5 Z"
+            fill={f}
+            {...common}
+          />
           <Circle cx={17} cy={10} r={2.8} fill={f} {...common} />
         </>
       );

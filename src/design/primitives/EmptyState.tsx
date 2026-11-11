@@ -10,9 +10,21 @@ import { Text } from "./Text";
  * Stato vuoto con la mascotte: titolo, spiegazione, azione opzionale. Allineato a sinistra.
  * Uso: <EmptyState mood="sleepy" title="…" body="…" actionLabel="…" onAction={…} />
  */
-export type EmptyStateProps = { mood?: MascotMood; title: string; body: string; actionLabel?: string; onAction?: () => void };
+export type EmptyStateProps = {
+  mood?: MascotMood;
+  title: string;
+  body: string;
+  actionLabel?: string;
+  onAction?: () => void;
+};
 
-export function EmptyState({ mood = "sleepy", title, body, actionLabel, onAction }: EmptyStateProps) {
+export function EmptyState({
+  mood = "sleepy",
+  title,
+  body,
+  actionLabel,
+  onAction,
+}: EmptyStateProps) {
   return (
     <View style={{ gap: 12, alignItems: "flex-start" }}>
       <Mascot size={112} mood={mood} />

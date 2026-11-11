@@ -4,7 +4,16 @@ import { APP_NAME, PARTNER_NAME } from "@/config/couple";
 export const S = {
   appName: APP_NAME,
   tabs: { home: "Home", pet: "Pet", draw: "Disegna", play: "Gioca", us: "Noi" },
-  common: { next: "Avanti", back: "Indietro", done: "Fatto", save: "Salva", cancel: "Annulla", close: "Chiudi", undo: "Annulla ultimo", clear: "Pulisci" },
+  common: {
+    next: "Avanti",
+    back: "Indietro",
+    done: "Fatto",
+    save: "Salva",
+    cancel: "Annulla",
+    close: "Chiudi",
+    undo: "Annulla ultimo",
+    clear: "Pulisci",
+  },
   onboarding: {
     welcomeTitle: (name: string) => `Ciao ${name}.`,
     welcomeBody: "Qui dentro ci siete solo voi due. Niente feed, niente like, solo adesivi.",

@@ -15,7 +15,15 @@ const W = 56;
 const H = 32;
 const KNOB = 22;
 
-export function StickerSwitch({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
+export function StickerSwitch({
+  value,
+  onChange,
+  label,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
   const { colors, reduceMotion } = useTheme();
   const x = useSharedValue(value ? 1 : 0);
   useEffect(() => {
@@ -34,8 +42,31 @@ export function StickerSwitch({ value, onChange, label }: { value: boolean; onCh
       }}
       style={{ width: W, height: H, minHeight: 44, justifyContent: "center" }}
     >
-      <View style={{ width: W, height: H, borderRadius: H / 2, backgroundColor: value ? colors.leaf : colors.blush, borderWidth: outline.width, borderColor: colors.outline, justifyContent: "center", paddingHorizontal: 3 }}>
-        <Animated.View style={[{ width: KNOB, height: KNOB, borderRadius: KNOB / 2, backgroundColor: colors.surface, borderWidth: outline.width, borderColor: colors.outline }, knob]} />
+      <View
+        style={{
+          width: W,
+          height: H,
+          borderRadius: H / 2,
+          backgroundColor: value ? colors.leaf : colors.blush,
+          borderWidth: outline.width,
+          borderColor: colors.outline,
+          justifyContent: "center",
+          paddingHorizontal: 3,
+        }}
+      >
+        <Animated.View
+          style={[
+            {
+              width: KNOB,
+              height: KNOB,
+              borderRadius: KNOB / 2,
+              backgroundColor: colors.surface,
+              borderWidth: outline.width,
+              borderColor: colors.outline,
+            },
+            knob,
+          ]}
+        />
       </View>
     </Pressable>
   );

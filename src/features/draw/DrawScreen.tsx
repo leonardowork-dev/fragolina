@@ -32,17 +32,37 @@ export function DrawScreen() {
     setStrokes((s) => [...s, { id: nextId.current++, svg, color }]);
   }, []);
 
-  const hint = useAnimatedStyle(() => ({ opacity: withTiming(inked.get() > 0 ? 0 : 1, { duration: 160 }) }));
+  const hint = useAnimatedStyle(() => ({
+    opacity: withTiming(inked.get() > 0 ? 0 : 1, { duration: 160 }),
+  }));
 
   return (
     <Screen>
       <Text variant="display" accessibilityRole="header">
         {S.draw.title}
       </Text>
-      <Sticker id="tela" fill={colors.white} radius={24} offset={6} padding={0} tiltMax={0.8} faceStyle={{ width: cw }}>
+      <Sticker
+        id="tela"
+        fill={colors.white}
+        radius={24}
+        offset={6}
+        padding={0}
+        tiltMax={0.8}
+        faceStyle={{ width: cw }}
+      >
         <View style={{ width: cw - outline.width * 2, height: ch }}>
-          <DrawCanvas color={pen.color} strokes={strokes} onCommit={onCommit} inked={inked} width={cw - outline.width * 2} height={ch} />
-          <Animated.View pointerEvents="none" style={[{ position: "absolute", left: 20, top: 20, right: 20 }, hint]}>
+          <DrawCanvas
+            color={pen.color}
+            strokes={strokes}
+            onCommit={onCommit}
+            inked={inked}
+            width={cw - outline.width * 2}
+            height={ch}
+          />
+          <Animated.View
+            pointerEvents="none"
+            style={[{ position: "absolute", left: 20, top: 20, right: 20 }, hint]}
+          >
             <Text variant="title" color={colors.ink} style={{ opacity: 0.55 }}>
               {S.draw.empty}
             </Text>
@@ -50,7 +70,10 @@ export function DrawScreen() {
         </View>
       </Sticker>
 
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }} accessibilityRole="radiogroup">
+      <View
+        style={{ flexDirection: "row", alignItems: "center", gap: 14 }}
+        accessibilityRole="radiogroup"
+      >
         {PENS.map((p, i) => {
           const selected = p.key === pen.key;
           return (
@@ -61,10 +84,30 @@ export function DrawScreen() {
               accessibilityLabel={S.draw.pen(S.draw.pens[p.key])}
               haptic="tick"
               onPress={() => setPen(p)}
-              style={{ transform: [{ rotate: `${(i % 2 === 0 ? -1 : 1) * 3}deg` }, { scale: selected ? 1.14 : 1 }] }}
+              style={{
+                transform: [
+                  { rotate: `${(i % 2 === 0 ? -1 : 1) * 3}deg` },
+                  { scale: selected ? 1.14 : 1 },
+                ],
+              }}
             >
-              <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: p.color, borderWidth: outline.width, borderColor: colors.outline, alignItems: "center", justifyContent: "center" }}>
-                {selected ? <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: colors.ink }} /> : null}
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: p.color,
+                  borderWidth: outline.width,
+                  borderColor: colors.outline,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {selected ? (
+                  <View
+                    style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: colors.ink }}
+                  />
+                ) : null}
               </View>
             </StickerPressable>
           );

@@ -20,9 +20,7 @@ export type WidgetSnapshot = {
   startDate: string; // AAAA-MM-GG: i giorni li calcola il widget (scattano a mezzanotte da soli)
 };
 
-export type PushResult =
-  | { ok: true; group: string }
-  | { ok: false; reason: string };
+export type PushResult = { ok: true; group: string } | { ok: false; reason: string };
 
 export type BridgeDiagnostics = {
   bridge: string;
@@ -56,7 +54,11 @@ class AppGroupBridge implements WidgetBridge {
     if (!native) return { ok: false, reason: "modulo nativo assente (Expo Go o web)" };
     try {
       const group = native.writePayload(JSON.stringify(snapshot));
-      if (!group) return { ok: false, reason: "nessun App Group utilizzabile (container negato dal sistema)" };
+      if (!group)
+        return {
+          ok: false,
+          reason: "nessun App Group utilizzabile (container negato dal sistema)",
+        };
       native.reloadWidgets();
       return { ok: true, group };
     } catch (e) {
@@ -66,7 +68,14 @@ class AppGroupBridge implements WidgetBridge {
 
   diagnostics(): BridgeDiagnostics {
     const native = getGroupResolver();
-    if (!native) return { bridge: this.name, available: false, resolvedGroup: null, candidates: [], roundTripOk: null };
+    if (!native)
+      return {
+        bridge: this.name,
+        available: false,
+        resolvedGroup: null,
+        candidates: [],
+        roundTripOk: null,
+      };
     let roundTripOk: boolean | null = null;
     try {
       roundTripOk = native.resolveGroupId() ? native.readPayload() !== null : false;
@@ -93,8 +102,15 @@ class NoopBridge implements WidgetBridge {
     return { ok: false, reason: "widget non disponibili su questa piattaforma" };
   }
   diagnostics(): BridgeDiagnostics {
-    return { bridge: this.name, available: false, resolvedGroup: null, candidates: [], roundTripOk: null };
+    return {
+      bridge: this.name,
+      available: false,
+      resolvedGroup: null,
+      candidates: [],
+      roundTripOk: null,
+    };
   }
 }
 
-export const widgetBridge: WidgetBridge = Platform.OS === "ios" ? new AppGroupBridge() : new NoopBridge();
+export const widgetBridge: WidgetBridge =
+  Platform.OS === "ios" ? new AppGroupBridge() : new NoopBridge();

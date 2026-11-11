@@ -7,7 +7,18 @@ import { Image, View } from "react-native";
  */
 export function Grain() {
   return (
-    <View pointerEvents="none" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, opacity: 0.035, zIndex: 900 }}>
+    <View
+      pointerEvents="none"
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        opacity: 0.035,
+        zIndex: 900,
+      }}
+    >
       <Image
         source={require("../../../assets/grain.png")}
         resizeMode="repeat"

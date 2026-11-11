@@ -48,13 +48,18 @@ export function usePressFeedback({
     return {
       transform: reduceMotion
         ? []
-        : [{ translateX: offset * v }, { translateY: offset * v }, { scale: 1 - (1 - pressScale) * v }],
+        : [
+            { translateX: offset * v },
+            { translateY: offset * v },
+            { scale: 1 - (1 - pressScale) * v },
+          ],
       opacity: reduceMotion ? 1 - 0.18 * v : 1,
     };
   });
 
   const pressProps = {
-    onPressIn: () => p.set(withTiming(1, { duration: motion.duration.press, easing: motion.easeOut })),
+    onPressIn: () =>
+      p.set(withTiming(1, { duration: motion.duration.press, easing: motion.easeOut })),
     onPressOut: () => p.set(withSpring(0, motion.springSnappy)),
     onPress: useCallback(
       (e: GestureResponderEvent) => {
@@ -90,7 +95,12 @@ export function StickerPressable({
   accessibilityRole = "button",
   ...rest
 }: StickerPressableProps) {
-  const { faceStyle, pressProps } = usePressFeedback({ offset, pressScale, haptic, onPress: onPress ?? undefined });
+  const { faceStyle, pressProps } = usePressFeedback({
+    offset,
+    pressScale,
+    haptic,
+    onPress: onPress ?? undefined,
+  });
   return (
     <RNPressable accessibilityRole={accessibilityRole} hitSlop={hitSlop} {...rest} {...pressProps}>
       <Animated.View style={[faceStyle, style]}>{children}</Animated.View>

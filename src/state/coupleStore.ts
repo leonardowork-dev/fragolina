@@ -29,7 +29,9 @@ type CoupleState = {
   sendThought: () => void;
   answerQuestion: (a: DailyAnswer) => void;
   /** Punto d'ingresso per il realtime (sessione 2). Oggi non usato. */
-  applyRemote: (patch: Partial<Pick<CoupleState, "partnerMood" | "partnerMoodAt" | "thoughtsReceivedTotal">>) => void;
+  applyRemote: (
+    patch: Partial<Pick<CoupleState, "partnerMood" | "partnerMoodAt" | "thoughtsReceivedTotal">>,
+  ) => void;
 };
 
 const todayKey = () => {

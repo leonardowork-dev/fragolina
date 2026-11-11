@@ -20,8 +20,18 @@ export function daysInMonth(y: number, m: number): number {
 }
 
 const MONTHS = [
-  "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
-  "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
+  "gennaio",
+  "febbraio",
+  "marzo",
+  "aprile",
+  "maggio",
+  "giugno",
+  "luglio",
+  "agosto",
+  "settembre",
+  "ottobre",
+  "novembre",
+  "dicembre",
 ];
 
 export function monthName(m: number): string {

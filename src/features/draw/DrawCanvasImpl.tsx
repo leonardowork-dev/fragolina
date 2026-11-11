@@ -23,7 +23,14 @@ export type DrawCanvasProps = {
 
 const STROKE_W = 7;
 
-export default function DrawCanvasImpl({ color, strokes, onCommit, inked, width, height }: DrawCanvasProps) {
+export default function DrawCanvasImpl({
+  color,
+  strokes,
+  onCommit,
+  inked,
+  width,
+  height,
+}: DrawCanvasProps) {
   // Skia 2.x: SkPath è immutabile, si costruisce con un SkPathBuilder e si pubblica lo snapshot.
   const builder = useSharedValue<SkPathBuilder>(Skia.PathBuilder.Make());
   const live = useSharedValue<SkPath>(Skia.PathBuilder.Make().build());
@@ -41,7 +48,8 @@ export default function DrawCanvasImpl({ color, strokes, onCommit, inked, width,
   }, [strokes.length, builder, live, inked]);
 
   const parsed = useMemo(
-    () => strokes.map((s) => ({ id: s.id, color: s.color, path: Skia.Path.MakeFromSVGString(s.svg) })),
+    () =>
+      strokes.map((s) => ({ id: s.id, color: s.color, path: Skia.Path.MakeFromSVGString(s.svg) })),
     [strokes],
   );
 
@@ -69,9 +77,26 @@ export default function DrawCanvasImpl({ color, strokes, onCommit, inked, width,
       <View collapsable={false} style={{ width, height }}>
         <Canvas style={{ width, height }}>
           {parsed.map((s) =>
-            s.path ? <Path key={s.id} path={s.path} color={s.color} style="stroke" strokeWidth={STROKE_W} strokeCap="round" strokeJoin="round" /> : null,
+            s.path ? (
+              <Path
+                key={s.id}
+                path={s.path}
+                color={s.color}
+                style="stroke"
+                strokeWidth={STROKE_W}
+                strokeCap="round"
+                strokeJoin="round"
+              />
+            ) : null,
           )}
-          <Path path={live} color={color} style="stroke" strokeWidth={STROKE_W} strokeCap="round" strokeJoin="round" />
+          <Path
+            path={live}
+            color={color}
+            style="stroke"
+            strokeWidth={STROKE_W}
+            strokeCap="round"
+            strokeJoin="round"
+          />
         </Canvas>
       </View>
     </GestureDetector>

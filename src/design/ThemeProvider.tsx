@@ -12,7 +12,11 @@ import { type ColorTokens, darkColors, lightColors } from "./tokens";
  */
 type Theme = { colors: ColorTokens; dark: boolean; reduceMotion: boolean };
 
-const ThemeContext = createContext<Theme>({ colors: lightColors, dark: false, reduceMotion: false });
+const ThemeContext = createContext<Theme>({
+  colors: lightColors,
+  dark: false,
+  reduceMotion: false,
+});
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemReduce = useReducedMotion();

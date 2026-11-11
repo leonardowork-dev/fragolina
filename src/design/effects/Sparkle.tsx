@@ -1,5 +1,13 @@
 import React, { useEffect } from "react";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 
 import { useTheme } from "../ThemeProvider";
@@ -11,7 +19,15 @@ import { palette } from "../tokens";
  */
 const STAR = "M12 1.5 L14.7 9.3 L22.5 12 L14.7 14.7 L12 22.5 L9.3 14.7 L1.5 12 L9.3 9.3 Z";
 
-export function Sparkle({ size = 20, delay = 0, color = palette.butter }: { size?: number; delay?: number; color?: string }) {
+export function Sparkle({
+  size = 20,
+  delay = 0,
+  color = palette.butter,
+}: {
+  size?: number;
+  delay?: number;
+  color?: string;
+}) {
   const { reduceMotion } = useTheme();
   const k = useSharedValue(reduceMotion ? 1 : 0);
   useEffect(() => {

@@ -23,5 +23,6 @@ export const useEffectsBus = create<EffectsStore>((set) => ({
   confettiX: -1,
   confettiY: -1,
   fireHearts: (x, y) => set((s) => ({ heartSeq: s.heartSeq + 1, heartX: x, heartY: y })),
-  fireConfetti: (x = -1, y = -1) => set((s) => ({ confettiSeq: s.confettiSeq + 1, confettiX: x, confettiY: y })),
+  fireConfetti: (x = -1, y = -1) =>
+    set((s) => ({ confettiSeq: s.confettiSeq + 1, confettiX: x, confettiY: y })),
 }));

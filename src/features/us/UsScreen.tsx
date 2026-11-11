@@ -3,7 +3,17 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { View } from "react-native";
 
-import { Avatar, Button, Icon, Sticker, StickerPressable, StickerSwitch, Text, useTheme, useToast } from "@/design";
+import {
+  Avatar,
+  Button,
+  Icon,
+  Sticker,
+  StickerPressable,
+  StickerSwitch,
+  Text,
+  useTheme,
+  useToast,
+} from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { S } from "@/lib/strings.it";
 import { daysSince, formatLongDate } from "@/lib/time";
@@ -58,7 +68,15 @@ export function UsScreen() {
         </View>
       </Sticker>
 
-      <Sticker id="impostazioni" fill={colors.surface} radius={28} offset={4} padding={18} tiltMax={0.8} style={{ marginRight: 14 }}>
+      <Sticker
+        id="impostazioni"
+        fill={colors.surface}
+        radius={28}
+        offset={4}
+        padding={18}
+        tiltMax={0.8}
+        style={{ marginRight: 14 }}
+      >
         <View style={{ gap: 18 }}>
           <Text variant="title" accessibilityRole="header">
             {S.us.settings}
@@ -75,7 +93,11 @@ export function UsScreen() {
               <Text variant="bodyStrong">{S.us.reduceMotion}</Text>
               <Text variant="caption">{S.us.reduceMotionHint}</Text>
             </View>
-            <StickerSwitch value={reduce === true} onChange={(v) => setReduce(v ? true : null)} label={S.us.reduceMotion} />
+            <StickerSwitch
+              value={reduce === true}
+              onChange={(v) => setReduce(v ? true : null)}
+              label={S.us.reduceMotion}
+            />
           </View>
           <StickerPressable
             accessibilityLabel={S.us.replayIntro}
@@ -98,7 +120,11 @@ export function UsScreen() {
         </View>
       </Sticker>
 
-      <EditCoupleSheet visible={edit} onClose={() => setEdit(false)} onSaved={() => toast.show(S.toast.saved)} />
+      <EditCoupleSheet
+        visible={edit}
+        onClose={() => setEdit(false)}
+        onSaved={() => toast.show(S.toast.saved)}
+      />
     </Screen>
   );
 }

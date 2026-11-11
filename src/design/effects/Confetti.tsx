@@ -1,6 +1,11 @@
 import React, { useEffect } from "react";
 import { View, useWindowDimensions } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { hashString, seeded } from "@/lib/hash";
@@ -18,7 +23,8 @@ const COUNT = 34;
 const DURATION = 1800;
 const COLORS = [palette.strawberry, palette.butter, palette.sky, palette.leaf, palette.blush];
 const STAR = "M12 2 L14.6 9.4 L22 12 L14.6 14.6 L12 22 L9.4 14.6 L2 12 L9.4 9.4 Z";
-const HEART = "M12 21 C5 15.6 3 11.8 3 8.6 C3 5.6 5.2 3.6 7.8 3.6 C9.6 3.6 11.2 4.6 12 6.1 C12.8 4.6 14.4 3.6 16.2 3.6 C18.8 3.6 21 5.6 21 8.6 C21 11.8 19 15.6 12 21 Z";
+const HEART =
+  "M12 21 C5 15.6 3 11.8 3 8.6 C3 5.6 5.2 3.6 7.8 3.6 C9.6 3.6 11.2 4.6 12 6.1 C12.8 4.6 14.4 3.6 16.2 3.6 C18.8 3.6 21 5.6 21 8.6 C21 11.8 19 15.6 12 21 Z";
 
 function Piece({ index }: { index: number }) {
   const { reduceMotion } = useTheme();
@@ -67,9 +73,17 @@ function Piece({ index }: { index: number }) {
     };
   });
 
-  const common = { fill: color, stroke: palette.ink, strokeWidth: 2.2, strokeLinejoin: "round" as const };
+  const common = {
+    fill: color,
+    stroke: palette.ink,
+    strokeWidth: 2.2,
+    strokeLinejoin: "round" as const,
+  };
   return (
-    <Animated.View pointerEvents="none" style={[{ position: "absolute", left: 0, top: 0, width: size, height: size }, style]}>
+    <Animated.View
+      pointerEvents="none"
+      style={[{ position: "absolute", left: 0, top: 0, width: size, height: size }, style]}
+    >
       <Svg width={size} height={size} viewBox="0 0 24 24">
         {shape === 0 ? <Circle cx={12} cy={12} r={9} {...common} /> : null}
         {shape === 1 ? <Rect x={4} y={4} width={16} height={16} rx={3} {...common} /> : null}
@@ -82,7 +96,18 @@ function Piece({ index }: { index: number }) {
 
 export function ConfettiLayer() {
   return (
-    <View pointerEvents="none" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, zIndex: 999, overflow: "hidden" }}>
+    <View
+      pointerEvents="none"
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 999,
+        overflow: "hidden",
+      }}
+    >
       {Array.from({ length: COUNT }, (_, i) => (
         <Piece key={i} index={i} />
       ))}

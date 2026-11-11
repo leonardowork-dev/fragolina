@@ -26,7 +26,11 @@ export function Chip({ label, selected, onPress, id }: ChipProps) {
       accessibilityLabel={label}
       accessibilityRole="button"
     >
-      <Text variant="caption" style={{ paddingHorizontal: 16, paddingVertical: 11, minHeight: 44 }} color={colors.ink}>
+      <Text
+        variant="caption"
+        style={{ paddingHorizontal: 16, paddingVertical: 11, minHeight: 44 }}
+        color={colors.ink}
+      >
         {label}
       </Text>
     </Sticker>

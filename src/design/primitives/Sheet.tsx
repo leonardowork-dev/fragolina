@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, View, useWindowDimensions } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
@@ -26,7 +33,12 @@ import { Text } from "./Text";
  * Altezza = contenuto misurato (Dynamic Type safe), mai fissa. "Meno movimento": solo dissolvenza.
  * Uso: <Sheet visible={open} onClose={() => setOpen(false)} title="…">…</Sheet>
  */
-export type SheetProps = { visible: boolean; onClose: () => void; title?: string; children: React.ReactNode };
+export type SheetProps = {
+  visible: boolean;
+  onClose: () => void;
+  title?: string;
+  children: React.ReactNode;
+};
 
 function rubber(d: number, dim = 140) {
   "worklet";
@@ -61,13 +73,17 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
       }
     } else if (mounted) {
       if (reduceMotion) {
-        fade.set(withTiming(0, { duration: 140 }, (done) => {
-          if (done) scheduleOnRN(setMounted, false);
-        }));
+        fade.set(
+          withTiming(0, { duration: 140 }, (done) => {
+            if (done) scheduleOnRN(setMounted, false);
+          }),
+        );
       } else {
-        y.set(withTiming(winH, { duration: 200, easing: motion.easeOut }, (done) => {
-          if (done) scheduleOnRN(setMounted, false);
-        }));
+        y.set(
+          withTiming(winH, { duration: 200, easing: motion.easeOut }, (done) => {
+            if (done) scheduleOnRN(setMounted, false);
+          }),
+        );
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,9 +101,11 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
     .onEnd((e) => {
       const projected = y.get() + e.velocityY * 0.25;
       if (projected > heightSv.get() * 0.5 || e.velocityY > 900) {
-        y.set(withTiming(winH, { duration: 200, easing: motion.easeOut }, (done) => {
-          if (done) scheduleOnRN(finishClose);
-        }));
+        y.set(
+          withTiming(winH, { duration: 200, easing: motion.easeOut }, (done) => {
+            if (done) scheduleOnRN(finishClose);
+          }),
+        );
         scheduleOnRN(haptics.light);
       } else {
         y.set(withSpring(0, { ...motion.springSheet, velocity: e.velocityY }));
@@ -95,7 +113,9 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
     });
 
   const scrimStyle = useAnimatedStyle(() => ({
-    opacity: reduceMotion ? fade.get() : interpolate(y.get(), [0, winH * 0.6], [1, 0], Extrapolation.CLAMP),
+    opacity: reduceMotion
+      ? fade.get()
+      : interpolate(y.get(), [0, winH * 0.6], [1, 0], Extrapolation.CLAMP),
   }));
   const panelStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: Math.max(y.get(), -200) }],
@@ -107,43 +127,83 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
   return (
     <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Animated.View style={[{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.scrim }, scrimStyle]}>
-          <Pressable accessibilityRole="button" accessibilityLabel={S.common.close} style={{ flex: 1 }} onPress={onClose} />
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              backgroundColor: colors.scrim,
+            },
+            scrimStyle,
+          ]}
+        >
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={S.common.close}
+            style={{ flex: 1 }}
+            onPress={onClose}
+          />
         </Animated.View>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} pointerEvents="box-none" style={{ flex: 1, justifyContent: "flex-end" }}>
-        <GestureDetector gesture={pan}>
-          <Animated.View
-            accessibilityViewIsModal
-            onLayout={(e) => heightSv.set(e.nativeEvent.layout.height)}
-            style={[
-              {
-                backgroundColor: colors.surface,
-                borderTopLeftRadius: 28,
-                borderTopRightRadius: 28,
-                borderWidth: outline.width,
-                borderBottomWidth: 0,
-                borderColor: colors.outline,
-                paddingTop: 10,
-                paddingHorizontal: 20,
-                paddingBottom: insets.bottom + 24,
-                maxHeight: winH * 0.92,
-              },
-              panelStyle,
-            ]}
-          >
-            <View
-              pointerEvents="none"
-              style={{ position: "absolute", left: -outline.width, right: -outline.width, top: "100%", height: 240, backgroundColor: colors.surface, borderLeftWidth: outline.width, borderRightWidth: outline.width, borderColor: colors.outline }}
-            />
-            <View style={{ alignSelf: "center", width: 48, height: 6, borderRadius: 3, backgroundColor: colors.ink, marginBottom: 14 }} />
-            {title ? (
-              <Text variant="display" accessibilityRole="header" style={{ marginBottom: 6 }}>
-                {title}
-              </Text>
-            ) : null}
-            {children}
-          </Animated.View>
-        </GestureDetector>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          pointerEvents="box-none"
+          style={{ flex: 1, justifyContent: "flex-end" }}
+        >
+          <GestureDetector gesture={pan}>
+            <Animated.View
+              accessibilityViewIsModal
+              onLayout={(e) => heightSv.set(e.nativeEvent.layout.height)}
+              style={[
+                {
+                  backgroundColor: colors.surface,
+                  borderTopLeftRadius: 28,
+                  borderTopRightRadius: 28,
+                  borderWidth: outline.width,
+                  borderBottomWidth: 0,
+                  borderColor: colors.outline,
+                  paddingTop: 10,
+                  paddingHorizontal: 20,
+                  paddingBottom: insets.bottom + 24,
+                  maxHeight: winH * 0.92,
+                },
+                panelStyle,
+              ]}
+            >
+              <View
+                pointerEvents="none"
+                style={{
+                  position: "absolute",
+                  left: -outline.width,
+                  right: -outline.width,
+                  top: "100%",
+                  height: 240,
+                  backgroundColor: colors.surface,
+                  borderLeftWidth: outline.width,
+                  borderRightWidth: outline.width,
+                  borderColor: colors.outline,
+                }}
+              />
+              <View
+                style={{
+                  alignSelf: "center",
+                  width: 48,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: colors.ink,
+                  marginBottom: 14,
+                }}
+              />
+              {title ? (
+                <Text variant="display" accessibilityRole="header" style={{ marginBottom: 6 }}>
+                  {title}
+                </Text>
+              ) : null}
+              {children}
+            </Animated.View>
+          </GestureDetector>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </Modal>

@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
 import { Mascot } from "../mascot/Mascot";
@@ -20,9 +26,14 @@ export function SplashOverlay({ ready }: { ready: boolean }) {
   useEffect(() => {
     if (!ready) return;
     pop.set(withTiming(1, { duration: 320, easing: Easing.bezier(0.23, 1, 0.32, 1) }));
-    cover.set(withDelay(620, withTiming(0, { duration: 260, easing: Easing.bezier(0.23, 1, 0.32, 1) }, (done) => {
-      if (done) scheduleOnRN(setGone, true);
-    })));
+    cover.set(
+      withDelay(
+        620,
+        withTiming(0, { duration: 260, easing: Easing.bezier(0.23, 1, 0.32, 1) }, (done) => {
+          if (done) scheduleOnRN(setGone, true);
+        }),
+      ),
+    );
   }, [ready, pop, cover]);
 
   const markStyle = useAnimatedStyle(() => ({
@@ -34,7 +45,20 @@ export function SplashOverlay({ ready }: { ready: boolean }) {
   return (
     <Animated.View
       pointerEvents={ready ? "none" : "auto"}
-      style={[{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: palette.strawberry, alignItems: "center", justifyContent: "center", zIndex: 5000 }, coverStyle]}
+      style={[
+        {
+          position: "absolute",
+          left: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: palette.strawberry,
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 5000,
+        },
+        coverStyle,
+      ]}
     >
       <Animated.View style={markStyle}>
         <View accessibilityElementsHidden>
