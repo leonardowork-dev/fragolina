@@ -11,6 +11,11 @@ on:
         type: choice
         options: [dev-client, release]
         default: dev-client
+      runner:
+        description: "Computer macOS (cambia solo se macos-26 è sempre occupato)"
+        type: choice
+        options: [macos-26, macos-15, macos-15-intel]
+        default: macos-26
 
 concurrency:
   group: build-ios-${{ github.ref }}-${{ inputs.mode }}
@@ -23,7 +28,7 @@ env:
 
 jobs:
   build:
-    runs-on: macos-26
+    runs-on: ${{ inputs.runner || 'macos-26' }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +41,10 @@ jobs:
       - name: Select Xcode
         run: |
           set -euo pipefail
+          if [ ! -d "$XCODE_APP" ]; then
+            XCODE_APP="$(ls -d /Applications/Xcode_26*.app | grep -v beta | sort -V | tail -1)"
+          fi
+          echo "Uso $XCODE_APP"
           sudo xcode-select -s "$XCODE_APP"
           xcodebuild -version
           node -v

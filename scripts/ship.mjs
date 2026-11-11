@@ -91,7 +91,7 @@ let runId = null;
 for (let attempt = 1; attempt <= 3 && !runId; attempt++) {
   log(`Avvio la build "${mode}" su GitHub (di solito 10-20 minuti)...`);
   const started = Date.now() - 5000;
-  const trig = gh(["workflow", "run", WORKFLOW, "--ref", branch, "-f", `mode=${mode}`]);
+  const trig = gh(["workflow", "run", WORKFLOW, "--ref", branch, "-f", `mode=${mode}`, "-f", `runner=${process.env.SHIP_RUNNER || "macos-26"}`]);
   if (trig.code !== 0) fail(`Non riesco ad avviare la build: ${trig.err}`);
   let found = null;
   for (let i = 0; i < 30 && !found; i++) {
@@ -145,7 +145,7 @@ if (state.conclusion !== "success") {
     text = note.out || "";
     if (/not acquired|capacity/i.test(text) && Number(process.env.SHIP_RETRY || 0) < 3) {
       console.error("\nGitHub non ha trovato un computer macOS libero (succede nelle ore di punta). Riprovo da solo...");
-      const r = spawnSync(process.execPath, [process.argv[1], ...process.argv.slice(2)], { stdio: "inherit", env: { ...process.env, SHIP_RETRY: String(Number(process.env.SHIP_RETRY || 0) + 1) } });
+      const r = spawnSync(process.execPath, [process.argv[1], ...process.argv.slice(2)], { stdio: "inherit", env: { ...process.env, SHIP_RETRY: String(Number(process.env.SHIP_RETRY || 0) + 1), SHIP_RUNNER: ["macos-26", "macos-15", "macos-15-intel", "macos-26"][Number(process.env.SHIP_RETRY || 0) + 1] } });
       process.exit(r.status ?? 2);
     }
   }
