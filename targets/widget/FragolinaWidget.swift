@@ -200,6 +200,38 @@ struct AccessoryView: View {
     }
 }
 
+/// Sfondo del widget. iOS 17+: `containerBackground` (margini automatici). iOS 16: stesso sfondo piatto "carta"
+/// a pieno riquadro con margine interno fatto a mano (su iOS 16 il sistema non mette margini).
+struct StickerWidgetBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.containerBackground(P.paper, for: .widget)
+        } else {
+            content
+                .padding(16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(P.paper)
+        }
+    }
+}
+
+/// Schermata di blocco: iOS 17+ pretende comunque `containerBackground` (altrimenti mostra un segnaposto);
+/// iOS 16 non ne ha bisogno. Sfondo trasparente: ci pensa il sistema.
+struct AccessoryBackgroundCompat: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.containerBackground(Color.clear, for: .widget)
+        } else {
+            content
+        }
+    }
+}
+
+extension View {
+    func accessoryWidgetBackgroundCompat() -> some View { modifier(AccessoryBackgroundCompat()) }
+    func stickerWidgetBackground() -> some View { modifier(StickerWidgetBackground()) }
+}
+
 struct FragolinaWidgetView: View {
     @Environment(\.widgetFamily) private var family
     let entry: FragolinaEntry
@@ -207,17 +239,17 @@ struct FragolinaWidgetView: View {
     var body: some View {
         switch family {
         case .accessoryCircular, .accessoryRectangular, .accessoryInline:
-            AccessoryView(entry: entry)
+            AccessoryView(entry: entry).accessoryWidgetBackgroundCompat()
         case .systemMedium:
             Group {
                 if entry.isEmpty || entry.isStale { SleepyView(entry: entry, compact: false) } else { MediumView(entry: entry) }
             }
-            .containerBackground(P.paper, for: .widget)
+            .stickerWidgetBackground()
         default:
             Group {
                 if entry.isEmpty || entry.isStale { SleepyView(entry: entry, compact: true) } else { SmallView(entry: entry) }
             }
-            .containerBackground(P.paper, for: .widget)
+            .stickerWidgetBackground()
         }
     }
 }

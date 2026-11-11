@@ -4,7 +4,7 @@
 App privata per due persone (Leonardo, Nikole): widget condivisi, mascotte (fragola originale), umore, "penso a te", disegni, mini giochi. Mai sull'App Store. Il nome è `APP_NAME` in `src/config/couple.ts`.
 
 ## Vincoli
-Costo zero (nessun servizio o dipendenza a pagamento). Sviluppo su Windows (PowerShell, script Node). Solo iPhone iOS 17+. Installazione per sideload con Apple ID gratuito (scade ogni 7 giorni). Build solo su GitHub Actions (macOS), IPA **non firmato**. Nessun personaggio o marchio esistente: i simboli della coppia arrivano in `assets/user-art/`.
+Costo zero (nessun servizio o dipendenza a pagamento). Sviluppo su Windows (PowerShell, script Node). Solo iPhone, **iOS 16.4 o più recente** (minimo reale dello stack Expo SDK 58; il proprietario ha un iPhone X fermo a iOS 16.7). Il codice nativo non deve usare API iOS 17+ senza `if #available` e un ripiego grafico. Installazione per sideload con Apple ID gratuito (scade ogni 7 giorni). Build solo su GitHub Actions (macOS), IPA **non firmato**. Nessun personaggio o marchio esistente: i simboli della coppia arrivano in `assets/user-art/`.
 
 ## Architettura
 - `app/` rotte Expo Router (sottili: importano da `src/features`). `(tabs)` = home, pet, draw, play, us; `onboarding`; `design-lab` (nascosta).
@@ -29,6 +29,7 @@ Costo zero (nessun servizio o dipendenza a pagamento). Sviluppo su Windows (Powe
 Sviluppo: `npm install`, `npm run web`. Build: `.github/workflows/build-ipa.yml` (`workflow_dispatch`, input `mode`: dev-client | release) → `expo prebuild` → `xcodebuild archive` con firma disattivata → `ldid -S` con gli entitlement → zip `.ipa` con l'estensione widget → artifact. Installazione: `scripts/SIDELOAD.md`.
 
 ## Regole del widget
+Target minimo iOS 16.4 (app, widget, modulo). Niente `#Preview`, `onChange` a due parametri, `@Observable`, widget interattivi o `containerBackground` senza guardia `#available(iOS 17.0, *)` (vedi `StickerWidgetBackground`).
 Processo isolato: niente hook, niente stato dell'app, **solo dati già calcolati** (JSON `WidgetSnapshot` in `src/lib/widgetBridge.ts`). Il widget calcola da solo i giorni da `startDate`. Stati vuoto/non aggiornato (> 48 h) = fragola che dorme. `GroupResolver.swift` esiste in due copie (modulo e widget): tienile uguali. Famiglie: small, medium, accessory (circular, rectangular, inline).
 
 ## Convenzioni

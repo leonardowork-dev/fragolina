@@ -1,6 +1,6 @@
 # Fragolina
 
-App per due (Leonardo e Nikole): widget sulla home, mascotte, adesivi, disegni, mini giochi. Solo iPhone (iOS 17+), mai sullo Store, costo zero. Stile "Sticker Book": ogni cosa è un adesivo.
+App per due (Leonardo e Nikole): widget sulla home, mascotte, adesivi, disegni, mini giochi. Solo iPhone (iOS 16.4 o più recente: va su iPhone X con iOS 16.7), mai sullo Store, costo zero. Stile "Sticker Book": ogni cosa è un adesivo.
 
 ## Provarla su Windows (anteprima nel browser)
 Requisiti: Node 20+ e Git.

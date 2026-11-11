@@ -21,7 +21,7 @@ module.exports = {
     ios: {
       bundleIdentifier: BUNDLE_ID,
       supportsTablet: false,
-      deploymentTarget: "17.0",
+      deploymentTarget: "16.4",
       infoPlist: {
         CADisableMinimumFrameDurationOnPhone: true,
         ITSAppUsesNonExemptEncryption: false,

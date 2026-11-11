@@ -3,7 +3,7 @@ module.exports = (config) => ({
   type: "widget",
   name: "FragolinaWidget",
   displayName: "Fragolina",
-  deploymentTarget: "17.0",
+  deploymentTarget: "16.4",
   colors: {
     $widgetBackground: "#FFF4F6",
     $accent: "#FF2D55",
