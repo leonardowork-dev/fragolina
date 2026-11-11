@@ -27,6 +27,10 @@ Ti serve: il PC Windows, l'iPhone, il cavo USB dell'iPhone, e il file `Fragolina
 
 ## B. Installare l'app
 
+Versione di iOS richiesta: **16.4 o più recente**. Un iPhone X con iOS 16.7 va bene. Per controllare: sull'iPhone **Impostazioni → Generali → Info → Versione software**.
+
+**Se avevi già provato a installare Fragolina** (anche senza riuscirci): non serve cancellare nulla. Fai i passi 5.1-5.7 qui sotto con il file nuovo: Sideloadly lo installa sopra la versione precedente e lascia i dati. Se invece sull'iPhone vedi un'icona Fragolina che non si apre più, tienila premuta, tocca **Rimuovi app → Elimina app**, e poi installa da capo.
+
 **5. Apri Sideloadly** (cerca "Sideloadly" nel menu Start).
    1. In alto a sinistra, sotto "iDevice", deve comparire il tuo iPhone. Se non compare: scollega e ricollega il cavo, sblocca il telefono.
    2. Nel campo **Apple Account** scrivi l'email dell'Apple ID di servizio.
