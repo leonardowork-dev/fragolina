@@ -86,6 +86,7 @@ const sha = git(["rev-parse", "HEAD"]).out;
 log(`Codice caricato (${sha.slice(0, 7)})`);
 
 // 6) Avvio build (GitHub a volte parte dal commit precedente se il push è appena arrivato: in quel caso annullo e riprovo)
+await sleep(8000); // dà tempo a GitHub di vedere il push
 let runId = null;
 for (let attempt = 1; attempt <= 3 && !runId; attempt++) {
   log(`Avvio la build "${mode}" su GitHub (di solito 10-20 minuti)...`);
