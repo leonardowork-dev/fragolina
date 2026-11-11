@@ -85,7 +85,8 @@ jobs:
           # Xcode più vecchio di 26.6 (es. macos-15-intel ha 26.3): il suo Swift rifiuta un controllo di
           # concorrenza dentro i moduli Expo scritti per Swift 6.3. Si compila in modalità Swift 5.
           EXTRA=""
-          VER="$(xcodebuild -version | head -1 | awk '{print $2}')"
+          XV="$(xcodebuild -version)"
+          VER="$(echo "$XV" | head -1 | awk '{print $2}')"
           if [ "$(printf '%s\n26.6\n' "$VER" | sort -V | head -1)" != "26.6" ]; then
             echo "Xcode $VER < 26.6: uso SWIFT_VERSION=5"
             EXTRA="SWIFT_VERSION=5 SWIFT_STRICT_CONCURRENCY=minimal"
