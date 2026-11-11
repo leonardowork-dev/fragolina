@@ -18,3 +18,6 @@
 - **Skill "impeccable" non eseguita come script**: ho applicato i suoi principi a mano (PRODUCT.md/DESIGN.md scritti da me, critica con screenshot). Nessuna alternativa tecnica persa.
 
 - **Repo GitHub creato (11/11/2026, su richiesta esplicita di Leonardo): https://github.com/leonardowork-dev/fragolina (pubblico).** Autori della storia riscritti con l'email noreply di GitHub (niente email personale nel repo pubblico).
+- **`npm run ship` = variante `release`** (non dev-client): per chi non usa il terminale l'unica build utile è quella con il JavaScript dentro. `ship:dev` per dev-client.
+- **Workflow su Node 24 + npm 12**, uguali al lockfile: con Node 22/npm 10 `npm ci` falliva ("Missing: typescript from lock file").
+- **GitHub può avviare la build sul commit precedente** se il push è appena arrivato: `ship.mjs` aspetta 8 s e, se vede un commit diverso, annulla e riprova.

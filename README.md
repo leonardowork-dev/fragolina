@@ -20,6 +20,7 @@ Apri <http://localhost:8081>. Cinque tocchi sul titolo "Fragolina" nella Home ap
 | `npm run preview-shots` | screenshot headless in `docs/shots/` |
 | `npm run doctor` | controlla l'ambiente |
 | `npm run clean` | cancella cache e cartelle generate |
+| `npm run ship` | carica il codice, costruisce l'IPA su GitHub e lo mette sul Desktop (`ship:dev` per dev-client) |
 | `npm run ipa-local-notes` | come ottenere l'IPA |
 
 ## Sull'iPhone
