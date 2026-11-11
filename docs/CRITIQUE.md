@@ -1,5 +1,5 @@
 # Critica delle schermate (3 giri, anteprima web 390 / 430 / 360)
-Screenshot: `docs/shots/round1-before/` (primo giro), `docs/shots/final/` (finale), `docs/shots/worst/` (caso peggiore).
+Screenshot: `docs/shots/final/` (finale; quelli del primo giro non sono conservati), `docs/shots/worst/` (caso peggiore).
 
 ## Giro 1 (cosa non andava)
 - Onboarding: pulsante "Avanti" tagliato sul bordo basso (la KeyboardAvoidingView ignorava il padding) → contenitore interno con padding. Spazio vuoto enorme sotto i testi → anteprime vere (adesivi della Home, widget finto) invece di ornamenti.
