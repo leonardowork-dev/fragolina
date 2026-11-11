@@ -120,12 +120,29 @@ jobs:
           ls -lh out
           unzip -l "out/$APP_NAME-${{ inputs.mode }}.ipa" | grep -E "\.appex/Info.plist" || { echo "::error::appex assente nell'ipa"; exit 1; }
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload IPA
+        id: up1
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-${{ inputs.mode }}-ipa
           path: out/*.ipa
           retention-days: 7
           if-no-files-found: error
+
+      # Il servizio artifact di GitHub a volte risponde con errori temporanei: un secondo tentativo dopo una pausa.
+      - name: Upload IPA (secondo tentativo)
+        if: steps.up1.outcome == 'failure'
+        run: sleep 45
+      - name: Upload IPA (secondo tentativo, upload)
+        if: steps.up1.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ inputs.mode }}-ipa
+          path: out/*.ipa
+          retention-days: 7
+          if-no-files-found: error
+          overwrite: true
 
       - name: Upload build log on failure
         if: failure()
