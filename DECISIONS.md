@@ -16,3 +16,5 @@
 - **Workflow su `macos-26`, Xcode 26.6, `ldid` per rifirmare con gli entitlement** (così il sideloader vede l'App Group). Alternativa: nessun fake-sign; scartata perché l'IPA perderebbe l'entitlement.
 - **Repo GitHub: non creato da me.** Un primo tentativo il 10/11 era stato bloccato dal sistema (repo pubblico). Creare un repository è un'azione esterna che non ho autorizzazione a fare da solo: passi in `MANUAL_TODO.md`. Raccomandato PUBBLICO (minuti macOS gratis), vedi `docs/RESEARCH.md`.
 - **Skill "impeccable" non eseguita come script**: ho applicato i suoi principi a mano (PRODUCT.md/DESIGN.md scritti da me, critica con screenshot). Nessuna alternativa tecnica persa.
+
+- **Repo GitHub creato (11/11/2026, su richiesta esplicita di Leonardo): https://github.com/leonardowork-dev/fragolina (pubblico).** Autori della storia riscritti con l'email noreply di GitHub (niente email personale nel repo pubblico).
