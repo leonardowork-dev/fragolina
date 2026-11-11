@@ -79,7 +79,7 @@ function Particle({ index }: { index: number }) {
 
 export function HeartBurstLayer() {
   return (
-    <View pointerEvents="none" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, zIndex: 1000 }}>
+    <View pointerEvents="none" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, zIndex: 1000, overflow: "hidden" }}>
       {Array.from({ length: COUNT }, (_, i) => (
         <Particle key={i} index={i} />
       ))}

@@ -1,0 +1,124 @@
+name: Build iOS IPA (unsigned)
+
+# Genera un .ipa NON firmato (da firmare in locale con AltStore/Sideloadly + Apple ID gratuito).
+# mode=dev-client -> configurazione Debug, JS da Metro (Fast Refresh da Windows).
+# mode=release    -> configurazione Release, JS incluso (standalone).
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Tipo di build"
+        type: choice
+        options: [dev-client, release]
+        default: dev-client
+
+concurrency:
+  group: build-ios-${{ github.ref }}-${{ inputs.mode }}
+  cancel-in-progress: true
+
+env:
+  APP_NAME: Fragolina
+  WIDGET_NAME: FragolinaWidget
+  XCODE_APP: /Applications/Xcode_26.6.app
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          sudo xcode-select -s "$XCODE_APP"
+          xcodebuild -version
+          node -v
+
+      - name: Install JS dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npx --no-install tsc --noEmit
+
+      - name: Generate user-art manifest and icons
+        run: |
+          node scripts/sync-user-art.mjs
+          test -f assets/icon.png || node scripts/make-icon.mjs
+
+      - name: Cache CocoaPods downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/CocoaPods
+          key: pods-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: pods-${{ runner.os }}-
+
+      - name: Prebuild iOS project (CNG + widget target)
+        run: |
+          set -euo pipefail
+          CI=1 npx expo prebuild --platform ios --clean
+          test -d "ios/$APP_NAME.xcworkspace" || { echo "::error::workspace mancante dopo prebuild"; ls ios; exit 1; }
+          echo "--- target generati"; ls ios ios/.targets 2>/dev/null || true
+
+      - name: Archive (code signing disabled)
+        run: |
+          set -euo pipefail
+          CONFIG=$([ "${{ inputs.mode }}" = "release" ] && echo Release || echo Debug)
+          echo "Configuration: $CONFIG"
+          xcodebuild archive \
+            -workspace "ios/$APP_NAME.xcworkspace" \
+            -scheme "$APP_NAME" \
+            -configuration "$CONFIG" \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/$APP_NAME.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            2>&1 | tee "$RUNNER_TEMP/xcodebuild.log" | (command -v xcbeautify >/dev/null && xcbeautify --renderer github-actions || cat) \
+            || { echo "::error::xcodebuild archive fallito"; tail -80 "$RUNNER_TEMP/xcodebuild.log"; exit 1; }
+
+      - name: Fake-sign with entitlements (ldid) so the sideloader sees the App Group
+        run: |
+          set -euo pipefail
+          brew install ldid
+          APP="$RUNNER_TEMP/$APP_NAME.xcarchive/Products/Applications/$APP_NAME.app"
+          APPEX="$APP/PlugIns/$WIDGET_NAME.appex"
+          test -d "$APPEX" || { echo "::error::widget extension mancante nell'archivio"; ls -R "$APP" | head -50; exit 1; }
+          APP_ENT=$(find ios -maxdepth 3 -name "$APP_NAME.entitlements" | head -1)
+          WID_ENT=$(find ios -maxdepth 4 -path "*$WIDGET_NAME*" -name "*.entitlements" | head -1)
+          echo "entitlements app: $APP_ENT | widget: $WID_ENT"
+          test -n "$APP_ENT" && test -n "$WID_ENT" || { echo "::error::file entitlements non trovati"; find ios -name "*.entitlements"; exit 1; }
+          ldid -S"$APP_ENT" "$APP/$APP_NAME"
+          ldid -S"$WID_ENT" "$APPEX/$WIDGET_NAME"
+          echo "--- entitlements app";    ldid -e "$APP/$APP_NAME"
+          echo "--- entitlements widget"; ldid -e "$APPEX/$WIDGET_NAME"
+          ldid -e "$APP/$APP_NAME"        | grep -q "com.apple.security.application-groups" || { echo "::error::app senza App Group"; exit 1; }
+          ldid -e "$APPEX/$WIDGET_NAME"   | grep -q "com.apple.security.application-groups" || { echo "::error::widget senza App Group"; exit 1; }
+
+      - name: Package .ipa
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ipa/Payload" out
+          cp -R "$RUNNER_TEMP/$APP_NAME.xcarchive/Products/Applications/$APP_NAME.app" "$RUNNER_TEMP/ipa/Payload/"
+          (cd "$RUNNER_TEMP/ipa" && zip -qry "$GITHUB_WORKSPACE/out/$APP_NAME-${{ inputs.mode }}.ipa" Payload)
+          ls -lh out
+          unzip -l "out/$APP_NAME-${{ inputs.mode }}.ipa" | grep -E "\.appex/Info.plist" || { echo "::error::appex assente nell'ipa"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ inputs.mode }}-ipa
+          path: out/*.ipa
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: ${{ runner.temp }}/xcodebuild.log
+          retention-days: 3

@@ -18,6 +18,7 @@ export const S = {
     doneTitle: "Fatto. Siete dentro.",
     doneBody: "Il primo adesivo lo attacchi tu: tocca Penso a te.",
     enter: "Entra",
+    widgetCaption: "Così la vedrai sulla home, senza aprire l'app:",
     skip: "Salta",
   },
   home: {

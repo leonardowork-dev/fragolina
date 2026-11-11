@@ -31,7 +31,7 @@ function Egg({ size }: { size: number }) {
       <Ellipse cx={62} cy={160} rx={11} ry={7} fill={palette.blush} />
       <Ellipse cx={158} cy={160} rx={11} ry={7} fill={palette.blush} />
       <Path d="M102 164 Q110 169 118 164" {...line} />
-      <Path d="M168 38 h16 l-16 18 h16" {...line} strokeWidth={sw * 1.3} />
+      <Path d="M180 14 h15 l-15 17 h15" {...line} strokeWidth={sw * 1.3} />
     </Svg>
   );
 }
@@ -69,10 +69,10 @@ export function PetScreen() {
       <Text variant="display" accessibilityRole="header">
         {S.pet.title}
       </Text>
-      <View style={{ alignItems: "flex-start", paddingLeft: 12 }}>
+      <View style={{ alignItems: "center", marginTop: 8 }}>
         <Pressable accessibilityRole="button" accessibilityLabel={`${S.pet.title}. ${S.pet.body}`} onPress={onPoke} hitSlop={10} style={{ transformOrigin: "50% 100%" }}>
           <Animated.View style={[eggStyle, { transformOrigin: "50% 100%" }]}>
-            <Egg size={248} />
+            <Egg size={300} />
           </Animated.View>
         </Pressable>
       </View>

@@ -42,9 +42,14 @@ export function UsScreen() {
               <Avatar name={partner} size={64} fill={colors.sky} />
             </View>
           </View>
-          <Text variant="display" numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.6}>
-            {`${me} e ${partner}`}
-          </Text>
+          <View accessible accessibilityLabel={`${me} e ${partner}`}>
+            <Text variant="display" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.6}>
+              {me}
+            </Text>
+            <Text variant="display" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.6}>
+              {`e ${partner}`}
+            </Text>
+          </View>
           <Text variant="bodyStrong">
             {S.us.since} {formatLongDate(start)}
             {days > 0 ? ` · ${days} giorni` : ""}

@@ -1,15 +1,19 @@
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { type NativeScrollEvent, type NativeSyntheticEvent, ScrollView, TextInput, View, useWindowDimensions } from "react-native";
+import { TextInput, View, useWindowDimensions } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import Animated, { type SharedValue, interpolate, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Animated, { type SharedValue, interpolate, useAnimatedReaction, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Avatar, Button, Icon, Mascot, Sticker, Text, useEffectsBus, useMascot, useTheme } from "@/design";
 import { fonts, outline, PAGE_MARGIN } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
 import { S } from "@/lib/strings.it";
+import { daysSince } from "@/lib/time";
 import { useCouple } from "@/state/coupleStore";
+
+import { WelcomeCluster, WidgetMock } from "./Previews";
 import { useSettings } from "@/state/settingsStore";
 
 /**
@@ -38,7 +42,7 @@ export function OnboardingScreen() {
   const { colors, reduceMotion } = useTheme();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const scroller = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const scroller = useRef<Animated.ScrollView>(null);
   const progress = useSharedValue(0);
   const [page, setPage] = useState(0);
   const [code, setCode] = useState("");
@@ -47,6 +51,7 @@ export function OnboardingScreen() {
   const setDone = useSettings((s) => s.setOnboardingDone);
   const partner = useCouple((s) => s.partnerName);
   const me = useCouple((s) => s.meName);
+  const startDate = useCouple((s) => s.startDate);
 
   const goTo = useCallback(
     (p: number) => {
@@ -55,16 +60,21 @@ export function OnboardingScreen() {
     [width, reduceMotion],
   );
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    progress.set(e.nativeEvent.contentOffset.x / width);
-  };
-  const onEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const p = Math.round(e.nativeEvent.contentOffset.x / width);
-    if (p !== page) {
-      setPage(p);
-      haptics.tick();
-    }
-  };
+  // Scroll sul thread UI: aggiorna solo lo shared value. La pagina (state) cambia solo quando il valore arrotondato
+  // attraversa una soglia, mai per frame.
+  const onScroll = useAnimatedScrollHandler((e) => {
+    progress.set(e.contentOffset.x / width);
+  });
+  const onPageChange = useCallback((p: number) => {
+    setPage(p);
+    haptics.tick();
+  }, []);
+  useAnimatedReaction(
+    () => Math.round(progress.get()),
+    (p, prev) => {
+      if (prev !== null && p !== prev) scheduleOnRN(onPageChange, p);
+    },
+  );
 
   // Reazione della mascotte a ogni pagina + coriandoli una sola volta all'ultima.
   useEffect(() => {
@@ -107,7 +117,8 @@ export function OnboardingScreen() {
   const pageStyle = { width, paddingHorizontal: PAGE_MARGIN, gap: 14 } as const;
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: colors.ground, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) + 8 }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: colors.ground }}>
+      <View style={{ flex: 1, paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) + 12 }}>
       <View style={{ paddingHorizontal: PAGE_MARGIN, flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", minHeight: 190 }}>
         <View style={{ marginTop: 12 }}>
           <Mascot size={150} reactive />
@@ -115,14 +126,13 @@ export function OnboardingScreen() {
         {page < PAGES - 1 ? <Button label={S.onboarding.skip} variant="ghost" onPress={finish} haptic="tick" /> : null}
       </View>
 
-      <ScrollView
+      <Animated.ScrollView
         ref={scroller}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={onScroll}
-        onMomentumScrollEnd={onEnd}
         keyboardShouldPersistTaps="handled"
         style={{ flex: 1 }}
         contentContainerStyle={{ alignItems: "flex-start" }}
@@ -132,6 +142,9 @@ export function OnboardingScreen() {
             {S.onboarding.welcomeTitle(me)}
           </Text>
           <Text variant="body">{S.onboarding.welcomeBody}</Text>
+          <View style={{ marginTop: 10 }}>
+            <WelcomeCluster />
+          </View>
         </View>
 
         <View style={pageStyle}>
@@ -177,7 +190,9 @@ export function OnboardingScreen() {
               <Text variant="bodyStrong" style={{ flex: 1 }}>
                 {S.onboarding.codeOk(partner)}
               </Text>
-              <Icon name="check" size={26} fill={colors.leaf} />
+              <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: colors.leaf, borderWidth: 2.5, borderColor: colors.outline, alignItems: "center", justifyContent: "center" }}>
+                <Icon name="check" size={20} />
+              </View>
             </View>
           ) : null}
         </View>
@@ -187,8 +202,12 @@ export function OnboardingScreen() {
             {S.onboarding.doneTitle}
           </Text>
           <Text variant="body">{S.onboarding.doneBody}</Text>
+          <View style={{ marginTop: 14, gap: 10 }}>
+            <Text variant="caption">{S.onboarding.widgetCaption}</Text>
+            <WidgetMock partner={partner} mood="innamorata" days={daysSince(startDate)} />
+          </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       <View style={{ paddingHorizontal: PAGE_MARGIN, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", gap: 10 }} accessibilityLabel={`${page + 1} / ${PAGES}`} accessibilityRole="progressbar">
@@ -197,6 +216,7 @@ export function OnboardingScreen() {
           ))}
         </View>
         <Button label={primary} onPress={onPrimary} haptic={page === PAGES - 1 ? "success" : "light"} />
+      </View>
       </View>
     </KeyboardAvoidingView>
   );

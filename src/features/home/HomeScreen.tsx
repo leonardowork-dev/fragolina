@@ -54,10 +54,10 @@ function ThinkHero() {
         faceStyle={{ minHeight: 232, justifyContent: "flex-end" }}
       >
         <View style={{ gap: 10 }}>
-          <Text variant="hero" style={{ maxWidth: "78%" }} adjustsFontSizeToFit numberOfLines={2} minimumFontScale={0.7}>
+          <Text variant="hero" adjustsFontSizeToFit numberOfLines={2} minimumFontScale={0.7}>
             {S.home.thinkTitle}
           </Text>
-          <Text variant="bodyStrong" numberOfLines={2}>
+          <Text variant="bodyStrong" numberOfLines={3}>
             {flash ? S.home.thinkSent(partner) : S.home.thinkHint(partner)}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -165,8 +165,8 @@ function QuestionCard() {
                 accessibilityHint={answered ? undefined : S.home.questionTitle}
               >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 52, paddingHorizontal: 16, paddingVertical: 10 }}>
-                  <View style={{ width: 22, height: 22, alignItems: "center", justifyContent: "center" }}>
-                    {mine ? <Icon name="check" size={22} /> : null}
+                  <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2.5, borderColor: colors.outline, backgroundColor: mine ? colors.surface : "transparent", alignItems: "center", justifyContent: "center" }}>
+                    {mine ? <Icon name="check" size={16} /> : null}
                   </View>
                   <Text variant="bodyStrong" style={{ flexShrink: 1 }}>
                     {label[k]}

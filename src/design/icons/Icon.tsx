@@ -122,7 +122,7 @@ export function Icon({ name, size = 24, color, fill }: Props) {
       break;
   }
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <Svg width={size} height={size} viewBox="0 0 24 24">
       <G>{body}</G>
     </Svg>
   );

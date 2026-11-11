@@ -82,7 +82,7 @@ function Piece({ index }: { index: number }) {
 
 export function ConfettiLayer() {
   return (
-    <View pointerEvents="none" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, zIndex: 999 }}>
+    <View pointerEvents="none" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, zIndex: 999, overflow: "hidden" }}>
       {Array.from({ length: COUNT }, (_, i) => (
         <Piece key={i} index={i} />
       ))}

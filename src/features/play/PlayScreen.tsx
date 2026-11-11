@@ -65,7 +65,7 @@ export function PlayScreen() {
       <Text variant="display" accessibilityRole="header">
         {S.play.title}
       </Text>
-      <Sticker id="tris" fill={colors.butter} radius={32} offset={6} padding={20} tiltMax={1.5} onPress={soon} accessibilityLabel={`${S.play.tris.name}. ${S.play.tris.line}`}>
+      <Sticker id="tris" fill={colors.butter} radius={32} offset={6} padding={22} tiltMax={1.5} onPress={soon} faceStyle={{ minHeight: 210, justifyContent: "center" }} accessibilityLabel={`${S.play.tris.name}. ${S.play.tris.line}`}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
           <View style={{ flex: 1, gap: 8 }}>
             <SoonTag />
@@ -78,14 +78,14 @@ export function PlayScreen() {
         </View>
       </Sticker>
       <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
-        <Sticker id="indovina" fill={colors.sky} radius={26} offset={5} padding={16} tiltMax={2} onPress={soon} style={{ flex: 1.2 }} accessibilityLabel={`${S.play.guess.name}. ${S.play.guess.line}`}>
+        <Sticker id="indovina" fill={colors.sky} radius={26} offset={5} padding={16} tiltMax={2} onPress={soon} style={{ flex: 1.2 }} faceStyle={{ minHeight: 270 }} accessibilityLabel={`${S.play.guess.name}. ${S.play.guess.line}`}>
           <View style={{ gap: 8, alignItems: "flex-start" }}>
             <GuessArt />
             <Text variant="title" style={{ fontSize: 22, lineHeight: 23 }}>{S.play.guess.name}</Text>
             <Text variant="caption">{S.play.guess.line}</Text>
           </View>
         </Sticker>
-        <Sticker id="memory" fill={colors.blush} radius={26} offset={5} padding={14} tiltMax={2.5} onPress={soon} style={{ flex: 1, marginTop: 34 }} accessibilityLabel={`${S.play.memory.name}. ${S.play.memory.line}`}>
+        <Sticker id="memory" fill={colors.blush} radius={26} offset={5} padding={14} tiltMax={2.5} onPress={soon} style={{ flex: 1, marginTop: 40 }} faceStyle={{ minHeight: 230 }} accessibilityLabel={`${S.play.memory.name}. ${S.play.memory.line}`}>
           <View style={{ gap: 8, alignItems: "flex-start" }}>
             <MemoryArt />
             <Text variant="title" style={{ fontSize: 20, lineHeight: 21 }}>{S.play.memory.name}</Text>
