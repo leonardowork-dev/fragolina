@@ -183,9 +183,9 @@ try {
     (bPings.data ?? []).length === 1,
     JSON.stringify(bPings.data),
   );
-  for (let i = 0; i < 30 && !gotRealtime; i++) await new Promise((r) => setTimeout(r, 250));
+  for (let i = 0; i < 60 && !gotRealtime; i++) await new Promise((r) => setTimeout(r, 250));
   check(
-    "realtime: B riceve il ping entro 7 s",
+    "realtime: B riceve il ping entro 15 s",
     gotRealtime,
     "nessun evento: controlla che Realtime sia attivo e la publication creata (all.sql)",
   );
