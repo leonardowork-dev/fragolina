@@ -18,7 +18,6 @@ export const S = {
     welcomeTitle: (name: string) => `Ciao ${name}.`,
     welcomeBody: "Qui dentro ci siete solo voi due. Niente feed, niente like, solo adesivi.",
     connectTitle: "Collegati con la tua persona",
-    connectBody: "Uno crea il posto e riceve un codice, l'altra lo scrive. Poi siete dentro.",
     later: "Più tardi",
     doneTitle: "Fatto. Siete dentro.",
     doneBody: "Il primo adesivo lo attacchi tu: tocca Penso a te.",
@@ -36,11 +35,12 @@ export const S = {
     thinkQueued: (name: string) => `Parte appena torna la rete. ${name} lo saprà.`,
     lastFrom: (name: string, when: string) => `Ultimo pensiero di ${name}: ${when}`,
     noneFrom: (name: string) => `${name} non ti ha ancora pensato. Succederà.`,
+    receivedShort: (n: number) => `ricevuti ${n}`,
     receivedTotal: (name: string, n: number) =>
       n === 1 ? `${name} ti ha pensato 1 volta` : `${name} ti ha pensato ${n} volte`,
     moodTitle: (name: string) => `${name} oggi`,
     moodNone: "Ancora niente",
-    moodNoneHint: (name: string) => `Appena ${name} sceglie, lo vedi qui.`,
+    moodNoneHint: "Appena sceglie, lo vedi qui.",
     myMood: "Il tuo umore",
     myMoodNone: "Come stai?",
     myMoodChange: "Cambia",
@@ -113,7 +113,7 @@ export const S = {
     phoneChangedBody: (name: string) =>
       `Libero il suo posto e ti do un codice nuovo: lo scrive lei sul telefono nuovo. Gli umori e i pensieri restano.`,
     phoneChangedAction: "Libera il suo posto",
-    sessionLostTitle: "Questo telefono è un telefono nuovo per il posto",
+    sessionLostTitle: "Questo telefono non è più nel posto",
     sessionLostBody: (name: string) =>
       `Il collegamento con ${name} non è più valido qui. Se ${name} ha ancora il suo telefono, può liberare il tuo vecchio posto da Noi → «ha un telefono nuovo?». Poi rientri con un codice.`,
     sessionLostOk: "Ho capito",

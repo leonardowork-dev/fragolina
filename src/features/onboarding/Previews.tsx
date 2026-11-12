@@ -50,7 +50,7 @@ export function WidgetMock({
 }: {
   partner: string;
   mood: MoodId;
-  days: number;
+  days: number | null;
 }) {
   const { colors } = useTheme();
   return (
@@ -65,7 +65,7 @@ export function WidgetMock({
     >
       <View
         style={{ flexDirection: "row", gap: 12, alignItems: "center" }}
-        accessibilityLabel={`${S.home.daysTitle}: ${days}`}
+        accessibilityLabel={`${S.home.daysTitle}: ${days ?? "–"}`}
       >
         <Sticker id="wm-a" fill={colors.butter} radius={20} offset={3} padding={10} tiltMax={2}>
           <View style={{ alignItems: "center", gap: 2 }}>
@@ -86,7 +86,7 @@ export function WidgetMock({
             style={{ fontSize: 48, lineHeight: 48 }}
             maxFontSizeMultiplier={1.1}
           >
-            {days}
+            {days ?? "–"}
           </Text>
           <Text variant="caption" style={{ fontWeight: "800" }}>
             {S.home.daysTitle.toLowerCase()}

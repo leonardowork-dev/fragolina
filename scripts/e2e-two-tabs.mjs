@@ -17,9 +17,18 @@ fs.mkdirSync(outDir, { recursive: true });
 
 function findBrowser() {
   const home = os.homedir();
-  const c = [process.env.CHROME_PATH, "C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "/usr/bin/google-chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"];
+  const c = [
+    process.env.CHROME_PATH,
+    "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+  ];
   const pw = path.join(home, ".cache", "ms-playwright");
-  if (fs.existsSync(pw)) for (const d of fs.readdirSync(pw).filter((n) => n.startsWith("chromium-"))) c.push(path.join(pw, d, "chrome-linux64", "chrome"));
+  if (fs.existsSync(pw))
+    for (const d of fs.readdirSync(pw).filter((n) => n.startsWith("chromium-")))
+      c.push(path.join(pw, d, "chrome-linux64", "chrome"));
   const f = c.find((x) => x && fs.existsSync(x));
   if (!f) throw new Error("Nessun browser: imposta CHROME_PATH.");
   return f;
@@ -36,7 +45,9 @@ const settle = (p, ms = 700) => p.waitForTimeout(ms);
 let n = 0;
 const shot = async (page, who, name) => {
   n++;
-  await page.screenshot({ path: path.join(outDir, `${String(n).padStart(2, "0")}-${who}-${name}.png`) });
+  await page.screenshot({
+    path: path.join(outDir, `${String(n).padStart(2, "0")}-${who}-${name}.png`),
+  });
 };
 const seen = async (page, matcher, timeout = 15000) => {
   try {
@@ -48,19 +59,46 @@ const seen = async (page, matcher, timeout = 15000) => {
 };
 const btn = (page, name) => page.getByRole("button", { name }).first();
 
-const browser = await chromium.launch({ executablePath: findBrowser(), args: ["--no-sandbox"], env: { ...process.env, LD_LIBRARY_PATH: [process.env.CHROME_LIBS, process.env.LD_LIBRARY_PATH].filter(Boolean).join(":") } });
-const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, permissions: ["clipboard-read", "clipboard-write"] });
+const browser = await chromium.launch({
+  executablePath: findBrowser(),
+  args: ["--no-sandbox"],
+  env: {
+    ...process.env,
+    LD_LIBRARY_PATH: [process.env.CHROME_LIBS, process.env.LD_LIBRARY_PATH]
+      .filter(Boolean)
+      .join(":"),
+  },
+});
+const ctx = await browser.newContext({
+  viewport: { width: W, height: H },
+  deviceScaleFactor: 2,
+  hasTouch: true,
+  isMobile: true,
+  permissions: ["clipboard-read", "clipboard-write"],
+});
 const A = await ctx.newPage();
 const B = await ctx.newPage();
-for (const [p, w] of [[A, "A"], [B, "B"]]) {
+for (const [p, w] of [
+  [A, "A"],
+  [B, "B"],
+]) {
   p.on("pageerror", (e) => errors.push(`[${w}] pageerror: ${e.message}`));
-  p.on("console", (m) => m.type() === "error" && !/favicon|404/.test(m.text()) && errors.push(`[${w}] console: ${m.text()}`));
+  p.on(
+    "console",
+    (m) =>
+      m.type() === "error" &&
+      !/favicon|404/.test(m.text()) &&
+      errors.push(`[${w}] console: ${m.text()}`),
+  );
 }
 const offline = (p, v) => p.evaluate((x) => window.__fragolinaMock.setOffline(x), v);
 
 try {
   // ---------- 1. Onboarding e collegamento ----------
-  await Promise.all([A.goto(base, { waitUntil: "networkidle" }), B.goto(base, { waitUntil: "networkidle" })]);
+  await Promise.all([
+    A.goto(base, { waitUntil: "networkidle" }),
+    B.goto(base, { waitUntil: "networkidle" }),
+  ]);
   await settle(A, 2600);
   await settle(B, 300);
   await shot(A, "A", "onboarding-benvenuto");
@@ -88,7 +126,10 @@ try {
   check("A: compare il codice", await seen(A, /Aspettiamo l'altra persona/));
   await settle(A, 800);
   await shot(A, "A", "codice-attesa");
-  const label = (await A.getByLabel(/Il vostro codice:/).first().getAttribute("aria-label")) ?? "";
+  const label =
+    (await A.getByLabel(/Il vostro codice:/)
+      .first()
+      .getAttribute("aria-label")) ?? "";
   const code = label.replace(/^.*:\s*/, "").replace(/\s+/g, "");
   check("A: codice di 6 caratteri validi", /^[A-HJKMNP-Z2-9]{6}$/.test(code), code);
 
@@ -124,7 +165,7 @@ try {
   check("B: riceve l'avviso in tempo reale", await seen(B, /sta pensando a te/, 12000));
   await shot(B, "B", "ping-ricevuto-avviso");
   await settle(B, 800);
-  check("B: contatore dei pensieri ricevuti = 1", await seen(B, /ti ha pensato 1 volta/));
+  check("B: contatore dei pensieri ricevuti = 1", await seen(B, /ricevuti 1/));
   check("A: contatore 'oggi' = 1", await seen(A, /^1 oggi$/));
   await shot(B, "B", "ping-ricevuto-home");
 
@@ -146,12 +187,21 @@ try {
   await settle(A, 300);
   await btn(A, /Invia Penso a te/).click();
   await settle(A, 700);
-  check("A offline: badge 'Senza rete · 2 in attesa'", await seen(A, /Senza rete · 2 in attesa/, 8000));
+  check(
+    "A offline: badge 'Senza rete · 2 in attesa'",
+    await seen(A, /Senza rete · 2 in attesa/, 8000),
+  );
   await shot(A, "A", "offline-in-coda");
   await settle(B, 600);
-  check("B: durante l'offline di A non arriva nulla (ancora 1 pensiero)", await seen(B, /ti ha pensato 1 volta/, 3000));
+  check(
+    "B: durante l'offline di A non arriva nulla (ancora 1 pensiero)",
+    await seen(B, /ricevuti 1/, 3000),
+  );
   await offline(A, false);
-  check("A: tornata la rete, la coda si svuota e B vede 3 pensieri", await seen(B, /ti ha pensato 3 volte/, 45000));
+  check(
+    "A: tornata la rete, la coda si svuota e B vede 3 pensieri",
+    await seen(B, /ricevuti 3/, 45000),
+  );
   await settle(A, 800);
   check("A: il badge sparisce", (await A.getByText(/Senza rete/).count()) === 0);
   await shot(A, "A", "offline-ripreso");
@@ -182,9 +232,15 @@ try {
   await settle(B, 900);
   await shot(B, "B", "domanda-risposto-attesa");
   await settle(A, 1500);
-  check("A: NON vede la risposta di B prima di rispondere", (await A.getByText(/ha risposto/).count()) === 0);
+  check(
+    "A: NON vede la risposta di B prima di rispondere",
+    (await A.getByText(/ha risposto/).count()) === 0,
+  );
   await A.getByTestId("answer-a").click();
-  check("A: dopo aver risposto compare la carta da scoprire", await seen(A, /Tocca per scoprire/, 10000));
+  check(
+    "A: dopo aver risposto compare la carta da scoprire",
+    await seen(A, /Tocca per scoprire/, 10000),
+  );
   await settle(A, 900);
   await shot(A, "A", "domanda-carta-da-girare");
   await btn(A, /Scopri la risposta di/).click();
@@ -196,7 +252,10 @@ try {
   await shot(B, "B", "domanda-carta-da-girare");
 
   // ---------- 7. Noi ----------
-  for (const [p, w] of [[A, "A"], [B, "B"]]) {
+  for (const [p, w] of [
+    [A, "A"],
+    [B, "B"],
+  ]) {
     await p.getByRole("tab", { name: "Noi" }).click();
     await settle(p, 1100);
     await shot(p, w, "noi");
@@ -206,10 +265,73 @@ try {
   await shot(A, "A", "esci-conferma");
   await btn(A, "Resto").click();
   await settle(A, 700);
-  check("A: 'Resto' chiude la conferma senza uscire", (await A.getByText(/Eccovi\.|Collegati con/).count()) > 0);
+  check(
+    "A: 'Resto' chiude la conferma senza uscire",
+    (await A.getByText(/Eccovi\.|Collegati con/).count()) > 0,
+  );
+
+  // ---------- 8. Stati d'errore ----------
+  // C: prova a entrare in una coppia già piena
+  const C = await ctx.newPage();
+  await C.goto(base, { waitUntil: "networkidle" });
+  await settle(C, 2200);
+  await btn(C, "Avanti").click();
+  await btn(C, "Ho un codice").click();
+  await C.getByLabel("Codice di coppia").fill(code);
+  await btn(C, "Entra").click();
+  check("C: coppia piena → messaggio dedicato", await seen(C, /già al completo/));
+  await settle(C, 400);
+  await shot(C, "C", "coppia-piena");
+  // D: crea il posto senza rete
+  const D = await ctx.newPage();
+  await D.goto(base, { waitUntil: "networkidle" });
+  await settle(D, 2200);
+  await btn(D, "Avanti").click();
+  await offline(D, true);
+  await btn(D, "Crea il nostro posto").click();
+  check("D: senza rete → messaggio 'Niente rete'", await seen(D, /Niente rete/));
+  await settle(D, 400);
+  await shot(D, "D", "creazione-senza-rete");
+  // E: codice scaduto
+  const E = await ctx.newPage();
+  await E.goto(base, { waitUntil: "networkidle" });
+  await settle(E, 2200);
+  await btn(E, "Avanti").click();
+  await btn(E, "Crea il nostro posto").click();
+  await seen(E, /Aspettiamo l'altra persona/);
+  await E.evaluate(() => {
+    const k = "fragolina.mock.server.v1";
+    const s = JSON.parse(localStorage.getItem(k));
+    for (const c of Object.values(s.couples))
+      if (c.joinCode && !s.members.filter((m) => m.coupleId === c.id)[1])
+        c.expiresAt = Date.now() - 1000;
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  check("E: codice scaduto → 'Nuovo codice'", await seen(E, /Codice scaduto/, 30000));
+  await settle(E, 500);
+  await shot(E, "E", "codice-scaduto");
+  await btn(E, "Nuovo codice").click();
+  check("E: il codice nuovo sostituisce quello scaduto", await seen(E, /Vale ancora/, 10000));
+  await settle(E, 500);
+  await shot(E, "E", "codice-rinnovato");
+  // A: sessione sostituita
+  await A.evaluate(() => sessionStorage.setItem("fragolina.mock.uid", crypto.randomUUID()));
+  await A.reload({ waitUntil: "networkidle" });
+  await settle(A, 2500);
+  await A.getByRole("tab", { name: "Noi" }).click();
+  check(
+    "A: sessione sostituita → avviso nella scheda Noi",
+    await seen(A, /non è più nel posto/, 15000),
+  );
+  await settle(A, 600);
+  await shot(A, "A", "sessione-persa");
 } catch (e) {
   check("esecuzione senza eccezioni", false, String(e.message ?? e).split("\n")[0]);
-  for (const [p, w] of [[A, "A"], [B, "B"]]) await p.screenshot({ path: path.join(outDir, `99-${w}-errore.png`) }).catch(() => {});
+  for (const [p, w] of [
+    [A, "A"],
+    [B, "B"],
+  ])
+    await p.screenshot({ path: path.join(outDir, `99-${w}-errore.png`) }).catch(() => {});
 }
 
 check("nessun errore in console / pageerror", errors.length === 0, errors.slice(0, 3).join(" | "));

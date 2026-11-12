@@ -60,6 +60,7 @@ export function OnboardingScreen() {
   const scroller = useRef<Animated.ScrollView>(null);
   const progress = useSharedValue(0);
   const [page, setPage] = useState(0);
+  const [pagerH, setPagerH] = useState<number | undefined>(undefined);
   const confettiDone = useRef(false);
   const setDone = useSettings((s) => s.setOnboardingDone);
   const partner = useCouple((s) => s.partnerName);
@@ -156,8 +157,9 @@ export function OnboardingScreen() {
           scrollEventThrottle={16}
           onScroll={onScroll}
           keyboardShouldPersistTaps="handled"
+          onLayout={(e) => setPagerH(e.nativeEvent.layout.height)}
           style={{ flex: 1 }}
-          contentContainerStyle={{ alignItems: "flex-start" }}
+          contentContainerStyle={{ alignItems: "stretch" }}
         >
           <View style={pageStyle}>
             <Text
@@ -176,7 +178,7 @@ export function OnboardingScreen() {
           </View>
 
           <ScrollView
-            style={{ width }}
+            style={{ width, height: pagerH }}
             contentContainerStyle={{ ...pageStyle, paddingBottom: 24 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -184,7 +186,6 @@ export function OnboardingScreen() {
             <Text variant="display" accessibilityRole="header">
               {S.onboarding.connectTitle}
             </Text>
-            <Text variant="body">{S.onboarding.connectBody}</Text>
             <PairingPanel variant="onboarding" />
           </ScrollView>
 
@@ -203,7 +204,11 @@ export function OnboardingScreen() {
             </Text>
             <View style={{ marginTop: 14, gap: 10 }}>
               <Text variant="caption">{S.onboarding.widgetCaption}</Text>
-              <WidgetMock partner={partner} mood="innamorata" days={daysSince(startDate)} />
+              <WidgetMock
+                partner={partner}
+                mood="innamorata"
+                days={startDate ? daysSince(startDate) : null}
+              />
             </View>
           </View>
         </Animated.ScrollView>

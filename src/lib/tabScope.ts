@@ -18,9 +18,20 @@ export function tabId(): string {
   }
 }
 
+/** Suffisso degli archivi persistiti: fisso per scheda anche se l'identità cambia (serve a provare "sessione sostituita"). */
 export function storageScope(): string {
   const isWeb = typeof document !== "undefined";
   const hasKeys =
     !!process.env.EXPO_PUBLIC_SUPABASE_URL && !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-  return isWeb && !hasKeys ? `.${tabId().slice(0, 8)}` : "";
+  if (!isWeb || hasKeys) return "";
+  try {
+    let id = sessionStorage.getItem("fragolina.mock.scope");
+    if (!id) {
+      id = tabId().slice(0, 8);
+      sessionStorage.setItem("fragolina.mock.scope", id);
+    }
+    return `.${id}`;
+  } catch {
+    return "";
+  }
 }

@@ -146,7 +146,7 @@ export function PairingPanel({
   // Il conto alla rovescia del codice si aggiorna ogni 30 s.
   useEffect(() => {
     if (pairing !== "waiting") return;
-    const t = setInterval(() => setNow(Date.now()), 30_000);
+    const t = setInterval(() => setNow(Date.now()), 10_000);
     return () => clearInterval(t);
   }, [pairing]);
 
@@ -279,7 +279,9 @@ export function PairingPanel({
         ) : left !== null ? (
           <Text variant="caption">{S.pairing.expiresIn(timeLeft(left))}</Text>
         ) : null}
-        <Button label={S.pairing.cancel} variant="ghost" onPress={() => setConfirm("leave")} />
+        <View style={{ marginLeft: -8 }}>
+          <Button label={S.pairing.cancel} variant="ghost" onPress={() => setConfirm("leave")} />
+        </View>
         <ConfirmSheet
           visible={confirm === "leave"}
           title={S.pairing.leaveTitle}
@@ -335,15 +337,17 @@ export function PairingPanel({
             haptic="tick"
           />
         </View>
-        <Button
-          label={S.pairing.back}
-          variant="ghost"
-          onPress={() => {
-            setMode("choose");
-            setError(null);
-            setTyped("");
-          }}
-        />
+        <View style={{ marginLeft: -8 }}>
+          <Button
+            label={S.pairing.back}
+            variant="ghost"
+            onPress={() => {
+              setMode("choose");
+              setError(null);
+              setTyped("");
+            }}
+          />
+        </View>
         {note}
       </View>
     );

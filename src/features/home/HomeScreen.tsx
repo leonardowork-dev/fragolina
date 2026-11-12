@@ -82,13 +82,13 @@ function ThinkHero() {
         haptic="success"
         onPress={onPress}
         accessibilityLabel={S.a11y.thinkButton(partner)}
-        faceStyle={{ minHeight: 232, justifyContent: "flex-end" }}
+        faceStyle={{ minHeight: 250, justifyContent: "flex-end" }}
       >
         <View style={{ gap: 10 }}>
           <Text variant="hero" adjustsFontSizeToFit numberOfLines={2} minimumFontScale={0.7}>
             {S.home.thinkTitle}
           </Text>
-          <Text variant="bodyStrong" numberOfLines={3}>
+          <Text variant="bodyStrong" numberOfLines={2}>
             {flash
               ? offline
                 ? S.home.thinkQueued(partner)
@@ -97,16 +97,17 @@ function ThinkHero() {
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Icon name="heart" size={20} fill={colors.butter} />
-            <Text variant="caption">{S.home.thinkToday(today)}</Text>
+            <Text variant="caption">
+              {S.home.thinkToday(today) +
+                (totalIn > 0 ? ` · ${S.home.receivedShort(totalIn)}` : "")}
+            </Text>
           </View>
-          <Text variant="caption" numberOfLines={2} style={{ opacity: 0.85 }}>
-            {lastIn
-              ? `${S.home.lastFrom(partner, timeAgo(lastIn))} · ${S.home.receivedTotal(partner, totalIn)}`
-              : S.home.noneFrom(partner)}
+          <Text variant="caption" numberOfLines={1} style={{ opacity: 0.85 }}>
+            {lastIn ? S.home.lastFrom(partner, timeAgo(lastIn)) : S.home.noneFrom(partner)}
           </Text>
         </View>
       </Sticker>
-      <View style={{ position: "absolute", right: 10, top: -46 }} pointerEvents="box-none">
+      <View style={{ position: "absolute", right: 10, top: -54 }} pointerEvents="box-none">
         <Mascot size={122} reactive />
       </View>
     </View>
@@ -156,7 +157,7 @@ function ConnectHero() {
           </View>
         </View>
       </Sticker>
-      <View style={{ position: "absolute", right: 10, top: -46 }} pointerEvents="box-none">
+      <View style={{ position: "absolute", right: 10, top: -54 }} pointerEvents="box-none">
         <Mascot size={122} mood="sleepy" />
       </View>
     </View>
@@ -278,7 +279,7 @@ function MoodCard() {
           </View>
         )}
         <View style={{ alignItems: "center", alignSelf: "stretch" }}>
-          <Text variant="caption" numberOfLines={1} align="center">
+          <Text variant="caption" numberOfLines={2} align="center">
             {cap(S.home.moodTitle(partner))}
           </Text>
           <Text
@@ -296,7 +297,7 @@ function MoodCard() {
               style={{ fontSize: 13, lineHeight: 16 }}
               maxFontSizeMultiplier={1.3}
             >
-              {S.home.moodNoneHint(partner)}
+              {S.home.moodNoneHint}
             </Text>
           ) : null}
         </View>
