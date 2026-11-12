@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 
 import { getGroupResolver } from "../../modules/group-resolver";
-import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
+import { encodeSnapshot, type WidgetSnapshot } from "./widgetPayload";
 
 /**
  * Ponte app → widget. L'UI parla SOLO con `widgetBridge` (interfaccia `WidgetBridge`).
@@ -10,15 +10,7 @@ import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
  * stato al server (Supabase) invece che al container; il widget allora fa fetch da solo. Nessuna modifica alla UI.
  * Il widget gira in un processo isolato: riceve solo dati già calcolati, mai stato dell'app.
  */
-export type WidgetSnapshot = {
-  v: number;
-  updatedAt: number; // ms epoch
-  partnerName: string;
-  moodId: string;
-  moodLabel: string;
-  thinkingToday: number;
-  startDate: string; // AAAA-MM-GG: i giorni li calcola il widget (scattano a mezzanotte da soli)
-};
+export type { WidgetSnapshot } from "./widgetPayload";
 
 export type PushResult = { ok: true; group: string } | { ok: false; reason: string };
 
@@ -37,10 +29,6 @@ export interface WidgetBridge {
   diagnostics(): BridgeDiagnostics;
 }
 
-export function makeSnapshot(input: Omit<WidgetSnapshot, "v" | "updatedAt">): WidgetSnapshot {
-  return { v: WIDGET_SCHEMA_VERSION, updatedAt: Date.now(), ...input };
-}
-
 /** Percorso A: App Group condiviso. */
 class AppGroupBridge implements WidgetBridge {
   readonly name = "app-group";
@@ -53,7 +41,7 @@ class AppGroupBridge implements WidgetBridge {
     const native = getGroupResolver();
     if (!native) return { ok: false, reason: "modulo nativo assente (Expo Go o web)" };
     try {
-      const group = native.writePayload(JSON.stringify(snapshot));
+      const group = native.writePayload(encodeSnapshot(snapshot));
       if (!group)
         return {
           ok: false,

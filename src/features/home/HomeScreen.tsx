@@ -5,8 +5,8 @@ import Animated, {
   FadeIn,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withSequence,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
@@ -14,28 +14,36 @@ import {
   Icon,
   Mascot,
   MoodSticker,
+  Skeleton,
   Sticker,
   Text,
   useEffectsBus,
   useMascot,
   useTheme,
+  useToast,
 } from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { motion, radius } from "@/design/tokens";
+import { LinkBadge } from "@/features/pairing/LinkBadge";
+import { EditCoupleSheet } from "@/features/us/EditCoupleSheet";
 import { haptics } from "@/lib/haptics";
 import { S } from "@/lib/strings.it";
-import { daysSince, formatLongDate } from "@/lib/time";
-import { selectThoughtsToday, useCouple } from "@/state/coupleStore";
+import { daysSince, formatLongDate, timeAgo } from "@/lib/time";
+import { selectPairing, selectPingsToday, selectQuestion, useCouple } from "@/state/coupleStore";
 
 import { MoodSheet } from "./MoodSheet";
+import { RevealCard } from "./RevealCard";
 import { RollingNumber } from "./RollingNumber";
 
-/** Home: UN elemento dominante (il bottone "Penso a te"), il resto disposto in modo asimmetrico attorno. */
+/** Home: UN elemento dominante (il bottone "Penso a te" o, se manca una persona, l'invito a collegarsi). */
 
 function ThinkHero() {
   const { colors } = useTheme();
   const partner = useCouple((s) => s.partnerName);
-  const today = useCouple(selectThoughtsToday);
+  const today = useCouple((s) => selectPingsToday(s));
+  const link = useCouple((s) => s.link);
+  const lastIn = useCouple((s) => s.lastPingReceivedAt);
+  const totalIn = useCouple((s) => s.pingsReceivedTotal);
   const sendThought = useCouple((s) => s.sendThought);
   const [flash, setFlash] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -43,12 +51,12 @@ function ThinkHero() {
   const onPress = useCallback(
     (e: GestureResponderEvent) => {
       const { pageX, pageY } = e.nativeEvent;
+      if (!sendThought()) return;
       useEffectsBus.getState().fireHearts(pageX, pageY);
       useMascot.getState().react("love");
-      sendThought();
       setFlash(true);
       if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setFlash(false), 1800);
+      timer.current = setTimeout(() => setFlash(false), 2200);
     },
     [sendThought],
   );
@@ -59,6 +67,7 @@ function ThinkHero() {
     [],
   );
 
+  const offline = link === "offline";
   return (
     <View style={{ marginTop: 44 }}>
       <Sticker
@@ -79,12 +88,21 @@ function ThinkHero() {
             {S.home.thinkTitle}
           </Text>
           <Text variant="bodyStrong" numberOfLines={3}>
-            {flash ? S.home.thinkSent(partner) : S.home.thinkHint(partner)}
+            {flash
+              ? offline
+                ? S.home.thinkQueued(partner)
+                : S.home.thinkSent(partner)
+              : S.home.thinkHint(partner)}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Icon name="heart" size={20} fill={colors.butter} />
             <Text variant="caption">{S.home.thinkToday(today)}</Text>
           </View>
+          <Text variant="caption" numberOfLines={2} style={{ opacity: 0.85 }}>
+            {lastIn
+              ? `${S.home.lastFrom(partner, timeAgo(lastIn))} · ${S.home.receivedTotal(partner, totalIn)}`
+              : S.home.noneFrom(partner)}
+          </Text>
         </View>
       </Sticker>
       <View style={{ position: "absolute", right: 10, top: -46 }} pointerEvents="box-none">
@@ -94,7 +112,58 @@ function ThinkHero() {
   );
 }
 
-function DaysCard() {
+function ConnectHero() {
+  const { colors } = useTheme();
+  const router = useRouter();
+  const partner = useCouple((s) => s.partnerName);
+  const pairing = useCouple(selectPairing);
+  const waiting = pairing === "waiting";
+  return (
+    <View style={{ marginTop: 44 }}>
+      <Sticker
+        id="collegati"
+        fill={colors.accent}
+        radius={32}
+        offset={6}
+        padding={22}
+        tiltMax={1.2}
+        pressScale={0.96}
+        haptic="light"
+        onPress={() => router.push("/(tabs)/us")}
+        accessibilityLabel={waiting ? S.home.showCode : S.home.connect(partner)}
+        faceStyle={{ minHeight: 232, justifyContent: "flex-end" }}
+      >
+        <View style={{ gap: 10 }}>
+          <Text variant="hero" adjustsFontSizeToFit numberOfLines={3} minimumFontScale={0.6}>
+            {waiting ? S.home.waitingTitle(partner) : S.home.notPairedTitle}
+          </Text>
+          <Text variant="bodyStrong" numberOfLines={4}>
+            {waiting ? S.home.waitingBody : S.home.notPairedBody(partner)}
+          </Text>
+          <View style={{ alignSelf: "flex-start" }}>
+            <Sticker
+              id="collegati-cta"
+              fill={colors.butter}
+              radius={radius.round}
+              offset={3}
+              padding={0}
+              tiltMax={1}
+            >
+              <Text variant="bodyStrong" style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
+                {waiting ? S.home.showCode : S.home.connect(partner)}
+              </Text>
+            </Sticker>
+          </View>
+        </View>
+      </Sticker>
+      <View style={{ position: "absolute", right: 10, top: -46 }} pointerEvents="box-none">
+        <Mascot size={122} mood="sleepy" />
+      </View>
+    </View>
+  );
+}
+
+function DaysCard({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
   const start = useCouple((s) => s.startDate);
   const days = daysSince(start);
@@ -107,25 +176,50 @@ function DaysCard() {
       offset={5}
       padding={18}
       tiltMax={1.5}
-      accessibilityLabel={`${S.home.daysTitle}: ${days}`}
-      accessibilityRole="text"
+      onPress={onPress}
+      haptic="light"
+      accessibilityLabel={
+        start
+          ? `${S.home.daysTitle}: ${days}. ${S.home.daysEdit}`
+          : `${S.home.daysNone} ${S.home.daysNoneHint}`
+      }
       style={{ flex: 1.35 }}
     >
       <View style={{ gap: 2 }}>
         <Text variant="caption">{S.home.daysTitle}</Text>
-        <RollingNumber value={days} variant="hero" size={size} />
-        <Text variant="caption" numberOfLines={2}>
-          {days === 0 ? S.home.daysZero : `dal ${formatLongDate(start)}`}
-        </Text>
+        {start ? (
+          <>
+            <RollingNumber value={days} variant="hero" size={size} />
+            <Text variant="caption" numberOfLines={2}>
+              {days === 0 ? S.home.daysZero : `dal ${formatLongDate(start)}`}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text
+              variant="display"
+              style={{ fontSize: 34, lineHeight: 36 }}
+              numberOfLines={2}
+              maxFontSizeMultiplier={1.2}
+            >
+              {S.home.daysNone}
+            </Text>
+            <Text variant="caption" numberOfLines={2}>
+              {S.home.daysNoneHint}
+            </Text>
+          </>
+        )}
       </View>
     </Sticker>
   );
 }
 
-function MoodCard({ onPress }: { onPress: () => void }) {
+/** L'umore di lei: sola lettura, si aggiorna in tempo reale. */
+function MoodCard() {
   const { colors, reduceMotion } = useTheme();
   const partner = useCouple((s) => s.partnerName);
-  const mood = useCouple((s) => s.partnerMood);
+  const mood = useCouple((s) => s.partnerMood?.moodId ?? null);
+  const loading = useCouple((s) => s.link === "connecting" && s.lastSyncAt === null);
   const k = useSharedValue(1);
   const first = useRef(true);
   useEffect(() => {
@@ -145,28 +239,113 @@ function MoodCard({ onPress }: { onPress: () => void }) {
       offset={5}
       padding={14}
       tiltMax={2}
-      onPress={onPress}
-      haptic="light"
-      accessibilityLabel={S.a11y.moodButton(partner, S.moods[mood])}
+      accessibilityRole="text"
+      accessibilityLabel={
+        mood
+          ? S.a11y.moodButton(partner, S.moods[mood])
+          : `${S.home.moodTitle(partner)}: ${S.home.moodNone}`
+      }
       style={{ flex: 1, marginTop: 26 }}
     >
       <View style={{ alignItems: "center", gap: 8 }}>
-        <Animated.View style={pop}>
-          <MoodSticker mood={mood} size={84} />
-        </Animated.View>
+        {loading ? (
+          <Skeleton width={84} height={84} radius={42} />
+        ) : mood ? (
+          <Animated.View style={pop}>
+            <MoodSticker mood={mood} size={84} />
+          </Animated.View>
+        ) : (
+          <View
+            style={{
+              width: 84,
+              height: 84,
+              borderRadius: 42,
+              borderWidth: 2.5,
+              borderColor: colors.outline,
+              borderStyle: "dashed",
+              backgroundColor: colors.skySoft,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              variant="display"
+              style={{ fontSize: 40, lineHeight: 44 }}
+              maxFontSizeMultiplier={1}
+            >
+              ?
+            </Text>
+          </View>
+        )}
         <View style={{ alignItems: "center", alignSelf: "stretch" }}>
           <Text variant="caption" numberOfLines={1} align="center">
             {S.home.moodTitle(partner)}
           </Text>
           <Text
             variant="bodyStrong"
-            numberOfLines={2}
+            numberOfLines={3}
             align="center"
             style={{ fontSize: 16, lineHeight: 20 }}
           >
-            {S.moods[mood]}
+            {mood ? S.moods[mood] : S.home.moodNone}
+          </Text>
+          {!mood && !loading ? (
+            <Text
+              variant="caption"
+              align="center"
+              style={{ fontSize: 13, lineHeight: 16 }}
+              maxFontSizeMultiplier={1.3}
+            >
+              {S.home.moodNoneHint(partner)}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+    </Sticker>
+  );
+}
+
+/** Il tuo umore: una riga sola, un tocco per cambiarlo. */
+function MyMoodStrip({ onPress }: { onPress: () => void }) {
+  const { colors } = useTheme();
+  const mood = useCouple((s) => s.myMood?.moodId ?? null);
+  return (
+    <Sticker
+      id="mio-umore"
+      fill={colors.surface}
+      radius={radius.lg}
+      offset={4}
+      padding={12}
+      tiltMax={1}
+      onPress={onPress}
+      haptic="light"
+      accessibilityLabel={`${S.home.myMood}: ${mood ? S.moods[mood] : S.home.myMoodNone}. ${S.home.myMoodChange}`}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        {mood ? (
+          <MoodSticker mood={mood} size={44} />
+        ) : (
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              borderWidth: 2.5,
+              borderColor: colors.outline,
+              borderStyle: "dashed",
+              backgroundColor: colors.blushSoft,
+            }}
+          />
+        )}
+        <View style={{ flex: 1 }}>
+          <Text variant="caption">{S.home.myMood}</Text>
+          <Text variant="bodyStrong" numberOfLines={1}>
+            {mood ? S.moods[mood] : S.home.myMoodNone}
           </Text>
         </View>
+        <Text variant="bodyStrong" color={colors.accentInk}>
+          {S.home.myMoodChange}
+        </Text>
       </View>
     </Sticker>
   );
@@ -175,9 +354,11 @@ function MoodCard({ onPress }: { onPress: () => void }) {
 function QuestionCard() {
   const { colors } = useTheme();
   const partner = useCouple((s) => s.partnerName);
-  const q = useCouple((s) => s.question);
+  const q = useCouple((s) => selectQuestion(s));
+  const revealedDay = useCouple((s) => s.revealedDay);
+  const markRevealed = useCouple((s) => s.markRevealed);
   const answer = useCouple((s) => s.answerQuestion);
-  const label = { a: S.home.answerA, b: S.home.answerB } as const;
+  const label = { a: q.a, b: q.b } as const;
   const answered = q.myAnswer !== null;
   return (
     <Sticker
@@ -191,7 +372,7 @@ function QuestionCard() {
     >
       <View style={{ gap: 12 }}>
         <Text variant="caption">{S.home.questionTitle}</Text>
-        <Text variant="title">{S.home.question}</Text>
+        <Text variant="title">{q.text}</Text>
         <View style={{ gap: 10 }}>
           {(["a", "b"] as const).map((k) => {
             const mine = q.myAnswer === k;
@@ -201,13 +382,14 @@ function QuestionCard() {
                 id={`risposta-${k}`}
                 fill={mine ? colors.leaf : colors.blushSoft}
                 radius={radius.md}
-                offset={3}
+                offset={mine || !answered ? 3 : 0}
                 padding={0}
                 tiltMax={0.8}
-                onPress={() => answer(k)}
+                onPress={answered ? undefined : () => answer(k)}
                 haptic="tick"
                 accessibilityLabel={label[k]}
-                accessibilityHint={answered ? undefined : S.home.questionTitle}
+                accessibilityHint={answered ? undefined : S.home.answerHint}
+                style={{ opacity: answered && !mine ? 0.5 : 1 }}
               >
                 <View
                   style={{
@@ -241,15 +423,23 @@ function QuestionCard() {
             );
           })}
         </View>
-        {answered ? (
+        {!answered ? (
+          <Text variant="caption">{S.home.answerHint}</Text>
+        ) : q.partnerAnswer ? (
           <Animated.View entering={FadeIn.duration(motion.duration.enter).easing(motion.easeOut)}>
-            <Text variant="body">
-              {q.partnerAnswer
-                ? `${S.home.partnerAnswered(partner, label[q.partnerAnswer])}. ${q.partnerAnswer === q.myAnswer ? S.home.sameAnswer : S.home.diffAnswer}`
-                : S.home.waitingPartner(partner)}
-            </Text>
+            <RevealCard
+              partnerName={partner}
+              answerLabel={label[q.partnerAnswer]}
+              verdict={q.partnerAnswer === q.myAnswer ? S.home.sameAnswer : S.home.diffAnswer}
+              revealed={revealedDay === q.day}
+              onReveal={markRevealed}
+            />
           </Animated.View>
-        ) : null}
+        ) : (
+          <Animated.View entering={FadeIn.duration(motion.duration.enter).easing(motion.easeOut)}>
+            <Text variant="body">{S.home.waitingPartner(partner)}</Text>
+          </Animated.View>
+        )}
       </View>
     </Sticker>
   );
@@ -257,12 +447,15 @@ function QuestionCard() {
 
 export function HomeScreen() {
   const router = useRouter();
-  const [sheet, setSheet] = useState(false);
+  const toast = useToast();
+  const [moodSheet, setMoodSheet] = useState(false);
+  const [dateSheet, setDateSheet] = useState(false);
   const taps = useRef(0);
   const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const partner = useCouple((s) => s.partnerName);
-  const mood = useCouple((s) => s.partnerMood);
-  const setMood = useCouple((s) => s.setPartnerMood);
+  const myMood = useCouple((s) => s.myMood?.moodId ?? null);
+  const setMood = useCouple((s) => s.setMyMood);
+  const pairing = useCouple(selectPairing);
 
   // Cinque tocchi sul titolo aprono il laboratorio del design (nascosto).
   const onTitle = () => {
@@ -278,30 +471,47 @@ export function HomeScreen() {
 
   return (
     <Screen>
-      <Pressable
-        onPress={onTitle}
-        accessibilityRole="header"
-        accessibilityLabel={S.appName}
-        hitSlop={10}
-        style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+        }}
       >
-        <Text variant="title">{S.home.title}</Text>
-      </Pressable>
-      <ThinkHero />
-      <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
-        <DaysCard />
-        <MoodCard onPress={() => setSheet(true)} />
+        <Pressable
+          onPress={onTitle}
+          accessibilityRole="header"
+          accessibilityLabel={S.appName}
+          hitSlop={10}
+          style={{ alignSelf: "flex-start", minHeight: 44, justifyContent: "center" }}
+        >
+          <Text variant="title">{S.home.title}</Text>
+        </Pressable>
+        <LinkBadge />
       </View>
-      <QuestionCard />
+      {pairing === "paired" ? <ThinkHero /> : <ConnectHero />}
+      <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
+        <DaysCard onPress={() => setDateSheet(true)} />
+        <MoodCard />
+      </View>
+      <MyMoodStrip onPress={() => setMoodSheet(true)} />
+      {pairing === "paired" ? <QuestionCard /> : null}
       <MoodSheet
-        visible={sheet}
-        onClose={() => setSheet(false)}
-        current={mood}
+        visible={moodSheet}
+        onClose={() => setMoodSheet(false)}
+        current={myMood}
         partnerName={partner}
         onPick={(m) => {
           setMood(m);
-          setTimeout(() => setSheet(false), 260);
+          toast.show(S.toast.moodSet(S.moods[m]));
+          setTimeout(() => setMoodSheet(false), 260);
         }}
+      />
+      <EditCoupleSheet
+        visible={dateSheet}
+        onClose={() => setDateSheet(false)}
+        onSaved={() => toast.show(S.toast.saved)}
       />
     </Screen>
   );

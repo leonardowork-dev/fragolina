@@ -17,6 +17,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConfettiLayer, HeartBurstLayer, ThemeProvider, ToastProvider, useTheme } from "@/design";
 import { Grain } from "@/design/layout/Grain";
 import { SplashOverlay } from "@/design/layout/SplashOverlay";
+import { useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useSyncLifecycle";
 import { useWidgetSync } from "@/features/widgetSync/useWidgetSync";
 import { useSettings } from "@/state/settingsStore";
 
@@ -29,6 +30,8 @@ function Shell() {
   const hydrated = useSettings((s) => s.hydrated);
   const onboardingDone = useSettings((s) => s.onboardingDone);
   useWidgetSync();
+  useSyncLifecycle();
+  useRealtimeEffects();
 
   // Primo avvio: onboarding. Dopo, mai più (finché non lo si rivede da "Noi").
   useEffect(() => {

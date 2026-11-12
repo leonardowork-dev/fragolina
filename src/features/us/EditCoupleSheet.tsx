@@ -103,7 +103,11 @@ function Stepper({
 /** Il form si monta ogni volta che lo Sheet si apre (lo Sheet smonta i figli a chiusura): parte sempre dai dati veri. */
 function EditForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const couple = useCouple();
-  const [initY, initM, initD] = couple.startDate.split("-").map(Number);
+  const paired = !!couple.coupleId;
+  const today = new Date();
+  const [initY, initM, initD] = couple.startDate
+    ? couple.startDate.split("-").map(Number)
+    : [today.getFullYear(), today.getMonth() + 1, today.getDate()];
   const [me, setMe] = useState(couple.meName);
   const [partner, setPartner] = useState(couple.partnerName);
   const [y, setY] = useState(initY || 2025);
@@ -129,12 +133,13 @@ function EditForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => vo
   };
 
   const save = () => {
-    if (!me.trim() || !partner.trim()) {
+    if (!me.trim() || (!paired && !partner.trim())) {
       setError(S.us.nameEmpty);
       haptics.light();
       return;
     }
-    couple.setNames(me.trim(), partner.trim());
+    couple.setMyName(me.trim());
+    if (!paired) couple.setPartnerNameLocal(partner.trim());
     couple.setStartDate(toIso(y, m, d));
     onSaved();
     onClose();
@@ -143,12 +148,16 @@ function EditForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => vo
   return (
     <View style={{ gap: 14, marginTop: 8 }}>
       <Field label={S.us.yourName} value={me} onChange={setMe} error={!me.trim() ? error : null} />
-      <Field
-        label={S.us.partnerName}
-        value={partner}
-        onChange={setPartner}
-        error={!partner.trim() ? error : null}
-      />
+      {paired ? (
+        <Text variant="caption">{S.us.partnerNameFromServer}</Text>
+      ) : (
+        <Field
+          label={S.us.partnerName}
+          value={partner}
+          onChange={setPartner}
+          error={!partner.trim() ? error : null}
+        />
+      )}
       <Text variant="caption">{S.us.since}</Text>
       <View style={{ flexDirection: "row", gap: 8 }}>
         <Stepper

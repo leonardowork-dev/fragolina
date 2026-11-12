@@ -94,14 +94,14 @@ export function MoodSheet({
 }: {
   visible: boolean;
   onClose: () => void;
-  current: MoodId;
+  current: MoodId | null;
   partnerName: string;
   onPick: (m: MoodId) => void;
 }) {
   return (
-    <Sheet visible={visible} onClose={onClose} title={S.home.moodSheetTitle(partnerName)}>
+    <Sheet visible={visible} onClose={onClose} title={S.home.moodSheetTitle}>
       <Text variant="body" style={{ marginBottom: 10 }}>
-        {S.home.moodSheetHint}
+        {S.home.moodSheetHint(partnerName)}
       </Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
         {MOOD_IDS.map((m, i) => (

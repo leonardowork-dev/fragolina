@@ -15,6 +15,8 @@ import {
   useToast,
 } from "@/design";
 import { Screen } from "@/design/layout/Screen";
+import { LinkBadge } from "@/features/pairing/LinkBadge";
+import { PairingPanel } from "@/features/pairing/PairingPanel";
 import { S } from "@/lib/strings.it";
 import { daysSince, formatLongDate } from "@/lib/time";
 import { useCouple } from "@/state/coupleStore";
@@ -36,14 +38,44 @@ export function UsScreen() {
   const setReduce = useSettings((s) => s.setReduceMotionOverride);
   const setOnboardingDone = useSettings((s) => s.setOnboardingDone);
   const [edit, setEdit] = useState(false);
+  const sessionLost = useCouple((s) => s.sessionLost);
+  const dismissLost = useCouple((s) => s.dismissSessionLost);
   const days = daysSince(start);
   const version = Constants.expoConfig?.version ?? "1.0.0";
 
   return (
     <Screen>
-      <Text variant="display" accessibilityRole="header">
-        {S.us.title}
-      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+        }}
+      >
+        <Text variant="display" accessibilityRole="header">
+          {S.us.title}
+        </Text>
+        <LinkBadge />
+      </View>
+      {sessionLost ? (
+        <Sticker
+          id="sessione-persa"
+          fill={colors.butter}
+          radius={24}
+          offset={4}
+          padding={16}
+          tiltMax={1}
+        >
+          <View style={{ gap: 10 }}>
+            <Text variant="title" accessibilityRole="header">
+              {S.pairing.sessionLostTitle}
+            </Text>
+            <Text variant="body">{S.pairing.sessionLostBody(partner)}</Text>
+            <Button label={S.pairing.sessionLostOk} variant="secondary" onPress={dismissLost} />
+          </View>
+        </Sticker>
+      ) : null}
       <Sticker id="coppia" fill={colors.blush} radius={32} offset={6} padding={20} tiltMax={1.2}>
         <View style={{ gap: 14 }}>
           <View style={{ flexDirection: "row" }}>
@@ -61,10 +93,28 @@ export function UsScreen() {
             </Text>
           </View>
           <Text variant="bodyStrong">
-            {S.us.since} {formatLongDate(start)}
-            {days > 0 ? ` · ${days} giorni` : ""}
+            {start
+              ? `${S.us.since} ${formatLongDate(start)}${days > 0 ? ` · ${days} giorni` : ""}`
+              : S.us.noDate}
           </Text>
           <Button label={S.us.edit} variant="secondary" icon="draw" onPress={() => setEdit(true)} />
+        </View>
+      </Sticker>
+
+      <Sticker
+        id="posto"
+        fill={colors.surface}
+        radius={28}
+        offset={4}
+        padding={18}
+        tiltMax={0.8}
+        style={{ marginRight: 14 }}
+      >
+        <View style={{ gap: 14 }}>
+          <Text variant="title" accessibilityRole="header">
+            {S.pairing.connectedTitle}
+          </Text>
+          <PairingPanel variant="us" />
         </View>
       </Sticker>
 

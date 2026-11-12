@@ -16,7 +16,7 @@ export type ButtonProps = {
   id?: string;
   label: string;
   onPress?: (e: GestureResponderEvent) => void;
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
   icon?: IconName;
   disabled?: boolean;
   haptic?: "tick" | "light" | "medium" | "success";
@@ -60,7 +60,12 @@ export function Button({
     );
   }
 
-  const fill = variant === "primary" ? colors.accent : colors.surface;
+  const fill =
+    variant === "primary"
+      ? colors.accent
+      : variant === "danger"
+        ? colors.accentInk
+        : colors.surface;
   return (
     <Sticker
       id={id ?? `btn-${label}`}
@@ -90,7 +95,16 @@ export function Button({
         {icon ? (
           <Icon name={icon} size={22} fill={variant === "primary" ? colors.butter : colors.blush} />
         ) : null}
-        <Text variant="bodyStrong" color={variant === "primary" ? colors.accentText : colors.ink}>
+        <Text
+          variant="bodyStrong"
+          color={
+            variant === "primary"
+              ? colors.accentText
+              : variant === "danger"
+                ? colors.white
+                : colors.ink
+          }
+        >
           {label}
         </Text>
       </View>

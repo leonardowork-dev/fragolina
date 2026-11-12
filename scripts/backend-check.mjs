@@ -25,9 +25,13 @@ const KEY = env.SUPABASE_ANON_KEY || env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!URL_ || !KEY) {
   console.log("Chiavi Supabase non trovate: faccio la PROVA A SECCO.\n");
-  const b = spawnSync(process.execPath, [path.join(root, "scripts", "build-sql.mjs")], { encoding: "utf8" });
+  const b = spawnSync(process.execPath, [path.join(root, "scripts", "build-sql.mjs")], {
+    encoding: "utf8",
+  });
   process.stdout.write(b.stdout);
-  const r = spawnSync(process.execPath, [path.join(root, "scripts", "sql-check.mjs")], { encoding: "utf8" });
+  const r = spawnSync(process.execPath, [path.join(root, "scripts", "sql-check.mjs")], {
+    encoding: "utf8",
+  });
   const lines = r.stdout.trim().split("\n");
   console.log(lines.slice(-1)[0] ?? "(nessun output)");
   if (r.status !== 0) {
@@ -42,7 +46,8 @@ if (!URL_ || !KEY) {
 }
 
 const { createClient } = await import("@supabase/supabase-js");
-const mk = () => createClient(URL_, KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+const mk = () =>
+  createClient(URL_, KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const rows = [];
 let failed = 0;
 const check = (name, ok, detail = "") => {
@@ -61,7 +66,9 @@ async function signIn(label) {
   const { data, error } = await c.auth.signInAnonymously();
   if (error) {
     console.error(`\nAccesso anonimo "${label}" fallito: ${error.message}`);
-    console.error("Controlla in Supabase: Authentication → Sign In / Providers → \"Allow anonymous sign-ins\" acceso.");
+    console.error(
+      'Controlla in Supabase: Authentication → Sign In / Providers → "Allow anonymous sign-ins" acceso.',
+    );
     process.exit(1);
   }
   return { c, id: data.user.id };
@@ -78,13 +85,28 @@ try {
   {
     const anon = mk();
     const r = await anon.from("couples").select("*");
-    check("chiave pubblica SENZA sessione: niente dati", !!r.error || (r.data ?? []).length === 0, JSON.stringify(r.data));
+    check(
+      "chiave pubblica SENZA sessione: niente dati",
+      !!r.error || (r.data ?? []).length === 0,
+      JSON.stringify(r.data),
+    );
     const f = await anon.rpc("create_couple", { p_display_name: "X" });
-    check("chiave pubblica SENZA sessione: create_couple rifiutata", !!f.error, JSON.stringify(f.data));
+    check(
+      "chiave pubblica SENZA sessione: create_couple rifiutata",
+      !!f.error,
+      JSON.stringify(f.data),
+    );
   }
 
-  const created = await rpc(A.c, "create_couple", { p_display_name: "Alfa", p_start_date: "2025-02-14" });
-  check("A crea la coppia e riceve il codice", created.ok && /^[A-HJKMNP-Z2-9]{6}$/.test(created.code ?? ""), JSON.stringify(created));
+  const created = await rpc(A.c, "create_couple", {
+    p_display_name: "Alfa",
+    p_start_date: "2025-02-14",
+  });
+  check(
+    "A crea la coppia e riceve il codice",
+    created.ok && /^[A-HJKMNP-Z2-9]{6}$/.test(created.code ?? ""),
+    JSON.stringify(created),
+  );
   if (!created.ok) throw new Error("create_couple fallita: " + JSON.stringify(created));
   const cid = created.couple_id;
 
@@ -92,8 +114,16 @@ try {
   let gotRealtime = false;
   const ch = B.c
     .channel("check-" + uuid())
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "pings" }, () => (gotRealtime = true));
-  await new Promise((res) => ch.subscribe((s) => (s === "SUBSCRIBED" || s === "CHANNEL_ERROR" || s === "TIMED_OUT") && res()));
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "pings" },
+      () => (gotRealtime = true),
+    );
+  await new Promise((res) =>
+    ch.subscribe(
+      (s) => (s === "SUBSCRIBED" || s === "CHANNEL_ERROR" || s === "TIMED_OUT") && res(),
+    ),
+  );
 
   const wrong = await rpc(S.c, "join_couple", { p_code: "AAAAAA", p_display_name: "Intruso" });
   check("codice sbagliato → invalid_code", wrong.error === "invalid_code", JSON.stringify(wrong));
@@ -102,49 +132,124 @@ try {
   const third = await rpc(C.c, "join_couple", { p_code: created.code, p_display_name: "Terzo" });
   check("il terzo NON entra (couple_full)", third.error === "couple_full", JSON.stringify(third));
 
-  const sRead = await Promise.all(["couples", "couple_members", "pings", "mood_events", "daily_answers"].map((t) => S.c.from(t).select("*")));
-  check("sconosciuto non legge nessuna tabella", sRead.every((r) => !r.error && (r.data ?? []).length === 0), JSON.stringify(sRead.map((r) => r.data?.length)));
-  const sPing = await S.c.from("pings").insert({ couple_id: cid, from_user: S.id, client_key: uuid() });
+  const sRead = await Promise.all(
+    ["couples", "couple_members", "pings", "mood_events", "daily_answers"].map((t) =>
+      S.c.from(t).select("*"),
+    ),
+  );
+  check(
+    "sconosciuto non legge nessuna tabella",
+    sRead.every((r) => !r.error && (r.data ?? []).length === 0),
+    JSON.stringify(sRead.map((r) => r.data?.length)),
+  );
+  const sPing = await S.c
+    .from("pings")
+    .insert({ couple_id: cid, from_user: S.id, client_key: uuid() });
   check("sconosciuto non può scrivere ping nella coppia", !!sPing.error);
-  const sPatch = await S.c.from("couples").update({ relationship_start_date: "2000-01-01" }).eq("id", cid).select();
-  check("sconosciuto non può modificare la coppia", !!sPatch.error || (sPatch.data ?? []).length === 0);
+  const sPatch = await S.c
+    .from("couples")
+    .update({ relationship_start_date: "2000-01-01" })
+    .eq("id", cid)
+    .select();
+  check(
+    "sconosciuto non può modificare la coppia",
+    !!sPatch.error || (sPatch.data ?? []).length === 0,
+  );
   const aMembers = await A.c.from("couple_members").select("display_name,role");
   check("A vede entrambi i membri", (aMembers.data ?? []).length === 2, JSON.stringify(aMembers));
 
   // ping A → B
   const key = uuid();
-  const p1 = await A.c.from("pings").upsert({ couple_id: cid, from_user: A.id, client_key: key }, { onConflict: "from_user,client_key", ignoreDuplicates: true });
-  const p2 = await A.c.from("pings").upsert({ couple_id: cid, from_user: A.id, client_key: key }, { onConflict: "from_user,client_key", ignoreDuplicates: true });
-  check("A manda un ping (due volte con la stessa chiave)", !p1.error && !p2.error, JSON.stringify([p1.error, p2.error]));
+  const p1 = await A.c
+    .from("pings")
+    .upsert(
+      { couple_id: cid, from_user: A.id, client_key: key },
+      { onConflict: "from_user,client_key", ignoreDuplicates: true },
+    );
+  const p2 = await A.c
+    .from("pings")
+    .upsert(
+      { couple_id: cid, from_user: A.id, client_key: key },
+      { onConflict: "from_user,client_key", ignoreDuplicates: true },
+    );
+  check(
+    "A manda un ping (due volte con la stessa chiave)",
+    !p1.error && !p2.error,
+    JSON.stringify([p1.error, p2.error]),
+  );
   const bPings = await B.c.from("pings").select("id");
-  check("B vede UN solo ping (idempotente)", (bPings.data ?? []).length === 1, JSON.stringify(bPings.data));
+  check(
+    "B vede UN solo ping (idempotente)",
+    (bPings.data ?? []).length === 1,
+    JSON.stringify(bPings.data),
+  );
   for (let i = 0; i < 30 && !gotRealtime; i++) await new Promise((r) => setTimeout(r, 250));
-  check("realtime: B riceve il ping entro 7 s", gotRealtime, "nessun evento: controlla che Realtime sia attivo e la publication creata (all.sql)");
+  check(
+    "realtime: B riceve il ping entro 7 s",
+    gotRealtime,
+    "nessun evento: controlla che Realtime sia attivo e la publication creata (all.sql)",
+  );
   await B.c.removeChannel(ch);
 
   // umore B → A
-  const m = await B.c.from("mood_events").upsert({ couple_id: cid, user_id: B.id, mood_id: "coccole", client_key: uuid(), client_at: new Date().toISOString() }, { onConflict: "user_id,client_key", ignoreDuplicates: true });
+  const m = await B.c
+    .from("mood_events")
+    .upsert(
+      {
+        couple_id: cid,
+        user_id: B.id,
+        mood_id: "coccole",
+        client_key: uuid(),
+        client_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,client_key", ignoreDuplicates: true },
+    );
   check("B imposta l'umore", !m.error, JSON.stringify(m.error));
-  const stA = await rpc(A.c, "get_state", { p_day: day, p_day_start: new Date(Date.now() - 864e5).toISOString() });
-  check("A vede l'umore di B", stA.partner_mood?.mood_id === "coccole", JSON.stringify(stA.partner_mood));
+  const stA = await rpc(A.c, "get_state", {
+    p_day: day,
+    p_day_start: new Date(Date.now() - 864e5).toISOString(),
+  });
+  check(
+    "A vede l'umore di B",
+    stA.partner_mood?.mood_id === "coccole",
+    JSON.stringify(stA.partner_mood),
+  );
   check("A conta 1 ping inviato", stA.pings_sent_today === 1, String(stA.pings_sent_today));
 
   // risposta con reveal
-  const aB = await B.c.from("daily_answers").insert({ couple_id: cid, user_id: B.id, day, question_id: "q-test", answer: "b" });
+  const aB = await B.c
+    .from("daily_answers")
+    .insert({ couple_id: cid, user_id: B.id, day, question_id: "q-test", answer: "b" });
   check("B risponde alla domanda", !aB.error, JSON.stringify(aB.error));
   const aSee = await A.c.from("daily_answers").select("*");
   check("A NON vede la risposta di B prima di rispondere", (aSee.data ?? []).length === 0);
-  const aA = await A.c.from("daily_answers").insert({ couple_id: cid, user_id: A.id, day, question_id: "q-test", answer: "a" });
+  const aA = await A.c
+    .from("daily_answers")
+    .insert({ couple_id: cid, user_id: A.id, day, question_id: "q-test", answer: "a" });
   check("A risponde", !aA.error, JSON.stringify(aA.error));
   const aSee2 = await A.c.from("daily_answers").select("*");
   check("dopo aver risposto A vede entrambe", (aSee2.data ?? []).length === 2);
 
   // data di inizio LWW
-  const d1 = await rpc(A.c, "set_start_date", { p_date: "2024-01-01", p_client_at: new Date(Date.now() - 36e5).toISOString() });
+  const d1 = await rpc(A.c, "set_start_date", {
+    p_date: "2024-01-01",
+    p_client_at: new Date(Date.now() - 36e5).toISOString(),
+  });
   const d2 = await rpc(B.c, "set_start_date", { p_date: "2024-03-03" });
-  check("data di inizio: l'ultima scrittura vince", d2.start_date === "2024-03-03", JSON.stringify([d1, d2]));
-  const d3 = await rpc(A.c, "set_start_date", { p_date: "2020-02-02", p_client_at: new Date(Date.now() - 72e5).toISOString() });
-  check("data di inizio: una scrittura più vecchia non vince", d3.start_date === "2024-03-03", JSON.stringify(d3));
+  check(
+    "data di inizio: l'ultima scrittura vince",
+    d2.start_date === "2024-03-03",
+    JSON.stringify([d1, d2]),
+  );
+  const d3 = await rpc(A.c, "set_start_date", {
+    p_date: "2020-02-02",
+    p_client_at: new Date(Date.now() - 72e5).toISOString(),
+  });
+  check(
+    "data di inizio: una scrittura più vecchia non vince",
+    d3.start_date === "2024-03-03",
+    JSON.stringify(d3),
+  );
 
   // pulizia: entrambi escono (la coppia si cancella da sola)
   await rpc(A.c, "leave_couple");

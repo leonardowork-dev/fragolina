@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { TextInput, View, useWindowDimensions } from "react-native";
+import { ScrollView, View, useWindowDimensions } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import Animated, {
   type SharedValue,
@@ -13,22 +13,13 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import {
-  Avatar,
-  Button,
-  Icon,
-  Mascot,
-  Sticker,
-  Text,
-  useEffectsBus,
-  useMascot,
-  useTheme,
-} from "@/design";
-import { fonts, outline, PAGE_MARGIN } from "@/design/tokens";
+import { Button, Mascot, Sticker, Text, useEffectsBus, useMascot, useTheme } from "@/design";
+import { PAGE_MARGIN } from "@/design/tokens";
+import { PairingPanel } from "@/features/pairing/PairingPanel";
 import { haptics } from "@/lib/haptics";
 import { S } from "@/lib/strings.it";
 import { daysSince } from "@/lib/time";
-import { useCouple } from "@/state/coupleStore";
+import { selectPairing, useCouple } from "@/state/coupleStore";
 
 import { WelcomeCluster, WidgetMock } from "./Previews";
 import { useSettings } from "@/state/settingsStore";
@@ -69,13 +60,12 @@ export function OnboardingScreen() {
   const scroller = useRef<Animated.ScrollView>(null);
   const progress = useSharedValue(0);
   const [page, setPage] = useState(0);
-  const [code, setCode] = useState("");
-  const [codeState, setCodeState] = useState<"idle" | "error" | "ok">("idle");
   const confettiDone = useRef(false);
   const setDone = useSettings((s) => s.setOnboardingDone);
   const partner = useCouple((s) => s.partnerName);
   const me = useCouple((s) => s.meName);
   const startDate = useCouple((s) => s.startDate);
+  const pairing = useCouple(selectPairing);
 
   const goTo = useCallback(
     (p: number) => {
@@ -116,32 +106,18 @@ export function OnboardingScreen() {
     router.replace("/");
   };
 
-  const check = () => {
-    const clean = code.trim();
-    if (clean.length < 6) {
-      setCodeState("error");
-      haptics.light();
-      return;
-    }
-    setCodeState("ok");
-    haptics.success();
-    useMascot.getState().react("love", 1800);
-  };
-
   const primary =
     page === 0
       ? S.common.next
       : page === 1
-        ? codeState === "ok"
+        ? pairing === "paired"
           ? S.common.next
-          : S.onboarding.codeCheck
+          : S.onboarding.later
         : S.onboarding.enter;
   const onPrimary = () => {
     if (page === 0) goTo(1);
-    else if (page === 1) {
-      if (codeState === "ok") goTo(2);
-      else check();
-    } else finish();
+    else if (page === 1) goTo(2);
+    else finish();
   };
 
   const pageStyle = { width, paddingHorizontal: PAGE_MARGIN, gap: 14 } as const;
@@ -199,74 +175,18 @@ export function OnboardingScreen() {
             </View>
           </View>
 
-          <View style={pageStyle}>
+          <ScrollView
+            style={{ width }}
+            contentContainerStyle={{ ...pageStyle, paddingBottom: 24 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <Text variant="display" accessibilityRole="header">
               {S.onboarding.connectTitle(partner)}
             </Text>
             <Text variant="body">{S.onboarding.connectBody}</Text>
-            <TextInput
-              value={code}
-              onChangeText={(t) => {
-                setCode(
-                  t
-                    .toUpperCase()
-                    .replace(/[^A-Z0-9]/g, "")
-                    .slice(0, 6),
-                );
-                if (codeState !== "idle") setCodeState("idle");
-              }}
-              placeholder={S.onboarding.codePlaceholder}
-              placeholderTextColor={colors.ink + "66"}
-              accessibilityLabel={S.onboarding.codeLabel}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              maxLength={6}
-              returnKeyType="done"
-              onSubmitEditing={check}
-              style={{
-                fontFamily: fonts.display,
-                fontSize: 34,
-                letterSpacing: 6,
-                minHeight: 64,
-                paddingHorizontal: 18,
-                color: colors.ink,
-                backgroundColor: colors.blushSoft,
-                borderRadius: 20,
-                borderWidth: outline.width,
-                borderColor: codeState === "error" ? colors.accentInk : colors.outline,
-              }}
-            />
-            {codeState === "error" ? (
-              <Text variant="caption" color={colors.accentInk} accessibilityLiveRegion="polite">
-                {S.onboarding.codeTooShort}
-              </Text>
-            ) : null}
-            {codeState === "ok" ? (
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-                accessibilityLiveRegion="polite"
-              >
-                <Avatar name={partner} size={44} fill={colors.sky} />
-                <Text variant="bodyStrong" style={{ flex: 1 }}>
-                  {S.onboarding.codeOk(partner)}
-                </Text>
-                <View
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 17,
-                    backgroundColor: colors.leaf,
-                    borderWidth: 2.5,
-                    borderColor: colors.outline,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Icon name="check" size={20} />
-                </View>
-              </View>
-            ) : null}
-          </View>
+            <PairingPanel variant="onboarding" />
+          </ScrollView>
 
           <View style={pageStyle}>
             <Text
@@ -278,7 +198,9 @@ export function OnboardingScreen() {
             >
               {S.onboarding.doneTitle}
             </Text>
-            <Text variant="body">{S.onboarding.doneBody}</Text>
+            <Text variant="body">
+              {pairing === "paired" ? S.onboarding.doneBody : S.onboarding.doneBodyAlone}
+            </Text>
             <View style={{ marginTop: 14, gap: 10 }}>
               <Text variant="caption">{S.onboarding.widgetCaption}</Text>
               <WidgetMock partner={partner} mood="innamorata" days={daysSince(startDate)} />

@@ -1,36 +1,45 @@
 import { useEffect } from "react";
+import { AppState } from "react-native";
 
-import { S } from "@/lib/strings.it";
-import { makeSnapshot, widgetBridge } from "@/lib/widgetBridge";
-import { selectThoughtsToday, useCouple } from "@/state/coupleStore";
+import { buildSnapshot, snapshotSignature } from "@/lib/widgetPayload";
+import { widgetBridge } from "@/lib/widgetBridge";
+import { localDayKey } from "@/lib/time";
+import { useCouple } from "@/state/coupleStore";
 
 /**
- * Tiene il widget allineato allo store: a ogni cambio rilevante (umore, pensieri, nomi, data) scrive lo snapshot
- * (con un piccolo debounce) e all'avvio. Montare una volta nella radice.
+ * Tiene il widget allineato ai dati VERI della coppia (umore di lei, pensieri, giorni, ultimo pensiero).
+ * Scrive nel container condiviso e ricarica le timeline a ogni cambio, compresi quelli che arrivano dal partner in
+ * tempo reale mentre l'app è aperta (debounce 400 ms). Se non cambia nulla riscrive al massimo ogni 5 minuti
+ * (aggiorna "aggiornato X fa"). Quando l'app va in secondo piano scrive un'ultima volta.
+ * Nessuna notifica push (serve un account a pagamento): il widget si aggiorna quando l'app gira o quando iOS decide.
+ * Montare una volta nella radice.
  */
 export function useWidgetSync() {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
-    const push = () => {
-      const s = useCouple.getState();
-      widgetBridge.push(
-        makeSnapshot({
-          partnerName: s.partnerName,
-          moodId: s.partnerMood,
-          moodLabel: S.moods[s.partnerMood],
-          thinkingToday: selectThoughtsToday(s),
-          startDate: s.startDate,
-        }),
-      );
+    let lastSig = "";
+    let lastAt = 0;
+    const push = (force = false) => {
+      const now = Date.now();
+      const snap = buildSnapshot(useCouple.getState(), now, localDayKey(new Date(now)));
+      const sig = snapshotSignature(snap);
+      if (!force && sig === lastSig && now - lastAt < 5 * 60_000) return;
+      lastSig = sig;
+      lastAt = now;
+      widgetBridge.push(snap);
     };
     const schedule = () => {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(push, 400);
+      timer = setTimeout(() => push(), 400);
     };
-    push();
+    push(true);
     const unsub = useCouple.subscribe(schedule);
+    const app = AppState.addEventListener("change", (st) => {
+      if (st !== "active") push(true);
+    });
     return () => {
       unsub();
+      app.remove();
       if (timer) clearTimeout(timer);
     };
   }, []);
