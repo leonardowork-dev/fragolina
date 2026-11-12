@@ -22,3 +22,4 @@ export type { MascotMood } from "./mascot/useMascot";
 export { Icon } from "./icons/Icon";
 export type { IconName } from "./icons/Icon";
 export { StickerSwitch } from "./primitives/StickerSwitch";
+export { TextField } from "./primitives/TextField";

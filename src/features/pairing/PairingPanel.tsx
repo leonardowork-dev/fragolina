@@ -8,6 +8,7 @@ import {
   Mascot,
   Sticker,
   Text,
+  TextField,
   useEffectsBus,
   useMascot,
   useTheme,
@@ -111,6 +112,8 @@ export function PairingPanel({
   const renew = useCouple((s) => s.renewCode);
   const leave = useCouple((s) => s.leaveCouple);
   const release = useCouple((s) => s.releasePartner);
+  const setMyName = useCouple((s) => s.setMyName);
+  const [name, setName] = useState(me);
 
   const [mode, setMode] = useState<"choose" | "join">("choose");
   const [typed, setTyped] = useState("");
@@ -155,6 +158,7 @@ export function PairingPanel({
   };
   const doCreate = async () => {
     setError(null);
+    setMyName(name);
     fail(await create());
   };
   const doJoin = async () => {
@@ -165,6 +169,7 @@ export function PairingPanel({
       return;
     }
     setError(null);
+    setMyName(name);
     fail(await join(typed));
   };
   const doPaste = async () => {
@@ -260,9 +265,9 @@ export function PairingPanel({
     return (
       <View style={{ gap: 14 }}>
         <Text variant="title" accessibilityRole="header">
-          {S.pairing.waitingTitle(partner)}
+          {S.pairing.waitingTitle}
         </Text>
-        <Text variant="body">{S.pairing.waitingBody(partner)}</Text>
+        <Text variant="body">{S.pairing.waitingBody}</Text>
         <CodeSticker code={code} dim={expired} />
         {expired ? (
           <View style={{ gap: 10 }}>
@@ -300,7 +305,8 @@ export function PairingPanel({
   if (mode === "join") {
     return (
       <View style={{ gap: 14 }}>
-        <Text variant="bodyStrong">{S.pairing.haveCodeHint(partner)}</Text>
+        <TextField label={S.pairing.yourName} value={name} onChange={setName} />
+        <Text variant="bodyStrong">{S.pairing.haveCodeHint}</Text>
         <CodeInput
           value={typed}
           onChange={(c) => {
@@ -359,7 +365,7 @@ export function PairingPanel({
       >
         <View style={{ gap: 4 }}>
           <Text variant="title">{busy ? S.pairing.creating : S.pairing.create}</Text>
-          <Text variant="bodyStrong">{S.pairing.createHint(partner)}</Text>
+          <Text variant="bodyStrong">{S.pairing.createHint}</Text>
         </View>
       </Sticker>
       <Sticker
@@ -375,7 +381,7 @@ export function PairingPanel({
       >
         <View style={{ gap: 4 }}>
           <Text variant="title">{S.pairing.haveCode}</Text>
-          <Text variant="body">{S.pairing.haveCodeHint(partner)}</Text>
+          <Text variant="body">{S.pairing.haveCodeHint}</Text>
         </View>
       </Sticker>
       <ErrorLine error={error} />

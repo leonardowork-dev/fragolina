@@ -1,58 +1,14 @@
 import React, { useState } from "react";
 import { TextInput, View } from "react-native";
 
-import { Button, Sheet, StickerPressable, Text, useTheme } from "@/design";
-import { fonts, outline } from "@/design/tokens";
+import { Button, Sheet, StickerPressable, Text, TextField, useTheme } from "@/design";
+import { outline } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
 import { S } from "@/lib/strings.it";
 import { daysInMonth, monthName, toIso } from "@/lib/time";
 import { useCouple } from "@/state/coupleStore";
 
 /** Modifica nomi e data di inizio. Nomi: max 24 caratteri. Data: tre stepper con tick aptico. */
-function Field({
-  label,
-  value,
-  onChange,
-  error,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  error?: string | null;
-}) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ gap: 6 }}>
-      <Text variant="caption">{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        maxLength={24}
-        accessibilityLabel={label}
-        autoCapitalize="words"
-        autoCorrect={false}
-        returnKeyType="done"
-        style={{
-          fontFamily: fonts.bodySemi,
-          fontSize: 17,
-          minHeight: 52,
-          paddingHorizontal: 16,
-          color: colors.ink,
-          backgroundColor: colors.blushSoft,
-          borderRadius: 16,
-          borderWidth: outline.width,
-          borderColor: error ? colors.accentInk : colors.outline,
-        }}
-      />
-      {error ? (
-        <Text variant="caption" color={colors.accentInk}>
-          {error}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
 function Stepper({
   label,
   text,
@@ -147,11 +103,16 @@ function EditForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => vo
 
   return (
     <View style={{ gap: 14, marginTop: 8 }}>
-      <Field label={S.us.yourName} value={me} onChange={setMe} error={!me.trim() ? error : null} />
+      <TextField
+        label={S.us.yourName}
+        value={me}
+        onChange={setMe}
+        error={!me.trim() ? error : null}
+      />
       {paired ? (
         <Text variant="caption">{S.us.partnerNameFromServer}</Text>
       ) : (
-        <Field
+        <TextField
           label={S.us.partnerName}
           value={partner}
           onChange={setPartner}

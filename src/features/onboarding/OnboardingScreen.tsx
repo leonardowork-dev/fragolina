@@ -182,7 +182,7 @@ export function OnboardingScreen() {
             showsVerticalScrollIndicator={false}
           >
             <Text variant="display" accessibilityRole="header">
-              {S.onboarding.connectTitle(partner)}
+              {S.onboarding.connectTitle}
             </Text>
             <Text variant="body">{S.onboarding.connectBody}</Text>
             <PairingPanel variant="onboarding" />

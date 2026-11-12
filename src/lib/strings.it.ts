@@ -1,5 +1,5 @@
 /** Tutte le stringhe dell'interfaccia (italiano). Nessun testo hardcoded nei componenti. */
-import { APP_NAME, PARTNER_NAME } from "@/config/couple";
+import { APP_NAME } from "@/config/couple";
 
 export const S = {
   appName: APP_NAME,
@@ -17,7 +17,7 @@ export const S = {
   onboarding: {
     welcomeTitle: (name: string) => `Ciao ${name}.`,
     welcomeBody: "Qui dentro ci siete solo voi due. Niente feed, niente like, solo adesivi.",
-    connectTitle: (name: string) => `Collegati con ${name}`,
+    connectTitle: "Collegati con la tua persona",
     connectBody: "Uno crea il posto e riceve un codice, l'altra lo scrive. Poi siete dentro.",
     later: "Più tardi",
     doneTitle: "Fatto. Siete dentro.",
@@ -52,10 +52,9 @@ export const S = {
     daysNoneHint: "Tocca e scegli la data",
     daysEdit: "Cambia la data",
     notPairedTitle: "Qui manca una persona",
-    notPairedBody: (name: string) =>
-      `Collegati con ${name} e la home si accende: pensieri, umori, domanda del giorno.`,
-    connect: (name: string) => `Collegati con ${name}`,
-    waitingTitle: (name: string) => `Aspetti ${name}`,
+    notPairedBody: "Collegati e la home si accende: pensieri, umori, domanda del giorno.",
+    connect: "Collegati con la tua persona",
+    waitingTitle: "Il codice è pronto",
     waitingBody: "Il codice è pronto. Appena lo scrive, entrate insieme.",
     showCode: "Mostra il codice",
     questionTitle: "Domanda del giorno",
@@ -71,10 +70,13 @@ export const S = {
     loadingMood: "Cerco il suo umore…",
   },
   pairing: {
+    person: "la tua persona",
+    yourName: "Il tuo nome",
+    yourNameHint: "Così lei ti vede con il nome giusto.",
     create: "Crea il nostro posto",
-    createHint: (name: string) => `Ricevi un codice di sei lettere da dare a ${name}.`,
+    createHint: "Ricevi un codice di sei lettere e lo dai all'altra persona.",
     haveCode: "Ho un codice",
-    haveCodeHint: (name: string) => `${name} te l'ha mandato? Scrivilo qui.`,
+    haveCodeHint: "Te l'hanno mandato? Scrivilo qui.",
     codeLabel: "Codice di coppia",
     codeChar: (i: number, c: string) => (c ? `Carattere ${i}: ${c}` : `Carattere ${i}: vuoto`),
     join: "Entra",
@@ -88,9 +90,9 @@ export const S = {
     share: "Condividi",
     shareMessage: (code: string, app: string) =>
       `Entra nel nostro posto su ${app}. Il codice è ${code}`,
-    waitingTitle: (name: string) => `Aspettiamo ${name}`,
-    waitingBody: (name: string) =>
-      `Dai il codice a ${name}: appena lo scrive, entrate insieme. Questa schermata si aggiorna da sola.`,
+    waitingTitle: "Aspettiamo l'altra persona",
+    waitingBody:
+      "Dai il codice all'altra persona: appena lo scrive, entrate insieme. Questa schermata si aggiorna da sola.",
     expiresIn: (t: string) => `Vale ancora ${t}`,
     expired: "Codice scaduto",
     renew: "Nuovo codice",
@@ -253,7 +255,7 @@ export const S = {
     joined: (name: string) => `${name} è entrata nel posto`,
   },
   a11y: {
-    thinkButton: `Invia Penso a te a ${PARTNER_NAME}`,
+    thinkButton: (name: string) => `Invia Penso a te a ${name}`,
     codeBox: "Codice di coppia, sei caratteri",
     flipCard: (name: string) => `Scopri la risposta di ${name}`,
     mascot: "La fragolina, mascotte. Toccala.",

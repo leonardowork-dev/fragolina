@@ -27,6 +27,7 @@ import { motion, radius } from "@/design/tokens";
 import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { EditCoupleSheet } from "@/features/us/EditCoupleSheet";
 import { haptics } from "@/lib/haptics";
+import { cap, partnerLabel } from "@/lib/names";
 import { S } from "@/lib/strings.it";
 import { daysSince, formatLongDate, timeAgo } from "@/lib/time";
 import { selectPairing, selectPingsToday, selectQuestion, useCouple } from "@/state/coupleStore";
@@ -80,7 +81,7 @@ function ThinkHero() {
         pressScale={0.95}
         haptic="success"
         onPress={onPress}
-        accessibilityLabel={S.a11y.thinkButton}
+        accessibilityLabel={S.a11y.thinkButton(partner)}
         faceStyle={{ minHeight: 232, justifyContent: "flex-end" }}
       >
         <View style={{ gap: 10 }}>
@@ -115,7 +116,6 @@ function ThinkHero() {
 function ConnectHero() {
   const { colors } = useTheme();
   const router = useRouter();
-  const partner = useCouple((s) => s.partnerName);
   const pairing = useCouple(selectPairing);
   const waiting = pairing === "waiting";
   return (
@@ -130,15 +130,15 @@ function ConnectHero() {
         pressScale={0.96}
         haptic="light"
         onPress={() => router.push("/(tabs)/us")}
-        accessibilityLabel={waiting ? S.home.showCode : S.home.connect(partner)}
+        accessibilityLabel={waiting ? S.home.showCode : S.home.connect}
         faceStyle={{ minHeight: 232, justifyContent: "flex-end" }}
       >
         <View style={{ gap: 10 }}>
           <Text variant="hero" adjustsFontSizeToFit numberOfLines={3} minimumFontScale={0.6}>
-            {waiting ? S.home.waitingTitle(partner) : S.home.notPairedTitle}
+            {waiting ? S.home.waitingTitle : S.home.notPairedTitle}
           </Text>
           <Text variant="bodyStrong" numberOfLines={4}>
-            {waiting ? S.home.waitingBody : S.home.notPairedBody(partner)}
+            {waiting ? S.home.waitingBody : S.home.notPairedBody}
           </Text>
           <View style={{ alignSelf: "flex-start" }}>
             <Sticker
@@ -150,7 +150,7 @@ function ConnectHero() {
               tiltMax={1}
             >
               <Text variant="bodyStrong" style={{ paddingHorizontal: 18, paddingVertical: 12 }}>
-                {waiting ? S.home.showCode : S.home.connect(partner)}
+                {waiting ? S.home.showCode : S.home.connect}
               </Text>
             </Sticker>
           </View>
@@ -217,7 +217,7 @@ function DaysCard({ onPress }: { onPress: () => void }) {
 /** L'umore di lei: sola lettura, si aggiorna in tempo reale. */
 function MoodCard() {
   const { colors, reduceMotion } = useTheme();
-  const partner = useCouple((s) => s.partnerName);
+  const partner = useCouple((s) => partnerLabel(s.members.length >= 2, s.partnerName));
   const mood = useCouple((s) => s.partnerMood?.moodId ?? null);
   const loading = useCouple((s) => s.link === "connecting" && s.lastSyncAt === null);
   const k = useSharedValue(1);
@@ -243,7 +243,7 @@ function MoodCard() {
       accessibilityLabel={
         mood
           ? S.a11y.moodButton(partner, S.moods[mood])
-          : `${S.home.moodTitle(partner)}: ${S.home.moodNone}`
+          : `${cap(S.home.moodTitle(partner))}: ${S.home.moodNone}`
       }
       style={{ flex: 1, marginTop: 26 }}
     >
@@ -279,7 +279,7 @@ function MoodCard() {
         )}
         <View style={{ alignItems: "center", alignSelf: "stretch" }}>
           <Text variant="caption" numberOfLines={1} align="center">
-            {S.home.moodTitle(partner)}
+            {cap(S.home.moodTitle(partner))}
           </Text>
           <Text
             variant="bodyStrong"
