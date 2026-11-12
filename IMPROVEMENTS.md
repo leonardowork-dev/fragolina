@@ -1,0 +1,14 @@
+# IMPROVEMENTS.md — backlog (dopo il lancio)
+Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
+
+- Prune dei `pings` più vecchi di 90 giorni (job pg_cron o funzione chiamata da `get_state`) per restare sotto i 500 MB del piano gratuito.
+- CAPTCHA/Turnstile sugli accessi anonimi (oggi: solo il limite di 30/ora per IP di Supabase).
+- Notifiche push vere (richiedono account Apple a pagamento + APNs): oggi niente; alternativa gratuita: Percorso B del widget (fetch) per aggiornarlo senza aprire l'app.
+- Realtime delle cancellazioni (`member-left`): oggi si scopre con la risincronizzazione (45 s o primo piano); si potrebbe usare un canale Broadcast.
+- `expo-network` per sapere subito quando torna la rete (oggi: backoff 1→30 s).
+- Domanda del giorno: banca da 24 domande in `strings.it.ts`; aggiungerne e un editor "scrivi tu la domanda per domani".
+- Cambio di fuso orario fra i due telefoni: il "giorno" è quello del telefono; se uno viaggia le domande possono slittare di un giorno.
+- Esportazione/ricordi: storico degli umori (la tabella `mood_events` lo conserva già) con una pagina "il nostro mese".
+- Widget: vera grafica per la schermata di blocco e il widget "penso a te" (Sessione 3).
+- Backup dei dati (un'esportazione JSON dal telefono) prima di `leave_couple`, che cancella tutto.
+- Test E2E su Supabase vero in CI (oggi `npm run backend:check` lo si lancia a mano con le chiavi).

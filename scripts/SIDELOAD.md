@@ -66,7 +66,9 @@ Versione di iOS richiesta: **16.4 o più recente**. Un iPhone X con iOS 16.7 va 
 
    | Cosa vedi | Cosa significa | Cosa fai |
    |---|---|---|
-   | Il numero dei pensieri è aumentato (es. "3 pensieri oggi") e c'è la faccina | Funziona tutto. | Niente, è fatta. |
+   | Vedi i giorni, la faccina di lei e "Tu: N oggi" (dopo il collegamento con Nikole) | Funziona tutto. | Niente, è fatta. |
+   | "Manca una persona" | Il widget funziona: non siete ancora collegati. | Collegati da **Noi** (vedi `MANUAL_TODO.md`). |
+   | Sul widget compare l'orologio con "5 h" o "aggiornato 5 h fa" | I dati sono un po' vecchi (nessuna notifica push senza account a pagamento). | Apri Fragolina: si aggiorna. |
    | La fragola che dorme con "Ancora niente" o "Dorme da un po'" | Il widget non riceve i dati dall'app (limite dell'Apple ID gratuito). | Scrivi a Claude: **"il widget dorme"**. Passa alla soluzione B, ci pensa lui. |
    | Il widget non c'è nell'elenco | L'installazione non ha incluso il widget. | Rifai il passo 5 controllando il punto 4 (Remove extensions spento). |
    | Il widget è vuoto/grigio per qualche secondo | Si sta caricando. | Aspetta 10 secondi, poi riguarda. |

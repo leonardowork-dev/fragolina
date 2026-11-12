@@ -72,6 +72,33 @@ if (git(["remote", "get-url", "origin"]).code !== 0) {
 const repoUrl = git(["remote", "get-url", "origin"]).out.replace(/\.git$/, "");
 log(`Repository: ${repoUrl}`);
 
+// 4b) Chiavi pubbliche di Supabase: se c'è .env.local le mando a GitHub come "secrets" (le legge la build).
+//     Senza il file la build riesce lo stesso, in modalità prova (nessun server).
+{
+  const envFile = path.join(root, ".env.local");
+  const want = ["EXPO_PUBLIC_SUPABASE_URL", "EXPO_PUBLIC_SUPABASE_ANON_KEY"];
+  if (fs.existsSync(envFile)) {
+    const vals = {};
+    for (const line of fs.readFileSync(envFile, "utf8").split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+      if (m) vals[m[1]] = m[2].replace(/^["']|["']$/g, "");
+    }
+    const repoSlug = repoUrl.replace("https://github.com/", "");
+    if (want.every((k) => vals[k])) {
+      for (const k of want) {
+        // il valore passa da stdin: non compare mai nei log né nella riga di comando
+        const r = spawnSync("gh", ["secret", "set", k, "--repo", repoSlug], { input: vals[k], encoding: "utf8" });
+        if (r.status !== 0) fail(`Non riesco a salvare ${k} su GitHub: ${(r.stderr || r.stdout || "").trim()}`);
+      }
+      log("Supabase: chiavi inviate a GitHub (la build userà il server vero)");
+    } else {
+      log(`Supabase: .env.local c'è ma manca ${want.filter((k) => !vals[k]).join(" e ")}: la build parte in modalità prova`);
+    }
+  } else {
+    log("Supabase: nessun .env.local, la build parte in modalità prova (vedi MANUAL_TODO.md)");
+  }
+}
+
 // 5) Commit di quel che è cambiato + push
 const branch = git(["branch", "--show-current"]).out || "main";
 if (git(["status", "--porcelain"]).out) {

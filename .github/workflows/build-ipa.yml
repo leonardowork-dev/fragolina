@@ -25,6 +25,9 @@ env:
   APP_NAME: Fragolina
   WIDGET_NAME: FragolinaWidget
   XCODE_APP: /Applications/Xcode_26.6.app
+  # Chiavi PUBBLICHE di Supabase (secrets del repository, messi da `npm run ship`). Se mancano, l'app parte in modalità prova.
+  EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
 
 jobs:
   build:
@@ -57,6 +60,13 @@ jobs:
 
       - name: Typecheck
         run: npx --no-install tsc --noEmit
+
+      - name: Unit tests
+        run: npx --no-install vitest run
+
+      - name: Backend mode
+        run: |
+          if [ -n "$EXPO_PUBLIC_SUPABASE_URL" ] && [ -n "$EXPO_PUBLIC_SUPABASE_ANON_KEY" ]; then echo "Backend: Supabase (chiavi presenti)"; else echo "Backend: prova locale (nessuna chiave)"; fi
 
       - name: Generate user-art manifest and icons
         run: |
