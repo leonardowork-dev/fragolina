@@ -10,7 +10,8 @@ Costo zero (nessun servizio o dipendenza a pagamento). Sviluppo su Windows (Powe
 - `app/` rotte Expo Router (sottili: importano da `src/features`). `(tabs)` = home, pet, draw, play, us; `onboarding`; `design-lab` (nascosta).
 - `src/design` tokens, ThemeProvider, primitive (Text, Sticker, Button, Chip, Avatar, Badge, Sheet, Toast, EmptyState, Skeleton, StickerSwitch), effetti (HeartBurst, Confetti, Sparkle), mascotte, icone, layout (Screen, TabBar, Grain, SplashOverlay).
 - `src/features` home, pet, draw, play, us, onboarding, lab, widgetSync.
-- `src/state` zustand persistito: `coupleStore` (forma del dato reale, oggi finto), `settingsStore`.
+- `src/state` zustand persistito: `createCoupleStore` (factory: dati della coppia + motore di sincronizzazione + coda offline), `coupleStore` (istanza dell'app), `settingsStore`.
+- `src/lib/backend` interfaccia `Backend` con `SupabaseBackend` (chiavi `EXPO_PUBLIC_SUPABASE_*`, sessione in expo-secure-store) e `MockBackend` (finto server in memoria / localStorage+BroadcastChannel); `getBackend()` sceglie. `src/lib/sync` funzioni pure: riduttore (LWW), coda, backoff, tipi. `src/features/pairing` collegamento (codice, attesa, festa, esci). `supabase/` migrazioni + `all.sql`.
 - `src/lib` widgetBridge, haptics, storage, time, hash, strings.it (tutte le stringhe italiane), userArt.generated.
 - `modules/group-resolver` modulo nativo Swift (App Group a runtime). `targets/widget` widget SwiftUI (apple-targets).
 - **Dati widget — percorso A (attivo):** l'app scrive JSON in `UserDefaults(suiteName: gruppo risolto)`; il gruppo si sceglie a runtime (provisioning profile → `ALTAppGroups` → qualsiasi `group.*` in Info.plist → gruppo base). **Percorso B (fallback, non implementato):** il widget fa fetch da Supabase con chiave anon e un couple id letto da un plist generato in CI; si attiva scrivendo una seconda implementazione di `WidgetBridge`. Dettagli in `docs/RESEARCH.md`.
@@ -30,18 +31,24 @@ Sviluppo: `npm install`, `npm run web`. Build: `.github/workflows/build-ipa.yml`
 
 ## Regole del widget
 Target minimo iOS 16.4 (app, widget, modulo). Niente `#Preview`, `onChange` a due parametri, `@Observable`, widget interattivi o `containerBackground` senza guardia `#available(iOS 17.0, *)` (vedi `StickerWidgetBackground`).
-Processo isolato: niente hook, niente stato dell'app, **solo dati già calcolati** (JSON `WidgetSnapshot` in `src/lib/widgetBridge.ts`). Il widget calcola da solo i giorni da `startDate`. Stati vuoto/non aggiornato (> 48 h) = fragola che dorme. `GroupResolver.swift` esiste in due copie (modulo e widget): tienile uguali. Famiglie: small, medium, accessory (circular, rectangular, inline).
+Processo isolato: niente hook, niente stato dell'app, **solo dati già calcolati** (JSON `WidgetSnapshot` v2 in `src/lib/widgetPayload.ts`, fixture `tests/fixtures/widget-snapshot.json`). Il widget calcola da solo i giorni da `startDate`. Stati: vuoto / non collegato / non aggiornato (> 48 h) = fragola che dorme; dati vecchi (> 3 h) = "aggiornato X fa". `GroupResolver.swift` esiste in due copie (modulo e widget): tienile uguali. Famiglie: small, medium, accessory (circular, rectangular, inline).
 
 ## Convenzioni
 TypeScript strict, ESLint (`--max-warnings=0`) e `tsc` puliti prima di ogni commit. Stringhe solo in `strings.it.ts`. Nessun segreto nel repo (`.env.local`). Commit chiari a ogni fase. Colori e misure solo dai token. Ogni controllo ha `accessibilityLabel` e ruolo; target ≥ 44pt.
 
 ## Roadmap
 1. Fondamenta + design system + shell (**fatto, sessione 1**).
-2. Supabase: pairing con codice e realtime (sostituisce le action di `coupleStore`; usa `applyRemote`; codice in `expo-secure-store`).
-3. Widget veri: umore e "penso a te" reali.
+2. Supabase: pairing con codice e realtime (**fatto, sessione 2**; manca solo la prova col server vero: `MANUAL_TODO.md`, `npm run backend:check`). Widget alimentato con dati veri.
+3. Widget finali (sessione 3): umore, penso-a-te, giorni insieme, schermata di blocco; grafica definitiva.
 4. Pet condiviso.
 5. Doodle → widget (Skia `makeImageSnapshot`).
 6. Mini giochi.
 7. Extra: countdown, domanda del giorno vera, distanza, ricordi.
 8. Rifinitura: suoni, transizioni, casi limite, icona vera.
 9. Installazione sul telefono di Nikole + routine di rinnovo settimanale.
+
+## Sessione 2 — comandi e regole utili
+- `npm test` (vitest, 80+ prove), `npm run backend:sqltest` (SQL su Postgres locale), `npm run backend:check` (end-to-end sul progetto Supabase vero; senza chiavi fa la prova a secco), `npm run backend:sql` (rigenera `supabase/all.sql`), `npm run setup-env` (crea `.env.local`), `npm run e2e` / `npm run worst-e2e` (due schede nel browser, serve `npm run web`; in WSL senza sudo imposta `CHROME_LIBS`).
+- Modifichi una migrazione? Aggiungi un file nuovo in `supabase/migrations/` (mai riscrivere), poi `npm run backend:sql` e `npm run backend:sqltest`.
+- Il widget NON ha percorso di rete (Percorso A confermato sul telefono): non costruirne uno.
+- Min. iOS 16.x: niente API più nuove senza `#available` e ripiego.
