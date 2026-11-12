@@ -1,8 +1,12 @@
 // Config dinamica: l'icona personale (assets/user-art/app-icon.png) vince su quella generata se presente.
 const fs = require("fs");
 const path = require("path");
+const { syncWidgetArt } = require("./scripts/widget-art");
 
 const userIcon = path.join(__dirname, "assets/user-art/app-icon.png");
+// Il disegno del widget (assets/user-art/widget-mascot.png) entra nel catalogo del target widget a ogni prebuild.
+syncWidgetArt(__dirname);
+
 const icon = fs.existsSync(userIcon) ? "./assets/user-art/app-icon.png" : "./assets/icon.png";
 
 const BUNDLE_ID = "app.fragolina.couple";

@@ -1,0 +1,121 @@
+import fs from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+
+/**
+ * Controlli statici sul Swift del widget (nessun Mac qui): palette allineata ai token TypeScript, nessuna API più
+ * nuova di iOS 16.4 senza guardia, font dichiarati e presenti, kind dei widget stabili.
+ */
+const root = path.resolve(__dirname, "..");
+const dir = path.join(root, "targets/widget");
+const swiftFiles = fs.readdirSync(dir).filter((f) => f.endsWith(".swift"));
+const read = (f: string) => fs.readFileSync(path.join(dir, f), "utf8");
+const all = Object.fromEntries(swiftFiles.map((f) => [f, read(f)]));
+
+describe("palette Swift ↔ token TypeScript", () => {
+  const tokens = fs.readFileSync(path.join(root, "src/design/tokens.ts"), "utf8");
+  const ts = Object.fromEntries(
+    [...(/export const palette = \{([\s\S]*?)\} as const;/.exec(tokens)?.[1] ?? "").matchAll(/(\w+): "#([0-9A-Fa-f]{6})"/g)].map(
+      (m) => [m[1], m[2].toUpperCase()],
+    ),
+  );
+  const sw = Object.fromEntries(
+    [...all["Palette.swift"].matchAll(/static let (\w+) = Color\(hex: 0x([0-9A-Fa-f]{6})\)/g)].map((m) => [
+      m[1],
+      m[2].toUpperCase(),
+    ]),
+  );
+  it("ogni colore Swift esiste nei token con lo stesso valore", () => {
+    expect(Object.keys(sw).length).toBeGreaterThanOrEqual(13);
+    for (const [name, hex] of Object.entries(sw)) expect(ts[name], `P.${name}`).toBe(hex);
+  });
+  it("ogni colore dei token è anche in Swift", () => {
+    for (const name of Object.keys(ts)) expect(sw[name], `token ${name} manca in Palette.swift`).toBeDefined();
+  });
+  it("niente viola e niente gradienti nel Swift", () => {
+    for (const [f, src] of Object.entries(all)) {
+      expect(src, f).not.toMatch(/LinearGradient|RadialGradient|AngularGradient|\.blur\(|\.shadow\(|Material|ultraThin/);
+    }
+  });
+});
+
+describe("compatibilità iOS 16.4 (revisione statica)", () => {
+  it("nessun #Preview, @Observable, AppIntent, onChange a due parametri", () => {
+    for (const [f, src] of Object.entries(all)) {
+      expect(src, f).not.toMatch(/#Preview|@Observable|AppIntent|import AppIntents|Toggle\(.*intent:|Button\(intent:/);
+      expect(src, f).not.toMatch(/\.onChange\(of:[^{]*\{\s*(_|\w+),\s*(_|\w+)\s+in/);
+    }
+  });
+  it("ogni containerBackground sta dentro #available(iOS 17.0, *)", () => {
+    for (const [f, src] of Object.entries(all)) {
+      const lines = src.split("\n");
+      lines.forEach((l, i) => {
+        if (!l.includes("containerBackground") || l.trim().startsWith("//")) return;
+        const before = lines.slice(Math.max(0, i - 6), i).join("\n");
+        expect(before, `${f}:${i + 1}`).toMatch(/#available\(iOS 17\.0, \*\)/);
+      });
+    }
+  });
+  it("contentMarginsDisabled / widgetAccentable / API 17+ solo con guardia", () => {
+    for (const [f, src] of Object.entries(all)) {
+      if (/contentMarginsDisabled|\.invalidatableContent|ContentUnavailableView|@Bindable/.test(src))
+        expect(src, f).toMatch(/#available\(iOS 17\.0, \*\)/);
+    }
+  });
+  it("tutti i simboli SF usati esistono da iOS 15/16", () => {
+    const ok = new Set(["heart.fill", "clock", "moon.zzz.fill"]);
+    for (const [f, src] of Object.entries(all))
+      for (const m of src.matchAll(/(?:systemName|systemImage): "([^"]+)"/g)) expect(ok.has(m[1]), `${f}: ${m[1]}`).toBe(true);
+  });
+  it("niente emoji nel codice Swift (DESIGN.md: niente emoji come icone)", () => {
+    for (const [f, src] of Object.entries(all)) expect(src, f).not.toMatch(/\p{Extended_Pictographic}/u);
+  });
+});
+
+describe("font, kind e bundle", () => {
+  it("i font dichiarati in Info.plist e in FontLoader esistono in assets/", () => {
+    const plist = read("Info.plist");
+    const listed = [...plist.matchAll(/<string>([\w-]+\.ttf)<\/string>/g)].map((m) => m[1]);
+    expect(listed.length).toBe(4);
+    for (const f of listed) expect(fs.existsSync(path.join(dir, "assets", f)), f).toBe(true);
+    const loader = [...all["Palette.swift"].matchAll(/static let files = \[([^\]]*)\]/g)][0][1];
+    for (const n of [...loader.matchAll(/"([\w-]+)"/g)].map((m) => m[1])) expect(listed).toContain(`${n}.ttf`);
+  });
+  it("nomi PostScript dei font verificati sui TTF", () => {
+    const names = ["BagelFatOne-Regular", "Figtree-SemiBold", "Figtree-Bold", "Figtree-ExtraBold"];
+    for (const [file, ps] of [
+      ["BagelFatOne.ttf", names[0]],
+      ["Figtree-SemiBold.ttf", names[1]],
+      ["Figtree-Bold.ttf", names[2]],
+      ["Figtree-ExtraBold.ttf", names[3]],
+    ]) {
+      const bin = fs.readFileSync(path.join(dir, "assets", file));
+      expect(bin.toString("latin1").includes(ps) || bin.toString("utf16le").includes(ps) || hasUtf16Be(bin, ps), file).toBe(true);
+      expect(all["Palette.swift"], ps).toContain(`"${ps}"`);
+    }
+  });
+  it("kind: quello storico resta, gli altri sono unici e tutti nel bundle", () => {
+    const kinds = Object.values(all).flatMap((s) => [...s.matchAll(/let kind = "(\w+)"/g)].map((m) => m[1]));
+    expect(kinds).toContain("FragolinaWidget");
+    expect(new Set(kinds).size).toBe(kinds.length);
+    expect(kinds.sort()).toEqual(
+      ["FragolinaDays", "FragolinaLock", "FragolinaLockMood", "FragolinaMood", "FragolinaPing", "FragolinaWidget"].sort(),
+    );
+    const bundle = all["index.swift"];
+    for (const w of ["MoodWidget", "PingWidget", "DaysWidget", "LockWidget", "LockMoodWidget", "FragolinaWidget"])
+      expect(bundle, w).toContain(`${w}()`);
+  });
+  it("i link usati nei widget sono quelli che l'app capisce", () => {
+    const urls = [...all["Model.swift"].matchAll(/URL\(string: "(fragolina:\/\/\w+)"\)/g)].map((m) => m[1]).sort();
+    expect(urls).toEqual(["fragolina://home", "fragolina://mood", "fragolina://ping", "fragolina://us"]);
+  });
+  it("nessuna rete nel widget (Percorso A)", () => {
+    for (const [f, src] of Object.entries(all)) expect(src, f).not.toMatch(/URLSession|URLRequest\(|AsyncImage/);
+  });
+});
+
+function hasUtf16Be(bin: Buffer, s: string) {
+  const be = Buffer.alloc(s.length * 2);
+  for (let i = 0; i < s.length; i++) be.writeUInt16BE(s.charCodeAt(i), i * 2);
+  return bin.includes(be);
+}

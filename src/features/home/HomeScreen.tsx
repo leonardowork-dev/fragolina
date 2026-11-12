@@ -31,6 +31,7 @@ import { cap, partnerLabel } from "@/lib/names";
 import { S } from "@/lib/strings.it";
 import { daysSince, formatLongDate, localDayKey, timeAgo } from "@/lib/time";
 import { selectPairing, selectPingsToday, selectQuestion, useCouple } from "@/state/coupleStore";
+import { useIntents } from "@/state/intentStore";
 
 import { MoodSheet } from "./MoodSheet";
 import { RevealCard } from "./RevealCard";
@@ -461,6 +462,13 @@ export function HomeScreen() {
   const setMood = useCouple((s) => s.setMyMood);
   const pairing = useCouple(selectPairing);
 
+  // Link del widget "fragolina://mood": apre la scelta del mio umore (anche se la Home si è appena montata).
+  const moodRequested = useIntents((s) => s.moodSheetRequested);
+  const closeMoodSheet = () => {
+    setMoodSheet(false);
+    useIntents.getState().clearMoodSheet();
+  };
+
   // Cinque tocchi sul titolo aprono il laboratorio del design (nascosto).
   const onTitle = () => {
     taps.current += 1;
@@ -502,14 +510,14 @@ export function HomeScreen() {
       <MyMoodStrip onPress={() => setMoodSheet(true)} />
       {pairing === "paired" ? <QuestionCard /> : null}
       <MoodSheet
-        visible={moodSheet}
-        onClose={() => setMoodSheet(false)}
+        visible={moodSheet || moodRequested}
+        onClose={closeMoodSheet}
         current={myMood}
         partnerName={partner}
         onPick={(m) => {
           setMood(m);
           toast.show(S.toast.moodSet(S.moods[m]));
-          setTimeout(() => setMoodSheet(false), 260);
+          setTimeout(closeMoodSheet, 260);
         }}
       />
       <EditCoupleSheet
