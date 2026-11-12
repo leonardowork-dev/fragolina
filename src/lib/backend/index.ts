@@ -14,17 +14,17 @@ export function getBackend(): Backend {
   if (instance) return instance;
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  /* eslint-disable @typescript-eslint/no-require-imports -- caricamento pigro: si carica solo il backend che serve */
   if (url && key) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports -- caricamento pigro: solo la piattaforma/backend che serve
     const { SupabaseBackend } =
       require("./supabase/SupabaseBackend") as typeof import("./supabase/SupabaseBackend");
     instance = new SupabaseBackend(url, key);
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports -- caricamento pigro: solo la piattaforma/backend che serve
     const { createDefaultMock } =
       require("./mock/defaultMock") as typeof import("./mock/defaultMock");
     instance = createDefaultMock(Platform.OS === "web");
   }
+  /* eslint-enable @typescript-eslint/no-require-imports */
   return instance;
 }
 
