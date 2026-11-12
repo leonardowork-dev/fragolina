@@ -98,6 +98,9 @@ struct LockSleepy: View {
     let entry: FragolinaEntry
     @Environment(\.widgetFamily) private var family
 
+    // esplicito: con una proprietà `private` l'init di default sarebbe visibile solo in questo file
+    init(entry: FragolinaEntry) { self.entry = entry }
+
     var body: some View {
         Group {
             switch family {
