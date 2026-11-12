@@ -9,6 +9,12 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - Domanda del giorno: banca da 24 domande in `strings.it.ts`; aggiungerne e un editor "scrivi tu la domanda per domani".
 - Cambio di fuso orario fra i due telefoni: il "giorno" è quello del telefono; se uno viaggia le domande possono slittare di un giorno.
 - Esportazione/ricordi: storico degli umori (la tabella `mood_events` lo conserva già) con una pagina "il nostro mese".
-- Widget: vera grafica per la schermata di blocco e il widget "penso a te" (Sessione 3).
 - Backup dei dati (un'esportazione JSON dal telefono) prima di `leave_couple`, che cancella tutto.
 - Test E2E su Supabase vero in CI (oggi `npm run backend:check` lo si lancia a mano con le chiavi).
+- Widget "Domanda del giorno": il dato (`questionText`, `questionMineDone`, `questionBothDone`) è già nello snapshot v3, manca la grafica.
+- Widget con la vostra foto o il disegno del giorno (sessione 5, Doodle → widget).
+- Le otto facce degli umori con i vostri disegni (`sticker-N.png`) anche nei widget: oggi sono fragole disegnate nel codice.
+- Mesiversari personalizzati (date speciali oltre alla data d'inizio) con una seconda data nello snapshot.
+- Widget interattivo su iOS 17+ (bottone "Penso a te" senza aprire l'app) con `if #available` e ripiego sul link; richiede un AppIntent nell'app.
+- Generare lo snapshot di prova per l'anteprima web direttamente da `tests/fixtures` (oggi i casi sono scritti in `WidgetPreview.tsx`).
+- Lock screen: scelta "giorni/faccina" dentro un solo widget con configurazione (SiriKit `IntentConfiguration` su iOS 16).

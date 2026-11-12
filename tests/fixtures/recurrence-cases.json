@@ -1,0 +1,19 @@
+[
+  { "note": "oggi 2 giorni al 21° mese", "start": "2025-02-14", "today": "2026-11-12", "date": "2026-11-14", "daysUntil": 2, "label": "1 anno e 9 mesi" },
+  { "note": "oggi è il mesiversario", "start": "2025-02-14", "today": "2026-11-14", "date": "2026-11-14", "daysUntil": 0, "label": "1 anno e 9 mesi" },
+  { "note": "31 gennaio → 28 febbraio", "start": "2025-01-31", "today": "2025-02-01", "date": "2025-02-28", "daysUntil": 27, "label": "1 mese" },
+  { "note": "31 gennaio → 29 febbraio (bisestile)", "start": "2024-01-31", "today": "2024-02-10", "date": "2024-02-29", "daysUntil": 19, "label": "1 mese" },
+  { "note": "dopo febbraio torna il 31", "start": "2025-01-31", "today": "2025-03-01", "date": "2025-03-31", "daysUntil": 30, "label": "2 mesi" },
+  { "note": "aprile ha 30 giorni", "start": "2025-01-31", "today": "2025-04-01", "date": "2025-04-30", "daysUntil": 29, "label": "3 mesi" },
+  { "note": "vince il traguardo dei 100 giorni", "start": "2026-08-04", "today": "2026-11-10", "date": "2026-11-12", "daysUntil": 2, "label": "100 giorni" },
+  { "note": "oggi è il giorno 100", "start": "2026-08-04", "today": "2026-11-12", "date": "2026-11-12", "daysUntil": 0, "label": "100 giorni" },
+  { "note": "un anno esatto", "start": "2025-02-14", "today": "2026-02-14", "date": "2026-02-14", "daysUntil": 0, "label": "1 anno" },
+  { "note": "29 febbraio: l'anniversario cade il 28", "start": "2024-02-29", "today": "2025-02-28", "date": "2025-02-28", "daysUntil": 0, "label": "1 anno" },
+  { "note": "29 febbraio, dopo l'anniversario", "start": "2024-02-29", "today": "2025-03-01", "date": "2025-03-29", "daysUntil": 28, "label": "1 anno e 1 mese" },
+  { "note": "inizio oggi: prima festa fra un mese", "start": "2025-02-14", "today": "2025-02-14", "date": "2025-03-14", "daysUntil": 28, "label": "1 mese" },
+  { "note": "cambio d'anno", "start": "2025-11-30", "today": "2026-01-05", "date": "2026-01-30", "daysUntil": 25, "label": "2 mesi" },
+  { "note": "tanti anni", "start": "2000-05-17", "today": "2026-11-12", "date": "2026-11-17", "daysUntil": 5, "label": "26 anni e 6 mesi" },
+  { "note": "data nel futuro", "start": "2027-01-01", "today": "2026-11-12", "date": null },
+  { "note": "data assente", "start": null, "today": "2026-11-12", "date": null },
+  { "note": "data non valida", "start": "2025-02-30", "today": "2026-11-12", "date": null }
+]

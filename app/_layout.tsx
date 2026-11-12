@@ -18,6 +18,7 @@ import { ConfettiLayer, HeartBurstLayer, ThemeProvider, ToastProvider, useTheme 
 import { Grain } from "@/design/layout/Grain";
 import { SplashOverlay } from "@/design/layout/SplashOverlay";
 import { useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useSyncLifecycle";
+import { useDeepLinks } from "@/features/widgetSync/useDeepLinks";
 import { useWidgetSync } from "@/features/widgetSync/useWidgetSync";
 import { useSettings } from "@/state/settingsStore";
 
@@ -32,6 +33,7 @@ function Shell() {
   useWidgetSync();
   useSyncLifecycle();
   useRealtimeEffects();
+  useDeepLinks();
 
   // Primo avvio: onboarding. Dopo, mai più (finché non lo si rivede da "Noi").
   useEffect(() => {

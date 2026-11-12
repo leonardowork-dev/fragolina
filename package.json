@@ -20,6 +20,7 @@
     "ship:dev": "node scripts/ship.mjs dev-client",
     "ship:release": "node scripts/ship.mjs release",
     "test": "vitest run",
+    "swift:check": "vitest run tests/swiftParity.test.ts",
     "backend:sql": "node scripts/build-sql.mjs",
     "backend:sqltest": "node scripts/sql-check.mjs",
     "backend:check": "node scripts/backend-check.mjs",

@@ -10,6 +10,9 @@
     <key>UIAppFonts</key>
     <array>
       <string>BagelFatOne.ttf</string>
+      <string>Figtree-SemiBold.ttf</string>
+      <string>Figtree-Bold.ttf</string>
+      <string>Figtree-ExtraBold.ttf</string>
     </array>
     <key>FragolinaBaseAppGroup</key>
     <string>group.app.fragolina.couple</string>

@@ -1,46 +1,63 @@
 import { useEffect } from "react";
 import { AppState } from "react-native";
 
-import { buildSnapshot, snapshotSignature } from "@/lib/widgetPayload";
-import { widgetBridge } from "@/lib/widgetBridge";
+import { createPushScheduler } from "@/lib/pushScheduler";
 import { localDayKey } from "@/lib/time";
-import { useCouple } from "@/state/coupleStore";
+import { widgetBridge } from "@/lib/widgetBridge";
+import { buildSnapshot, snapshotSignature } from "@/lib/widgetPayload";
+import { selectQuestion, useCouple } from "@/state/coupleStore";
+
+/** Attesa di quiete prima di scrivere (iOS limita le ricariche dei widget: meglio una sola dopo una raffica). */
+export const WIDGET_DEBOUNCE_MS = 1500;
+/** Anche se i cambi non finiscono mai, si scrive almeno ogni tanto. */
+export const WIDGET_MAX_WAIT_MS = 6000;
+/** Se non cambia nulla, si riscrive solo per aggiornare "aggiornato X fa", al massimo ogni 5 minuti. */
+const HEARTBEAT_MS = 5 * 60_000;
 
 /**
- * Tiene il widget allineato ai dati VERI della coppia (umore di lei, pensieri, giorni, ultimo pensiero).
- * Scrive nel container condiviso e ricarica le timeline a ogni cambio, compresi quelli che arrivano dal partner in
- * tempo reale mentre l'app è aperta (debounce 400 ms). Se non cambia nulla riscrive al massimo ogni 5 minuti
- * (aggiorna "aggiornato X fa"). Quando l'app va in secondo piano scrive un'ultima volta.
+ * Tiene i widget allineati ai dati VERI della coppia: umore mio e suo, pensieri (inviati e ricevuti, anche in tempo
+ * reale), risposta alla domanda del giorno, data d'inizio, collegamento/scollegamento. A ogni cambio scrive lo
+ * snapshot v3 nel container condiviso e chiama reloadAllTimelines (dentro `widgetBridge.push`), raggruppando le
+ * raffiche con un debounce di 1,5 s (massimo 6 s). Al ritorno in primo piano riscrive (anche se uguale: aggiorna
+ * "aggiornato X fa"); quando l'app va in secondo piano scrive subito un'ultima volta.
  * Nessuna notifica push (serve un account a pagamento): il widget si aggiorna quando l'app gira o quando iOS decide.
  * Montare una volta nella radice.
  */
 export function useWidgetSync() {
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
     let lastSig = "";
     let lastAt = 0;
-    const push = (force = false) => {
+    const write = (force: boolean) => {
       const now = Date.now();
-      const snap = buildSnapshot(useCouple.getState(), now, localDayKey(new Date(now)));
+      const day = localDayKey(new Date(now));
+      const st = useCouple.getState();
+      const q = selectQuestion(st, day);
+      const snap = buildSnapshot(
+        { ...st, question: { text: q.text, myAnswer: q.myAnswer, partnerAnswer: q.partnerAnswer } },
+        now,
+        day,
+      );
       const sig = snapshotSignature(snap);
-      if (!force && sig === lastSig && now - lastAt < 5 * 60_000) return;
+      if (!force && sig === lastSig && now - lastAt < HEARTBEAT_MS) return;
       lastSig = sig;
       lastAt = now;
       widgetBridge.push(snap);
     };
-    const schedule = () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => push(), 400);
-    };
-    push(true);
-    const unsub = useCouple.subscribe(schedule);
+    const sched = createPushScheduler({
+      debounceMs: WIDGET_DEBOUNCE_MS,
+      maxWaitMs: WIDGET_MAX_WAIT_MS,
+      run: write,
+    });
+    write(true);
+    const unsub = useCouple.subscribe(() => sched.notify());
     const app = AppState.addEventListener("change", (st) => {
-      if (st !== "active") push(true);
+      if (st === "active") sched.notify(true);
+      else sched.flushNow(true);
     });
     return () => {
       unsub();
       app.remove();
-      if (timer) clearTimeout(timer);
+      sched.dispose();
     };
   }, []);
 }

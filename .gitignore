@@ -51,3 +51,6 @@ public/canvaskit.wasm
 
 # output di npm run ship
 build/
+
+# Generato da scripts/widget-art.js a ogni prebuild (copia di assets/user-art/widget-mascot.png)
+targets/widget/Assets.xcassets/widget-mascot.imageset/
