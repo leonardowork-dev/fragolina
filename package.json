@@ -18,7 +18,12 @@
     "postinstall": "node scripts/setup-web.mjs",
     "ship": "node scripts/ship.mjs release",
     "ship:dev": "node scripts/ship.mjs dev-client",
-    "ship:release": "node scripts/ship.mjs release"
+    "ship:release": "node scripts/ship.mjs release",
+    "test": "vitest run",
+    "backend:sql": "node scripts/build-sql.mjs",
+    "backend:sqltest": "node scripts/sql-check.mjs",
+    "backend:check": "node scripts/backend-check.mjs",
+    "setup-env": "node scripts/setup-env.mjs"
   },
   "dependencies": {
     "@bacons/apple-targets": "^5.0.0",
@@ -29,6 +34,7 @@
     "@expo/metro-runtime": "~58.0.17",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@shopify/react-native-skia": "2.14.0",
+    "@supabase/supabase-js": "^2.119.0",
     "expo": "~58.0.23",
     "expo-asset": "~58.0.20",
     "expo-constants": "~58.0.15",
@@ -56,12 +62,14 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
     "@resvg/resvg-js": "^2.6.2",
     "@types/react": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "^58.0.4",
     "playwright-core": "^1.65.0",
     "prettier": "^3.9.10",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
   }
 }
