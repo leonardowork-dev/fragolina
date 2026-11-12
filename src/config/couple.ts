@@ -10,4 +10,4 @@ export const PARTNER_NAME = "Nikole";
 export const BASE_APP_GROUP = "group.app.fragolina.couple";
 
 /** Versione dello schema JSON scambiato col widget. */
-export const WIDGET_SCHEMA_VERSION = 2;
+export const WIDGET_SCHEMA_VERSION = 3;
