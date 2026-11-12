@@ -12,7 +12,7 @@ private extension FragolinaEntry {
     }
     var lockDaysWith: String {
         guard let d = daysValue else { return WS.daysPick }
-        return d == 1 ? WS.lockDaysWithOne(partner) : WS.lockDaysWith(String(d), partner)
+        return d == 1 ? WS.lockDaysWithOne(partnerShort) : WS.lockDaysWith(String(d), partnerShort)
     }
 }
 
@@ -49,7 +49,7 @@ struct LockDaysView: View {
                     }
                     Text(entry.isSoftStale
                          ? entry.updatedText
-                         : (entry.moodId == nil ? WS.a11yMood(entry.partner, WS.moodNone) : WS.a11yMood(entry.partner, entry.moodLabel)))
+                         : (entry.moodId == nil ? WS.a11yMood(entry.partnerShort, WS.moodNone) : WS.a11yMood(entry.partnerShort, entry.moodLabel)))
                         .font(.system(size: 12, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.8)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -95,12 +95,12 @@ struct LockMoodView: View {
                     LockMoodGlyph(moodId: entry.moodId, size: 44)
                 }
             case .accessoryInline:
-                Label(entry.moodId == nil ? WS.a11yMood(entry.partner, WS.moodNone) : WS.a11yMood(entry.partner, entry.moodLabel), systemImage: "heart.fill")
+                Label(entry.moodId == nil ? WS.a11yMood(entry.partnerShort, WS.moodNone) : WS.a11yMood(entry.partnerShort, entry.moodLabel), systemImage: "heart.fill")
             default:
                 HStack(spacing: 8) {
                     LockMoodGlyph(moodId: entry.moodId, size: 38)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(entry.partner).font(.system(size: 14, weight: .heavy, design: .rounded)).lineLimit(1).minimumScaleFactor(0.7)
+                        Text(entry.partnerShort).font(.system(size: 14, weight: .heavy, design: .rounded)).lineLimit(1).minimumScaleFactor(0.7)
                         Text(entry.moodId == nil ? WS.moodNone : entry.moodLabel)
                             .font(.system(size: 13, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
                         if entry.isSoftStale {

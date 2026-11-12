@@ -144,3 +144,11 @@ export function untilText(daysUntil: number): string {
   if (daysUntil === 1) return "domani";
   return `tra ${daysUntil} giorni`;
 }
+
+const MONTH_SHORT = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+
+/** "14 mag" (stessa forma di `shortDate` in Model.swift). */
+export function shortDateYmd(isoDate: string): string {
+  const p = parseYmd(isoDate);
+  return p ? `${p[2]} ${MONTH_SHORT[p[1] - 1]}` : "";
+}

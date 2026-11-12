@@ -10,14 +10,14 @@ struct MoodSmallView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
                 StickerBox(fill: moodFill(entry.moodId), radius: 18, offset: 3, rotation: -2) {
-                    MoodOrPlaceholder(moodId: entry.moodId, size: 46).padding(5)
+                    MoodOrPlaceholder(moodId: entry.moodId, size: 38).padding(4)
                 }
                 Spacer(minLength: 0)
                 if entry.moodId != nil { AgePill(entry: entry, since: entry.moodSinceText) }
             }
             Spacer(minLength: 2)
             Text(entry.moodId == nil ? WS.moodNone : entry.moodLabel)
-                .font(display(21)).tracking(-0.4)
+                .font(display(20)).tracking(-0.4)
                 .foregroundStyle(P.ink)
                 .lineLimit(2).minimumScaleFactor(0.55)
             Text(entry.partner)
@@ -38,7 +38,7 @@ struct MoodMediumView: View {
                     HStack(spacing: 8) {
                         MoodOrPlaceholder(moodId: entry.moodId, size: 62)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(entry.partner).font(bodyFont(12, .heavy)).foregroundStyle(P.ink)
+                            Text(entry.partnerShort).font(bodyFont(12, .heavy)).foregroundStyle(P.ink)
                                 .lineLimit(1).minimumScaleFactor(0.7)
                             Text(entry.moodId == nil ? WS.moodNone : entry.moodLabel)
                                 .font(display(18)).tracking(-0.3).foregroundStyle(P.ink)
@@ -63,7 +63,7 @@ struct MoodMediumView: View {
                 StickerBox(fill: entry.myMoodId == nil ? P.skySoft : moodFill(entry.myMoodId), radius: 18, offset: 3, rotation: 1.5) {
                     VStack(spacing: 1) {
                         MoodOrPlaceholder(moodId: entry.myMoodId, size: 38)
-                        Text(entry.me).font(bodyFont(11, .heavy)).foregroundStyle(P.ink)
+                        Text(entry.meShort).font(bodyFont(11, .heavy)).foregroundStyle(P.ink)
                             .lineLimit(1).minimumScaleFactor(0.6)
                         Text(entry.myMoodId == nil ? WS.youNone : entry.myMoodLabel)
                             .font(bodyFont(10, .semibold)).foregroundStyle(P.ink)

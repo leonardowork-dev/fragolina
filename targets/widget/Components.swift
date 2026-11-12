@@ -57,7 +57,7 @@ struct SleepyView: View {
         switch entry.state {
         case .empty: return WS.emptyTitle
         case .unpaired: return WS.unpairedTitle
-        default: return WS.staleTitle
+        default: return compact ? WS.staleTitleShort : WS.staleTitle
         }
     }
     private var sub: String {

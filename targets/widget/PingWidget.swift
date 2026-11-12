@@ -7,10 +7,11 @@ import WidgetKit
 private struct PingLines: View {
     let entry: FragolinaEntry
     var size: CGFloat = 11
+    var showName: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
-            Text(WS.pingsFrom(entry.partner)).font(bodyFont(size + 1, .heavy)).foregroundStyle(P.ink)
+            Text(showName ? WS.pingsFrom(entry.partnerShort) : WS.pingsReceived).font(bodyFont(size + 1, .heavy)).foregroundStyle(P.ink)
                 .lineLimit(1).minimumScaleFactor(0.65)
             if entry.isSoftStale {
                 Text(entry.updatedText).font(bodyFont(size, .semibold)).foregroundStyle(P.ink)
@@ -35,7 +36,7 @@ struct PingSmallView: View {
                 Image(systemName: "heart.fill")
                     .font(.system(size: 15, weight: .black)).foregroundStyle(P.strawberry)
             }
-            PingLines(entry: entry)
+            PingLines(entry: entry, showName: false)
             Spacer(minLength: 2)
             StickerPill(text: WS.pingTap, fill: P.strawberry, size: 11, symbol: "heart.fill", rotation: -1)
         }

@@ -17,18 +17,23 @@ struct DaysSmallView: View {
     let entry: FragolinaEntry
 
     var body: some View {
+        ZStack(alignment: .topTrailing) {
+            // la mascotte sta in un angolo, fuori dal flusso: non ruba altezza al numero
+            MascotView(mood: entry.isParty ? "carica" : "innamorata", size: 32)
+            texts
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        }
+        .widgetURL(WidgetLink.home)
+    }
+
+    private var texts: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top) {
-                Spacer(minLength: 0)
-                MascotView(mood: entry.isParty ? "carica" : "innamorata", size: 34)
-            }
-            Spacer(minLength: 0)
             if entry.daysValue == nil {
                 Text(WS.daysPick).font(display(26)).foregroundStyle(P.ink).lineLimit(2).minimumScaleFactor(0.6)
                 Text(WS.daysPickHint).font(bodyFont(12, .semibold)).foregroundStyle(P.ink).lineLimit(2).minimumScaleFactor(0.8)
             } else {
                 Text(entry.daysText)
-                    .font(display(50)).tracking(-1.5).foregroundStyle(P.ink)
+                    .font(display(46)).tracking(-1.4).foregroundStyle(P.ink)
                     .lineLimit(1).minimumScaleFactor(0.4)
                 Text(entry.daysCaption).font(bodyFont(13, .heavy)).foregroundStyle(P.ink)
                     .lineLimit(1).minimumScaleFactor(0.7)
@@ -41,8 +46,6 @@ struct DaysSmallView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .widgetURL(WidgetLink.home)
     }
 }
 
@@ -58,7 +61,7 @@ struct DaysMediumView: View {
                     Text(WS.daysPickHint).font(bodyFont(13, .semibold)).foregroundStyle(P.ink).lineLimit(2)
                 } else {
                     Text(entry.daysText)
-                        .font(display(62)).tracking(-2).foregroundStyle(P.ink)
+                        .font(display(54)).tracking(-1.8).foregroundStyle(P.ink)
                         .lineLimit(1).minimumScaleFactor(0.4)
                     Text(entry.daysCaption).font(bodyFont(14, .heavy)).foregroundStyle(P.ink)
                         .lineLimit(1).minimumScaleFactor(0.7)
@@ -77,7 +80,7 @@ struct DaysMediumView: View {
                             .font(bodyFont(11, .semibold)).foregroundStyle(P.ink).lineLimit(1).minimumScaleFactor(0.7)
                     }
                     .padding(10)
-                    .frame(width: 128, alignment: .leading)
+                    .frame(width: 122, alignment: .leading)
                 }
             } else {
                 MascotView(mood: "innamorata", size: 74)

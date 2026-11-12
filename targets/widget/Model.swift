@@ -281,6 +281,17 @@ extension FragolinaEntry {
         let n = snapshot?.myName ?? ""
         return n.isEmpty ? WS.you : n
     }
+    /// Il suo nome per i riquadri stretti: intero se corto (≤ 14 lettere), altrimenti la prima parola.
+    var partnerShort: String {
+        let n = partner
+        if n.count <= 14 { return n }
+        return n.split(whereSeparator: { $0 == " " || $0 == "-" }).first.map(String.init) ?? n
+    }
+    /// Il mio nome per i riquadri stretti: la prima parola; se è ancora lunga (> 12 lettere) solo "Tu".
+    var meShort: String {
+        let first = me.split(whereSeparator: { $0 == " " || $0 == "-" }).first.map(String.init) ?? me
+        return first.count > 12 ? WS.you : first
+    }
     var moodId: String? { snapshot?.moodId }
     var moodLabel: String { snapshot?.moodLabel ?? "" }
     var myMoodId: String? { snapshot?.myMoodId }

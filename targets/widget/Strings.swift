@@ -24,6 +24,7 @@ enum WS {
     static let unpairedTitle = "Manca una persona"
     static let unpairedSub = "Apri Fragolina per collegarvi."
     static let staleTitle = "Dorme da un po'"
+    static let staleTitleShort = "Dorme"
     static let staleSub = "Apri Fragolina per svegliarla."
     static let lockEmpty = "Apri Fragolina"
     static let lockEmptyShort = "Collegati"
@@ -53,7 +54,10 @@ enum WS {
     static let daysPickHint = "Scegli la data in Fragolina."
     static let daysStart = "Si parte oggi"
     static let nextTitle = "Prossima festa"
-    static func nextInline(_ until: String, _ label: String) -> String { "\(until): \(label)" }
+    static func nextInline(_ until: String, _ label: String) -> String {
+        let s = "\(until): \(label)"
+        return s.prefix(1).uppercased() + s.dropFirst()
+    }
     static func todayParty(_ label: String) -> String { "Oggi: \(label)!" }
     static let partyLine = "Auguri a voi"
 

@@ -12,7 +12,7 @@ struct SmallView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
                 StickerBox(fill: moodFill(entry.moodId), radius: 20, offset: 3, rotation: -3) {
-                    MoodOrPlaceholder(moodId: entry.moodId, size: 44).padding(4)
+                    MoodOrPlaceholder(moodId: entry.moodId, size: 34).padding(4)
                 }
                 Spacer(minLength: 0)
                 if entry.isSoftStale {
@@ -30,7 +30,7 @@ struct SmallView: View {
             }
             Spacer(minLength: 2)
             Text(entry.daysText)
-                .font(display(44)).tracking(-1.4)
+                .font(display(40)).tracking(-1.2)
                 .foregroundStyle(P.ink)
                 .minimumScaleFactor(0.4).lineLimit(1)
             Text(entry.daysValue == nil ? WS.daysPickHint : WS.daysLabel)
@@ -48,8 +48,8 @@ struct MediumView: View {
         HStack(spacing: 14) {
             StickerBox(fill: moodFill(entry.moodId), radius: 22, offset: 4, rotation: -1.5) {
                 VStack(spacing: 3) {
-                    MoodOrPlaceholder(moodId: entry.moodId, size: 58)
-                    Text(entry.partner).font(bodyFont(12, .heavy)).foregroundStyle(P.ink).lineLimit(1).minimumScaleFactor(0.7)
+                    MoodOrPlaceholder(moodId: entry.moodId, size: 50)
+                    Text(entry.partnerShort).font(bodyFont(12, .heavy)).foregroundStyle(P.ink).lineLimit(1).minimumScaleFactor(0.7)
                     Text(entry.moodId == nil ? WS.moodNone : entry.moodLabel).font(bodyFont(11, .semibold)).foregroundStyle(P.ink).lineLimit(1).minimumScaleFactor(0.6)
                 }
                 .padding(.vertical, 8).padding(.horizontal, 8)
@@ -58,7 +58,7 @@ struct MediumView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Spacer(minLength: 0)
                 Text(entry.daysText)
-                    .font(display(52)).tracking(-1.6)
+                    .font(display(46)).tracking(-1.4)
                     .foregroundStyle(P.ink)
                     .minimumScaleFactor(0.4).lineLimit(1)
                 Text(entry.daysValue == nil ? WS.daysPickHint : WS.daysLabel)
