@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TextInput, View } from "react-native";
+import { View } from "react-native";
 
 import { Button, Sheet, StickerPressable, Text, TextField, useTheme } from "@/design";
 import { outline } from "@/design/tokens";

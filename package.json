@@ -23,7 +23,8 @@
     "backend:sql": "node scripts/build-sql.mjs",
     "backend:sqltest": "node scripts/sql-check.mjs",
     "backend:check": "node scripts/backend-check.mjs",
-    "setup-env": "node scripts/setup-env.mjs"
+    "setup-env": "node scripts/setup-env.mjs",
+    "e2e": "node scripts/e2e-two-tabs.mjs"
   },
   "dependencies": {
     "@bacons/apple-targets": "^5.0.0",

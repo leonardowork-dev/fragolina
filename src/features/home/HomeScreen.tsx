@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type GestureResponderEvent, Pressable, View } from "react-native";
 import Animated, {
   FadeIn,
@@ -29,7 +29,7 @@ import { EditCoupleSheet } from "@/features/us/EditCoupleSheet";
 import { haptics } from "@/lib/haptics";
 import { cap, partnerLabel } from "@/lib/names";
 import { S } from "@/lib/strings.it";
-import { daysSince, formatLongDate, timeAgo } from "@/lib/time";
+import { daysSince, formatLongDate, localDayKey, timeAgo } from "@/lib/time";
 import { selectPairing, selectPingsToday, selectQuestion, useCouple } from "@/state/coupleStore";
 
 import { MoodSheet } from "./MoodSheet";
@@ -354,7 +354,9 @@ function MyMoodStrip({ onPress }: { onPress: () => void }) {
 function QuestionCard() {
   const { colors } = useTheme();
   const partner = useCouple((s) => s.partnerName);
-  const q = useCouple((s) => selectQuestion(s));
+  const question = useCouple((s) => s.question);
+  const day = localDayKey();
+  const q = useMemo(() => selectQuestion({ question }, day), [question, day]);
   const revealedDay = useCouple((s) => s.revealedDay);
   const markRevealed = useCouple((s) => s.markRevealed);
   const answer = useCouple((s) => s.answerQuestion);
@@ -380,6 +382,7 @@ function QuestionCard() {
               <Sticker
                 key={k}
                 id={`risposta-${k}`}
+                testID={`answer-${k}`}
                 fill={mine ? colors.leaf : colors.blushSoft}
                 radius={radius.md}
                 offset={mine || !answered ? 3 : 0}

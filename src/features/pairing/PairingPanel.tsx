@@ -352,6 +352,7 @@ export function PairingPanel({
   // ---- scelta ----
   return (
     <View style={{ gap: 16 }}>
+      <TextField label={S.pairing.yourName} value={name} onChange={setName} />
       <Sticker
         id="crea-posto"
         fill={colors.accent}
