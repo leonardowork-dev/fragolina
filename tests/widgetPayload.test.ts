@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 
 import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
 import {
-  QUESTION_MAX,
   buildSnapshot,
   decodeSnapshot,
   encodeSnapshot,
@@ -15,24 +14,6 @@ import {
 const root = path.resolve(__dirname, "..");
 const fixtureRaw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot.json"), "utf8");
 const fixture = JSON.parse(fixtureRaw) as WidgetSnapshot;
-const v2Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v2.json"), "utf8");
-const v1Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v1.json"), "utf8");
-
-const baseSource = {
-  coupleId: "c",
-  members: [1, 2],
-  partnerName: "Nikole",
-  partnerMood: { moodId: "innamorata", at: fixture.moodAt! },
-  pingsDay: "2026-11-12",
-  pingsSentToday: 3,
-  pingsReceivedTotal: 41,
-  lastPingReceivedAt: fixture.lastPingAt,
-  startDate: "2025-02-14",
-  lastSyncAt: fixture.updatedAt,
-  meName: "Leonardo",
-  myMood: { moodId: "carica", at: fixture.myMoodAt! },
-  question: { text: "Cena di sabato: cosa vince?", myAnswer: "a", partnerAnswer: null },
-};
 
 describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
   it("la fixture ha la versione dello schema corrente", () => {
@@ -49,28 +30,23 @@ describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
     expect(Object.keys(JSON.parse(encodeSnapshot(fixture)))).toEqual(Object.keys(fixture));
   });
   it("buildSnapshot da una coppia vera produce la fixture", () => {
-    expect(buildSnapshot(baseSource, fixture.updatedAt + 5000, "2026-11-12")).toEqual(fixture);
-  });
-  it("domanda: entrambi hanno risposto solo se ci sono due risposte; testo lungo tagliato a 60", () => {
-    const both = buildSnapshot(
-      { ...baseSource, question: { text: "x".repeat(200), myAnswer: "a", partnerAnswer: "b" } },
-      1,
+    const snap = buildSnapshot(
+      {
+        coupleId: "c",
+        members: [1, 2],
+        partnerName: "Nikole",
+        partnerMood: { moodId: "innamorata", at: fixture.moodAt! },
+        pingsDay: "2026-11-12",
+        pingsSentToday: 3,
+        pingsReceivedTotal: 41,
+        lastPingReceivedAt: fixture.lastPingAt,
+        startDate: "2025-02-14",
+        lastSyncAt: fixture.updatedAt,
+      },
+      fixture.updatedAt + 5000,
       "2026-11-12",
     );
-    expect(both.questionBothDone).toBe(true);
-    expect(both.questionMineDone).toBe(true);
-    expect(both.questionText.length).toBe(QUESTION_MAX);
-    expect(both.questionText.endsWith("…")).toBe(true);
-    const none = buildSnapshot(
-      { ...baseSource, question: { text: "Boh?", myAnswer: null, partnerAnswer: null } },
-      1,
-      "2026-11-12",
-    );
-    expect(none).toMatchObject({ questionMineDone: false, questionBothDone: false, questionText: "Boh?" });
-  });
-  it("il mio umore e il mio nome passano; senza umore restano vuoti", () => {
-    const s = buildSnapshot({ ...baseSource, myMood: null }, 1, "2026-11-12");
-    expect(s).toMatchObject({ myName: "Leonardo", myMoodId: null, myMoodLabel: "", myMoodAt: null });
+    expect(snap).toEqual(fixture);
   });
   it("non collegati: niente umore, niente pensieri, updatedAt = adesso", () => {
     const snap = buildSnapshot(
@@ -85,9 +61,6 @@ describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
         lastPingReceivedAt: 5,
         startDate: null,
         lastSyncAt: 1,
-        meName: "Leo",
-        myMood: { moodId: "felice", at: 2 },
-        question: { text: "Domanda", myAnswer: "a", partnerAnswer: "b" },
       },
       777,
       "2026-11-12",
@@ -100,10 +73,6 @@ describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
       lastPingAt: null,
       startDate: null,
       updatedAt: 777,
-      myMoodId: null,
-      questionText: "",
-      questionMineDone: false,
-      questionBothDone: false,
     });
   });
   it("il contatore di 'oggi' è zero se il giorno è cambiato", () => {
@@ -119,9 +88,6 @@ describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
         lastPingReceivedAt: null,
         startDate: null,
         lastSyncAt: 10,
-        meName: "L",
-        myMood: null,
-        question: null,
       },
       99,
       "2026-11-12",
@@ -129,49 +95,18 @@ describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
     expect(snap.thinkingToday).toBe(0);
     expect(snap.updatedAt).toBe(10);
   });
-  it("legge la fixture v1 (senza `paired`, senza campi nuovi) senza lanciare", () => {
-    const v1 = decodeSnapshot(v1Raw);
+  it("legge un payload vecchio (v1) e uno corrotto senza lanciare", () => {
+    const v1 = decodeSnapshot(
+      '{"v":1,"updatedAt":5,"partnerName":"Nikole","moodId":"felice","moodLabel":"Felice","thinkingToday":2,"startDate":"2025-02-14"}',
+    );
     expect(v1).toMatchObject({
       v: 1,
       paired: true,
-      partnerName: "Nikole",
       moodId: "felice",
       thinkingToday: 2,
       pingsReceived: 0,
       lastPingAt: null,
-      myName: "",
-      myMoodId: null,
-      questionText: "",
-      questionMineDone: false,
-      questionBothDone: false,
     });
-  });
-  it("legge la fixture v2 (compatibilità all'indietro): i campi v3 prendono i valori di base", () => {
-    const v2 = decodeSnapshot(v2Raw)!;
-    expect(v2.v).toBe(2);
-    expect(v2).toMatchObject({
-      paired: true,
-      partnerName: "Nikole",
-      moodId: "innamorata",
-      pingsReceived: 41,
-      startDate: "2025-02-14",
-      myName: "",
-      myMoodId: null,
-      myMoodLabel: "",
-      myMoodAt: null,
-      questionText: "",
-      questionMineDone: false,
-      questionBothDone: false,
-    });
-    // il v2 e il v3 coincidono su tutti i campi che esistevano già
-    for (const k of Object.keys(JSON.parse(v2Raw)).filter((x) => x !== "v"))
-      expect((v2 as Record<string, unknown>)[k]).toEqual((fixture as Record<string, unknown>)[k]);
-  });
-  it("campi nuovi sconosciuti (v4 futuro) e tipi sbagliati non rompono la lettura", () => {
-    const o = decodeSnapshot('{"v":4,"updatedAt":9,"partnerName":"N","qualcosaDiNuovo":{"a":1},"questionMineDone":"sì","myMoodAt":"ieri"}');
-    expect(o).toMatchObject({ v: 4, partnerName: "N", questionMineDone: false, myMoodAt: null });
-  });
-  it("legge un payload corrotto senza lanciare", () => {
     expect(decodeSnapshot("{non json")).toBeNull();
     expect(decodeSnapshot("null")).toBeNull();
     expect(decodeSnapshot('{"thinkingToday":"tre","updatedAt":"ieri"}')).toMatchObject({
@@ -194,7 +129,7 @@ describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
 });
 
 describe("modello Swift Codable ↔ fixture", () => {
-  const swift = fs.readFileSync(path.join(root, "targets/widget/Model.swift"), "utf8");
+  const swift = fs.readFileSync(path.join(root, "targets/widget/FragolinaWidget.swift"), "utf8");
   const block = /struct Snapshot: Codable \{([\s\S]*?)\n\}/.exec(swift)?.[1] ?? "";
   const fields = [...block.matchAll(/var (\w+): (\w+)\?/g)].map((m) => ({
     name: m[1],
@@ -221,10 +156,6 @@ describe("modello Swift Codable ↔ fixture", () => {
         (f.type === "Bool" && kind === "boolean");
       expect(ok, `${f.name}: ${f.type} vs ${kind}`).toBe(true);
     }
-  });
-  it("le chiavi v2 sono un prefisso delle chiavi v3 (si aggiunge in fondo, mai si cambia)", () => {
-    const v2keys = Object.keys(JSON.parse(v2Raw));
-    expect(Object.keys(fixture).slice(0, v2keys.length)).toEqual(v2keys);
   });
   it("gli interi della fixture che Swift legge come Int sono interi (niente decimali)", () => {
     for (const f of fields.filter((x) => x.type === "Int"))
