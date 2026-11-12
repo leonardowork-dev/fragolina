@@ -87,3 +87,53 @@ Se Nikole cambia telefono o reinstalla tutto: sul tuo telefono vai in **Noi → 
 - **Notifiche:** non ci sono (servono un account Apple a pagamento). Il widget si aggiorna quando apri l'app o quando iOS decide (di solito ogni tanto). "aggiornato 5 h fa" sul widget significa proprio questo.
 - **Supabase in pausa:** i progetti gratuiti si mettono in pausa dopo 7 giorni senza nessuna attività. Se un giorno l'app dice "Senza rete" per molto tempo: Supabase → il progetto → **Restore project**. Usare l'app lo tiene vivo.
 - Vuoi il vostro disegno al posto della fragola? Scrivi a Claude e allega i file (formati in `assets\user-art\README.md`).
+
+---
+## Sessione 3 — I nuovi widget (passo-passo)
+Prima di tutto serve la build nuova: se Claude ti ha scritto che l'IPA è pronta, il file è sul **Desktop**, cartella **Fragolina-build**, nome **Fragolina-release.ipa**. (Il Desktop di Windows è quello dentro OneDrive: in Esplora file → **OneDrive → Desktop → Fragolina-build**.)
+
+### S3-1. Installa il file nuovo sull'iPhone (sopra a quello vecchio: i dati restano)
+1. Collega l'iPhone al PC con il cavo. Sbloccalo. Se chiede "Autorizzare questo computer?" tocca **Autorizza**.
+2. Apri **Sideloadly** (menu Start → scrivi **Sideloadly** → Invio).
+3. Nel riquadro in alto controlla che il tuo iPhone sia scelto (compare il suo nome).
+4. Apri **Esplora file** → **OneDrive → Desktop → Fragolina-build** e **trascina** il file `Fragolina-release.ipa` dentro la finestra di Sideloadly (sopra la scritta "Drag IPA file here").
+5. Scrivi il tuo **Apple ID di servizio** nella casella "Apple ID".
+6. Clicca la freccia accanto a **Advanced Options** (opzioni avanzate). **Remove extensions (rimuovi estensioni) deve restare SPENTO**: se lo accendi i widget spariscono.
+7. Clicca **Start**. Scrivi la password dell'Apple ID quando la chiede (e il codice a 6 cifre che arriva sul telefono, se lo chiede).
+   **Devi vedere:** in basso la scritta **Done**. Sull'iPhone l'icona Fragolina è ancora al suo posto.
+8. Se l'app non si apre ("sviluppatore non attendibile"): iPhone → **Impostazioni → Generali → VPN e gestione dispositivo** → tocca il tuo Apple ID → **Autorizza**.
+
+### S3-2. Metti i widget sulla Home
+1. Sulla schermata Home tieni premuto un punto **vuoto** finché le icone tremano.
+2. In alto a sinistra tocca il **+**.
+3. Nella lista scorri (o scrivi **Fragolina** nella ricerca) e tocca **Fragolina**.
+4. Scorri **di lato**: trovi **tre** widget nuovi, ognuno in due grandezze (piccolo e medio):
+   - **Il suo umore** (la fragola con la faccia di Nikole; il medio mostra anche il tuo umore),
+   - **Penso a te** (il contatore dei pensieri; tocchi e le arriva un pensiero),
+   - **Giorni insieme** (il numero grande e la prossima festa).
+   C'è anche **Fragolina**, il widget di prima (umore + giorni + pensieri).
+5. Scegli la grandezza scorrendo di lato, tocca **Aggiungi widget**, poi **Fine** (in alto a destra).
+6. Ripeti dal punto 2 per ogni widget che vuoi.
+
+### S3-3. Metti i widget sulla schermata di blocco
+1. Blocca l'iPhone e svegliali, **senza sbloccare** (guarda lo schermo).
+2. **Tieni premuto** sullo sfondo della schermata di blocco finché compare **Personalizza**. Toccalo (scegli **Schermata Blocco** se te lo chiede). Se ti chiede Face ID, sbloccalo.
+3. Tocca il riquadro **sotto l'ora** (o la riga sopra l'ora per quello "inline").
+4. Si apre l'elenco: scorri fino a **Fragolina** e tocca. Trovi due widget per il blocco: **Noi, sul blocco** (giorni insieme) e **Umore, sul blocco** (la faccina di Nikole). Tocca quello che vuoi: compare nel riquadro.
+5. Tocca **Fine** in alto a destra, poi **Imposta come coppia di sfondi** se compare.
+
+### S3-4. Cosa guardare sul telefono (checklist: scrivi a Claude cosa non va)
+- [ ] I numeri grandi (giorni, pensieri) hanno il carattere **tondo e ciccione** di Fragolina (Bagel Fat One), non un carattere normale. Se sono normali: font non caricato (dimmelo).
+- [ ] Nessun testo è tagliato male: guarda "Voglia di coccole", un nome lungo, un numero a 4-5 cifre (il widget "Giorni" se la data è molto vecchia).
+- [ ] **Penso a te:** tocca il widget una volta. Si apre l'app, vedi **i cuori**, senti la **vibrazione** e compare "Inviato a Nikole". Controlla che a Nikole sia arrivato **UN solo** pensiero (non due). Poi tocca ancora: ne arriva un altro (uno per tocco).
+- [ ] **Se non siete collegati**, toccare Penso a te ti porta alla scheda **Noi** e non manda nulla.
+- [ ] Tocca il tuo riquadro nel widget medio "Il suo umore" (a destra): si apre la scelta del **tuo umore**. Scegline uno e controlla che il widget lo mostri dopo qualche secondo.
+- [ ] Il widget **Giorni** dice il numero giusto. **Dopo mezzanotte** il numero deve salire di 1 anche se non apri l'app.
+- [ ] Il giorno di un mesiversario (o dei 100/200/… giorni) il widget Giorni mostra i **coriandoli** e "Oggi: …!".
+- [ ] "aggiornato X fa" compare sui widget se l'app resta chiusa per più di 3 ore; dopo 2 giorni la **fragola dorme**.
+- [ ] Schermata di blocco: il numero dei giorni si legge bene (cerchio) e la faccina è riconoscibile (linee bianche).
+- [ ] Margini: nessun widget ha il contenuto attaccato al bordo.
+- [ ] I widget compaiono con nome e descrizione in italiano nell'elenco del **+**.
+
+### S3-5. Il tuo disegno al posto della fragola (quando ce l'hai)
+Metti il file **widget-mascot.png** (PNG trasparente 400×400, meno di 1 MB) nella cartella `assets\user-art` del progetto e scrivi a Claude "manda una nuova build". Dettagli in `assets\user-art\README.md`.

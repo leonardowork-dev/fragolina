@@ -31,7 +31,8 @@ Sviluppo: `npm install`, `npm run web`. Build: `.github/workflows/build-ipa.yml`
 
 ## Regole del widget
 Target minimo iOS 16.4 (app, widget, modulo). Niente `#Preview`, `onChange` a due parametri, `@Observable`, widget interattivi o `containerBackground` senza guardia `#available(iOS 17.0, *)` (vedi `StickerWidgetBackground`).
-Processo isolato: niente hook, niente stato dell'app, **solo dati già calcolati** (JSON `WidgetSnapshot` v2 in `src/lib/widgetPayload.ts`, fixture `tests/fixtures/widget-snapshot.json`). Il widget calcola da solo i giorni da `startDate`. Stati: vuoto / non collegato / non aggiornato (> 48 h) = fragola che dorme; dati vecchi (> 3 h) = "aggiornato X fa". `GroupResolver.swift` esiste in due copie (modulo e widget): tienile uguali. Famiglie: small, medium, accessory (circular, rectangular, inline).
+Processo isolato: niente hook, niente stato dell'app, **solo dati già calcolati** (JSON `WidgetSnapshot` **v3** in `src/lib/widgetPayload.ts`, fixture `tests/fixtures/widget-snapshot.json` + `-v2` + `-v1`: i campi si aggiungono solo in fondo). Il widget calcola da solo SOLO giorni da `startDate`, prossima ricorrenza (`src/lib/recurrence.ts` ↔ `Model.swift`, stessa regola) e "X fa". Stati: vuoto / non collegato / non aggiornato (> 48 h) = fragola che dorme; dati vecchi (> 3 h) = "aggiornato X fa". `GroupResolver.swift` esiste in due copie (modulo e widget): tienile uguali.
+**Sei kind** (`index.swift`): `FragolinaMood`, `FragolinaPing`, `FragolinaDays` (small + medium), `FragolinaLock`, `FragolinaLockMood` (accessory), `FragolinaWidget` (storico, non toccare il kind). File: `Model.swift` (solo Foundation: dati, calendario, ricorrenze, date della timeline), `Strings.swift` (TUTTE le stringhe italiane del widget), `Palette.swift` (token + font + adesivo), `Faces.swift` (fragola con umori, dorme, faccina da blocco, coriandoli, slot `widget-mascot`), `Components.swift`, `Provider.swift`, un file per widget. Link: `fragolina://ping|mood|us|home` (`src/lib/deepLink.ts`, `app/+native-intent.ts`, `useDeepLinks`). Nessun AppIntent/widget interattivo (iOS 16). Prove: `npm test` (palette = token, API vietate, kind, fixture v1/v2/v3), `SWIFTC=… npm run swift:check` (Swift reale ↔ TypeScript), anteprima `/widget-preview` + `node scripts/widget-shots.mjs`.
 
 ## Convenzioni
 TypeScript strict, ESLint (`--max-warnings=0`) e `tsc` puliti prima di ogni commit. Stringhe solo in `strings.it.ts`. Nessun segreto nel repo (`.env.local`). Commit chiari a ogni fase. Colori e misure solo dai token. Ogni controllo ha `accessibilityLabel` e ruolo; target ≥ 44pt.
@@ -39,13 +40,18 @@ TypeScript strict, ESLint (`--max-warnings=0`) e `tsc` puliti prima di ogni comm
 ## Roadmap
 1. Fondamenta + design system + shell (**fatto, sessione 1**).
 2. Supabase: pairing con codice e realtime (**fatto, sessione 2**; manca solo la prova col server vero: `MANUAL_TODO.md`, `npm run backend:check`). Widget alimentato con dati veri.
-3. Widget finali (sessione 3): umore, penso-a-te, giorni insieme, schermata di blocco; grafica definitiva.
+3. Widget finali (**fatto, sessione 3**; manca la prova sul telefono: `MANUAL_TODO.md` "Sessione 3"): umore, penso-a-te, giorni insieme, schermata di blocco; grafica definitiva.
 4. Pet condiviso.
 5. Doodle → widget (Skia `makeImageSnapshot`).
 6. Mini giochi.
 7. Extra: countdown, domanda del giorno vera, distanza, ricordi.
 8. Rifinitura: suoni, transizioni, casi limite, icona vera.
 9. Installazione sul telefono di Nikole + routine di rinnovo settimanale.
+
+## Sessione 3 — regole utili
+- Lavorare in `~/fragolina` mentre una catena `npm run ship*` è attiva è pericoloso: `ship.mjs` fa `git add -A` e pubblica tutto (KNOWN_ISSUES 23). Usa un worktree.
+- Modifichi lo schema del widget? Aggiorna insieme: `widgetPayload.ts`, fixture, `Model.swift` (`Snapshot`), `WIDGET_SCHEMA_VERSION`, e lancia `npm test`.
+- Modifichi un layout del widget? Aggiorna la replica in `src/features/lab/widgets/` e guarda `docs/shots/widgets/`.
 
 ## Sessione 2 — comandi e regole utili
 - `npm test` (vitest, ~70 prove), `npm run backend:sqltest` (SQL su Postgres locale), `npm run backend:check` (end-to-end sul progetto Supabase vero; senza chiavi fa la prova a secco), `npm run backend:sql` (rigenera `supabase/all.sql`), `npm run setup-env` (crea `.env.local`), `npm run e2e` / `npm run worst-e2e` (due schede nel browser, serve `npm run web`; in WSL senza sudo imposta `CHROME_LIBS`).
