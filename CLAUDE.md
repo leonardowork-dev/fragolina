@@ -48,7 +48,7 @@ TypeScript strict, ESLint (`--max-warnings=0`) e `tsc` puliti prima di ogni comm
 9. Installazione sul telefono di Nikole + routine di rinnovo settimanale.
 
 ## Sessione 2 — comandi e regole utili
-- `npm test` (vitest, 80+ prove), `npm run backend:sqltest` (SQL su Postgres locale), `npm run backend:check` (end-to-end sul progetto Supabase vero; senza chiavi fa la prova a secco), `npm run backend:sql` (rigenera `supabase/all.sql`), `npm run setup-env` (crea `.env.local`), `npm run e2e` / `npm run worst-e2e` (due schede nel browser, serve `npm run web`; in WSL senza sudo imposta `CHROME_LIBS`).
+- `npm test` (vitest, ~70 prove), `npm run backend:sqltest` (SQL su Postgres locale), `npm run backend:check` (end-to-end sul progetto Supabase vero; senza chiavi fa la prova a secco), `npm run backend:sql` (rigenera `supabase/all.sql`), `npm run setup-env` (crea `.env.local`), `npm run e2e` / `npm run worst-e2e` (due schede nel browser, serve `npm run web`; in WSL senza sudo imposta `CHROME_LIBS`).
 - Modifichi una migrazione? Aggiungi un file nuovo in `supabase/migrations/` (mai riscrivere), poi `npm run backend:sql` e `npm run backend:sqltest`.
 - Il widget NON ha percorso di rete (Percorso A confermato sul telefono): non costruirne uno.
 - Min. iOS 16.x: niente API più nuove senza `#available` e ripiego.
