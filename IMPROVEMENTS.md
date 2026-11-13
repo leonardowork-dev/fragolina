@@ -18,3 +18,12 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - Widget interattivo su iOS 17+ (bottone "Penso a te" senza aprire l'app) con `if #available` e ripiego sul link; richiede un AppIntent nell'app.
 - Generare lo snapshot di prova per l'anteprima web direttamente da `tests/fixtures` (oggi i casi sono scritti in `WidgetPreview.tsx`).
 - Lock screen: scelta "giorni/faccina" dentro un solo widget con configurazione (SiriKit `IntentConfiguration` su iOS 16).
+- Pet: il registro delle cure dovrebbe distinguere anche i cambi di nome e le schiuse con un'icona; oggi i nomi non compaiono.
+- Pet: più cibi (con stagioni), un accessorio da sbloccare a ogni stadio, il pet nel widget con la sua nanna che si "spegne" (sfondo scuro anche nel piccolo).
+- Pet: suono leggero (masticare, russare) quando arriveranno i suoni (sessione 8).
+- Pet: promemoria gentile "vi aspetta" solo quando si apre l'app (le notifiche non sono possibili senza account a pagamento).
+- Pet: tenere una piccola storia (dal giorno 1: stadi raggiunti, giorni di cura in due) nella scheda Noi.
+- Pet: gioco a due (stessa partita su entrambi i telefoni) invece del gioco da soli.
+- Pet: un widget "ultime cure" e una versione grande (large) con il registro.
+- Distinguere nelle prove a due schede la fase "uovo" con il tempo finto, per verificare davvero il "torna a dormire dopo 3 giorni" anche nell'interfaccia.
+

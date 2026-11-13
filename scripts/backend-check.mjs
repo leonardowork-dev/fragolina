@@ -258,7 +258,7 @@ try {
     rows.push([
       "MANCA",
       "Pet: la migrazione del pet NON è ancora stata eseguita su questo Supabase",
-      "→ MANUAL_TODO.md, Sessione 4, passo 1 (incolla supabase/20261113000001_pet.sql). Poi rilancia questo comando.",
+      "→ MANUAL_TODO.md, Sessione 4, passo 1 (incolla supabase/sessione4-pet.sql). Poi rilancia questo comando.",
     ]);
   } else {
     check("pet: get_pet risponde (nessun pet finché nessuno tocca l'uovo)", g0.ok === true && g0.pet === null, JSON.stringify(g0));

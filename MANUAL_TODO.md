@@ -137,3 +137,51 @@ Prima di tutto serve la build nuova: se Claude ti ha scritto che l'IPA è pronta
 
 ### S3-5. Il tuo disegno al posto della fragola (quando ce l'hai)
 Metti il file **widget-mascot.png** (PNG trasparente 400×400, meno di 1 MB) nella cartella `assets\user-art` del progetto e scrivi a Claude "manda una nuova build". Dettagli in `assets\user-art\README.md`.
+
+
+---
+## Sessione 4 — Il pet condiviso (passo-passo, in ordine)
+
+### S4-1. Accendi il pet sul database (una volta sola, 3 minuti)
+Il pet ha bisogno di due tabelle nuove su Supabase. Senza questo passo l'app funziona lo stesso, ma la scheda **Pet** dice "Si sta ancora svegliando".
+1. Sul PC apri il browser e vai su **https://supabase.com/dashboard** (accedi se serve). Clicca il tuo progetto (quello di Fragolina).
+2. Nella colonna a sinistra clicca **SQL Editor** (l'icona con `>_`).
+3. Clicca **New query** (in alto a sinistra, "Nuova query").
+4. Apri il file **`supabase\sessione4-pet.sql`** del progetto (Esplora file → cartella `fragolina` → `supabase`; si apre con il Blocco note). Premi **Ctrl+A** (seleziona tutto) e **Ctrl+C** (copia).
+   *Se il file non lo trovi da Windows:* `\\wsl$\Ubuntu\home\leonardo\fragolina\supabase\sessione4-pet.sql`.
+5. Torna sul sito Supabase, clicca dentro la grande casella di testo e premi **Ctrl+V** (incolla).
+6. Clicca il bottone verde **Run** (in basso a destra, oppure **Ctrl+Invio**).
+   *Se compare un avviso giallo "potential issue / destructive operations":* è normale (la migrazione ripulisce vecchie regole con lo stesso nome). Clicca **Run this query**.
+7. **Devi vedere** in basso la scritta **Success. No rows returned** (verde). Se vedi un errore rosso, copia il testo e mandalo a Claude.
+   Questo file **non tocca** nulla di ciò che c'è già (umori, pensieri, coppia): è solo il pet. Si può rilanciare quante volte vuoi.
+8. Controllo: apri il Terminale Ubuntu, scrivi `cd ~/fragolina && npm run backend:check` e premi **Invio**.
+   **Devi vedere:** una tabella con tante righe **PASS** (anche quelle che iniziano con "pet") e alla fine `… prove passate` **senza** la riga `MANCA`. Se c'è ancora la riga **MANCA**, il passo 6 non è andato a buon fine.
+
+### S4-2. Installa la nuova app sul tuo iPhone (Sideloadly)
+1. Collega l'iPhone al PC col cavo, sbloccalo, se chiede "Registra questo computer" tocca **Registra**.
+2. Apri **Sideloadly**.
+3. Trascina dentro il file **`Fragolina-release.ipa`** (cartella **Desktop → Fragolina-build**; il Desktop è su OneDrive: `OneDrive\Desktop\Fragolina-build`).
+4. Nella casella **Apple ID** scrivi lo **stesso Apple ID** dell'altra volta.
+5. Clicca la freccia accanto a **Advanced Options**: **"Remove extensions" deve restare SPENTO** (se lo accendi i widget spariscono).
+6. Clicca **Start**, scrivi la password (e il codice a 6 cifre se lo chiede).
+   **Devi vedere:** in basso **Done.** Vuol dire fatto. È un'installazione "sopra": i tuoi dati restano.
+
+### S4-3. Aggiungi il widget del Pet
+1. Sulla Home tieni premuto **2 secondi** su uno spazio **vuoto** finché le icone tremano.
+2. Tocca il **+** in alto a sinistra.
+3. Scorri (o scrivi **Fragolina** nella ricerca) e tocca **Fragolina**.
+4. Scorri **di lato** fino a **Il vostro pet**. Scegli **piccolo** o **medio**.
+5. Tocca **Aggiungi widget**, poi **Fine** (in alto a destra).
+   *Schermata di blocco:* tieni premuto sullo sfondo bloccato → **Personalizza** → riquadro sotto l'ora → **Fragolina → Il vostro pet** (rettangolare).
+
+### S4-4. Cosa guardare sul telefono (checklist: scrivi a Claude cosa non va)
+- [ ] **Pet → uovo:** toccalo. Vibra leggermente, ondeggia, compaiono crepe. Si deve vedere "Tu l'hai toccato" e "Nikole deve ancora toccarlo".
+- [ ] **Schiusa a due:** quando **anche Nikole** tocca l'uovo, su **tutti e due** i telefoni l'uovo si schiude (coriandoli). A chi lo fa nascere si apre "Come la chiamate?" → scrivi un nome (max 16 lettere).
+- [ ] **Coccole:** passa il dito **avanti e indietro** sul pet. Senti piccoli "tic", il pet ti segue; alla fine una vibrazione piena e compare "Hai fatto le coccole" nell'elenco.
+- [ ] **Mangia:** tocca **Mangia**, trascina un frutto **sul pet** (oppure toccalo). Il pet mangia; se Nikole ha l'app aperta, vede "…ha dato una mora a …" subito.
+- [ ] **Gioca:** prendi la fragola che rimbalza **3 volte**. **Nanna:** il riquadro si fa scuro e il pet dorme.
+- [ ] I tre adesivi dei bisogni (frutto, cuore, luna) cambiano con le cure; col passare delle ore la faccia cambia (ha fame / vi aspetta / ha sonno).
+- [ ] **Senza rete:** metti la modalità aereo, dai da mangiare: la cura si vede subito e sotto compare "1 cura in attesa di rete"; tolta la modalità aereo arriva da sola.
+- [ ] **Widget Pet:** la faccia corrisponde a quella nell'app; toccandolo si apre la scheda **Pet**; dopo qualche ora (app chiusa) la faccia può cambiare da sola. Il **medio** mostra i tre bisogni e l'ultima cura ("Nikole ha dato una mora · 30 min fa").
+- [ ] Nessun testo tagliato male nel widget (prova con un nome di 16 lettere); nessun bordo attaccato al margine.
+- [ ] I widget di prima (umore, Penso a te, Giorni, blocco) funzionano ancora.
