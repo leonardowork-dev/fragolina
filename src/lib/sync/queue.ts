@@ -1,6 +1,7 @@
 import { BackendError, type QueuedOp } from "./types";
 
 export const MAX_QUEUED_PINGS = 200;
+export const MAX_QUEUED_PET = 100;
 
 /**
  * Accoda un'operazione. Regole:
@@ -13,6 +14,7 @@ export const MAX_QUEUED_PINGS = 200;
 export function enqueue(queue: QueuedOp[], op: QueuedOp): QueuedOp[] {
   if (queue.some((q) => q.key === op.key)) return queue;
   let next = queue;
+  if (op.kind === "petName") next = next.filter((q) => q.kind !== "petName"); // last-write-wins: resta l'ultimo
   if (op.kind === "mood" || op.kind === "startDate" || op.kind === "name") {
     const prior = next.filter((q) => q.kind === op.kind);
     next = next.filter((q) => q.kind !== op.kind);
@@ -29,6 +31,13 @@ export function enqueue(queue: QueuedOp[], op: QueuedOp): QueuedOp[] {
     const pings = next.filter((q) => q.kind === "ping");
     if (pings.length > MAX_QUEUED_PINGS) {
       const drop = new Set(pings.slice(0, pings.length - MAX_QUEUED_PINGS).map((q) => q.key));
+      next = next.filter((q) => !drop.has(q.key));
+    }
+  }
+  if (op.kind === "pet") {
+    const pets = next.filter((q) => q.kind === "pet");
+    if (pets.length > MAX_QUEUED_PET) {
+      const drop = new Set(pets.slice(0, pets.length - MAX_QUEUED_PET).map((q) => q.key));
       next = next.filter((q) => !drop.has(q.key));
     }
   }

@@ -1,9 +1,21 @@
 import type { MoodId } from "@/features/home/moods";
+import type { FoodId, PetKind } from "@/lib/pet/rules";
+import type { PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
 
 export type CoupleCreated = { coupleId: string; code: string; expiresAt: number; role: "a" | "b" };
 export type CoupleJoined = { coupleId: string; role: "a" | "b" };
 export type CodeRenewed = { code: string; expiresAt: number };
+
+/** Una cura del pet, come la manda il telefono. `key` = chiave di idempotenza. */
+export type PetActInput = {
+  kind: PetKind;
+  item: FoodId | null;
+  amount: number;
+  day: string;
+  key: string;
+  at: number;
+};
 
 export type SubscriptionHandlers = {
   onEvent: (e: RemoteEvent) => void;
@@ -40,6 +52,14 @@ export interface Backend {
   /** Last-write-wins sul server: restituisce il valore vincente. */
   setStartDate(startDate: string, at: number): Promise<{ startDate: string; at: number }>;
   setDisplayName(name: string): Promise<void>;
+  /**
+   * Il pet condiviso. `null` = il server non ha (ancora) le tabelle del pet (migrazione non eseguita): l'app resta
+   * usabile e la scheda Pet dice che manca un passo.
+   */
+  getPet(): Promise<PetSnapshot | null>;
+  petAct(a: PetActInput): Promise<void>;
+  /** Last-write-wins sul server. */
+  setPetName(name: string, at: number, key: string): Promise<void>;
   /** App in primo piano o no (rinnovo del token). Facoltativo. */
   setForeground?(active: boolean): void;
 }

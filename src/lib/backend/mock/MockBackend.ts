@@ -1,4 +1,5 @@
 import type { MoodId } from "@/features/home/moods";
+import type { PetSnapshot } from "@/lib/pet/sync";
 import {
   BackendError,
   type BackendErrorKind,
@@ -12,6 +13,7 @@ import type {
   CodeRenewed,
   CoupleCreated,
   CoupleJoined,
+  PetActInput,
   SubscriptionHandlers,
 } from "../types";
 import {
@@ -139,6 +141,9 @@ export class MockBackend implements Backend {
       "name_required",
       "invalid_date",
       "no_partner",
+      "cooldown",
+      "not_hatched",
+      "invalid_action",
     ];
     throw new BackendError(
       known.includes(r.error as BackendErrorKind) ? (r.error as BackendErrorKind) : "unknown",
@@ -190,6 +195,15 @@ export class MockBackend implements Backend {
   }
   setDisplayName(name: string): Promise<void> {
     return this.wire(() => void this.ok(this.server.setDisplayName(this.uid, name)));
+  }
+  getPet(): Promise<PetSnapshot | null> {
+    return this.wire(() => this.ok(this.server.getPet(this.uid)).snapshot);
+  }
+  petAct(a: PetActInput): Promise<void> {
+    return this.wire(() => void this.ok(this.server.petAct(this.uid, a)));
+  }
+  setPetName(name: string, at: number, key: string): Promise<void> {
+    return this.wire(() => void this.ok(this.server.setPetName(this.uid, name, at, key)));
   }
 
   subscribe(coupleId: string, h: SubscriptionHandlers): () => void {

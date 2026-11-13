@@ -80,7 +80,7 @@ export function entryFromState(p: PetState): PetLogEntry | null {
     userId: p.lastBy,
     kind: p.lastKind,
     item: p.lastItem,
-    at: p.lastAt,
+    at: p.lastKind === "name" ? p.nameAt : p.lastAt,
   };
 }
 
@@ -108,7 +108,7 @@ export function replayPet(
   if (!me.userId || !me.role) return p;
   for (const q of queue) {
     if (!isPetOp(q) || seen.has(q.key)) continue;
-    if (q.kind === "petName") p = applyName(p, q.name, q.at, q.key);
+    if (q.kind === "petName") p = applyName(p, q.name, q.at, q.key, me.userId);
     else
       p = applyAction(p, {
         kind: q.action.kind,
@@ -169,7 +169,7 @@ export function buildLogView(
         pending: true,
       });
   const real: PetLogView[] = slice.petLog
-    .filter((e) => e.kind !== ("touch" as string))
+    .filter((e) => e.kind !== "touch" && e.kind !== "name")
     .map((e) => ({ id: e.key, userId: e.userId, kind: e.kind, item: e.item, at: e.at, pending: false }));
   return [...pending.reverse(), ...real].slice(0, limit);
 }

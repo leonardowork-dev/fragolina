@@ -116,7 +116,6 @@ describe("pet: azioni", () => {
   });
   it("cibo mancante o sconosciuto = azione non valida", () => {
     expect(applyAction(born(), act({ kind: "feed" })).outcome).toBe("bad_action");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(applyAction(born(), act({ kind: "feed", item: "pizza" as any })).outcome).toBe("bad_action");
   });
   it("coccola +250 amore; gioca +150 amore e -100 energia", () => {

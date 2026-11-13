@@ -4,6 +4,22 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { ME_NAME, PARTNER_NAME } from "@/config/couple";
 import type { MoodId } from "@/features/home/moods";
 import type { Backend } from "@/lib/backend/types";
+import {
+  type FoodId,
+  type PetKind,
+  type PetState,
+  cleanPetName,
+  cooldownLeft,
+} from "@/lib/pet/rules";
+import {
+  type PetSlice,
+  emptyPetSlice,
+  isPetOp,
+  mergePetEvent,
+  mergePetSnapshot,
+  myLastAt,
+  replayPet,
+} from "@/lib/pet/sync";
 import { safeStorage } from "@/lib/storage";
 import { S } from "@/lib/strings.it";
 import { backoffDelay } from "@/lib/sync/backoff";
@@ -36,6 +52,13 @@ import { uuid } from "@/lib/uuid";
 export const QUESTION_IDS = S.questions.map((q) => q.id);
 
 export type ActionResult = { ok: true } | { ok: false; error: BackendErrorKind };
+export type PetActResult =
+  | { ok: true }
+  | { ok: false; error: "cooldown"; waitMs: number }
+  | { ok: false; error: "not_paired" | "not_hatched" };
+
+/** Ultima cura fatta dall'ALTRA persona (per il toast in tempo reale). */
+export type PetIncoming = { by: string; kind: PetKind | "hatch" | "name"; item: FoodId | null; at: number };
 
 type Ephemeral = {
   hydrated: boolean;
@@ -48,6 +71,14 @@ type Ephemeral = {
   /** Sale quando il server rifiuta in modo definitivo un'operazione (annullata). */
   rejectedSeq: number;
   busy: boolean;
+  /** null = non lo so ancora; false = il server non ha la migrazione del pet (MANUAL_TODO, sessione 4). */
+  petAvailable: boolean | null;
+  /** Sale quando l'altra persona cura il pet in tempo reale (toast + animazione). */
+  petIncomingSeq: number;
+  petIncoming: PetIncoming | null;
+  /** Tocchi all'uovo non ancora messi in coda (si raggruppano per mezzo secondo). */
+  pendingTouches: number;
+  pendingTouchAt: number;
 };
 
 type Engine = {
@@ -59,6 +90,7 @@ type Engine = {
 };
 
 export type CoupleState = SyncedState &
+  PetSlice &
   Ephemeral & {
     queue: QueuedOp[];
     lastSyncAt: number | null;
@@ -69,6 +101,11 @@ export type CoupleState = SyncedState &
     setMyMood: (mood: MoodId) => void;
     sendThought: () => boolean;
     answerQuestion: (a: DailyAnswer) => void;
+    /** Una cura al pet (nutri, coccola, gioca, nanna). Subito visibile; parte in coda. */
+    petAct: (kind: Exclude<PetKind, "touch">, item?: FoodId) => PetActResult;
+    /** Un tocco all'uovo. */
+    touchEgg: () => void;
+    setPetName: (name: string) => void;
     applyRemote: (input: RemoteInput) => void;
     createCouple: () => Promise<ActionResult>;
     joinCouple: (code: string) => Promise<ActionResult>;
@@ -163,6 +200,29 @@ export function createCoupleStore(deps: CoupleDeps) {
           );
         };
 
+        const petSlice = (): PetSlice => ({
+          petServer: get().petServer,
+          petLog: get().petLog,
+          petMyLast: get().petMyLast,
+        });
+        const ingestPetEvent = (pet: PetState) => {
+          const { slice, fresh, entry } = mergePetEvent(petSlice(), pet);
+          if (!fresh) return;
+          const cur = get();
+          const theirs = !!entry && entry.userId !== cur.userId && entry.kind !== "touch";
+          set({
+            ...slice,
+            petAvailable: true,
+            lastSyncAt: now(),
+            ...(theirs && entry
+              ? {
+                  petIncomingSeq: cur.petIncomingSeq + 1,
+                  petIncoming: { by: entry.userId, kind: entry.kind, item: entry.item, at: entry.at },
+                }
+              : null),
+          });
+        };
+
         const ingest = (input: RemoteInput) => {
           const before = get();
           let next: SyncedState;
@@ -170,6 +230,7 @@ export function createCoupleStore(deps: CoupleDeps) {
             next = applySnapshot(synced(), input.state, input.day, before.queue, QUESTION_IDS);
           else {
             const ev = input.event;
+            if (ev.type === "pet") return ingestPetEvent(ev.pet);
             if (ev.type === "ping") {
               if (seenPings.has(ev.id)) return;
               seenPings.add(ev.id);
@@ -195,8 +256,23 @@ export function createCoupleStore(deps: CoupleDeps) {
             const d = new Date(now());
             try {
               const state = await backend.getState(localDayKey(d), localDayStartMs(d));
+              const prevCouple = get().coupleId;
               ingest({ kind: "snapshot", state, day: localDayKey(d) });
               set({ lastSyncAt: now() });
+              // Il pet: una chiamata a parte. Se fallisce per un motivo che non è la rete, il resto dell'app va avanti.
+              if (!state.paired || !state.couple) {
+                set({ ...emptyPetSlice(), petAvailable: null });
+              } else {
+                const snap = await backend.getPet().catch((e: unknown) => {
+                  if (e instanceof BackendError && e.kind === "network") throw e;
+                  return undefined;
+                });
+                if (snap === null) set({ petAvailable: false });
+                else if (snap) {
+                  const base = prevCouple && prevCouple !== state.couple.id ? emptyPetSlice() : petSlice();
+                  set({ ...mergePetSnapshot(base, snap), petAvailable: true });
+                }
+              }
             } finally {
               resyncing = null;
             }
@@ -209,9 +285,20 @@ export function createCoupleStore(deps: CoupleDeps) {
           if (op.kind === "name") return backend.setDisplayName(op.name);
           if (!coupleId) throw new BackendError("not_paired");
           if (op.kind === "ping") return backend.sendPing(coupleId, op.key);
+          if (op.kind === "pet")
+            return backend.petAct({
+              kind: op.action.kind,
+              item: op.action.item,
+              amount: op.action.amount,
+              day: op.action.day,
+              key: op.key,
+              at: op.at,
+            });
+          if (op.kind === "petName") return backend.setPetName(op.name, op.at, op.key);
           if (op.kind === "mood") return backend.setMood(coupleId, op.moodId, op.key, op.at);
           if (op.kind === "answer")
             return backend.answerDaily(coupleId, op.day, op.questionId, op.answer, op.key);
+          if (op.kind !== "startDate") return;
           const won = await backend.setStartDate(op.startDate, op.at);
           const s = get();
           // Il server decide: se un'altra scrittura più recente ha vinto, la adottiamo.
@@ -242,7 +329,10 @@ export function createCoupleStore(deps: CoupleDeps) {
                   queue: cur.queue
                     .filter((q) => !finished.has(q.key))
                     .map((q) => (bump.has(q.key) ? { ...q, attempts: q.attempts + 1 } : q)),
-                  rejectedSeq: r.rejected.length ? cur.rejectedSeq + 1 : cur.rejectedSeq,
+                  // un "troppo presto" del pet non è un errore da mostrare: la cura sparisce da sola
+                  rejectedSeq: r.rejected.some((x) => !(isPetOp(x.op) && x.error.kind === "cooldown"))
+                    ? cur.rejectedSeq + 1
+                    : cur.rejectedSeq,
                 }));
                 if (r.stoppedBy === "network") {
                   goOffline();
@@ -325,6 +415,8 @@ export function createCoupleStore(deps: CoupleDeps) {
                 startDateAt: prev.startDateAt,
                 userId,
                 queue: [],
+                ...emptyPetSlice(),
+                petAvailable: null,
                 sessionLost: true,
               });
             } else set({ userId });
@@ -345,6 +437,26 @@ export function createCoupleStore(deps: CoupleDeps) {
         const kick = () => {
           if (!started) return;
           void flush().catch(() => {});
+        };
+
+        // Tocchi all'uovo: si raggruppano (un viaggio al server ogni mezzo secondo, non uno per tocco).
+        let touchTimer: ReturnType<typeof setTimeout> | null = null;
+        const flushTouches = () => {
+          if (touchTimer) clearTimeout(touchTimer);
+          touchTimer = null;
+          const cur = get();
+          if (!cur.pendingTouches || !cur.coupleId) return set({ pendingTouches: 0 });
+          set({
+            pendingTouches: 0,
+            queue: enqueue(cur.queue, {
+              key: uuid(),
+              kind: "pet",
+              at: cur.pendingTouchAt || now(),
+              attempts: 0,
+              action: { kind: "touch", item: null, amount: Math.min(10, cur.pendingTouches), day: today() },
+            }),
+          });
+          kick();
         };
 
         const sessionReady = async (): Promise<ActionResult | null> => {
@@ -408,6 +520,12 @@ export function createCoupleStore(deps: CoupleDeps) {
           pairedSeq: 0,
           rejectedSeq: 0,
           busy: false,
+          petAvailable: null as boolean | null,
+          petIncomingSeq: 0,
+          petIncoming: null as PetIncoming | null,
+          pendingTouches: 0,
+          pendingTouchAt: 0,
+          ...emptyPetSlice(),
           queue: [],
           lastSyncAt: null,
           sessionLost: false,
@@ -507,6 +625,49 @@ export function createCoupleStore(deps: CoupleDeps) {
             });
             kick();
           },
+          petAct: (kind, item) => {
+            const cur = get();
+            if (!cur.coupleId || !cur.myRole || !cur.userId) return { ok: false, error: "not_paired" };
+            const me = { userId: cur.userId, role: cur.myRole };
+            const view = replayPet(petSlice(), cur.queue, me, cur.pendingTouches, cur.pendingTouchAt, today());
+            if (view.hatchedAt === null) return { ok: false, error: "not_hatched" };
+            const at = now();
+            const wait = cooldownLeft(kind, myLastAt(petSlice(), cur.queue, kind), at);
+            if (wait > 0) return { ok: false, error: "cooldown", waitMs: wait };
+            set({
+              queue: enqueue(cur.queue, {
+                key: uuid(),
+                kind: "pet",
+                at,
+                attempts: 0,
+                action: { kind, item: kind === "feed" ? (item ?? null) : null, amount: 1, day: today() },
+              }),
+            });
+            kick();
+            return { ok: true };
+          },
+          touchEgg: () => {
+            const cur = get();
+            if (!cur.coupleId || !cur.myRole || !cur.userId) return;
+            const me = { userId: cur.userId, role: cur.myRole };
+            if (replayPet(petSlice(), cur.queue, me, cur.pendingTouches, cur.pendingTouchAt, today()).hatchedAt !== null)
+              return;
+            set({ pendingTouches: cur.pendingTouches + 1, pendingTouchAt: now() });
+            if (get().pendingTouches >= 10) flushTouches();
+            else {
+              if (touchTimer) clearTimeout(touchTimer);
+              touchTimer = setTimeout(flushTouches, 600);
+            }
+          },
+          setPetName: (name) => {
+            const nm = cleanPetName(name);
+            const cur = get();
+            if (!nm || !cur.coupleId) return;
+            set({
+              queue: enqueue(cur.queue, { key: uuid(), kind: "petName", at: now(), attempts: 0, name: nm }),
+            });
+            kick();
+          },
           applyRemote: (input) => ingest(input),
 
           createCouple: async () => {
@@ -573,6 +734,9 @@ export function createCoupleStore(deps: CoupleDeps) {
                 startDateAt: s.startDateAt,
                 userId: s.userId,
                 queue: [],
+                ...emptyPetSlice(),
+                petAvailable: null,
+                pendingTouches: 0,
                 lastSyncAt: null,
               });
               return { ok: true };
@@ -609,6 +773,7 @@ export function createCoupleStore(deps: CoupleDeps) {
             },
             setForeground: (active: boolean) => {
               foreground = active;
+              if (!active) flushTouches();
               backend.setForeground?.(active);
               if (!started) return;
               if (!active) {
@@ -635,6 +800,9 @@ export function createCoupleStore(deps: CoupleDeps) {
             lastSyncAt: s.lastSyncAt,
             sessionLost: s.sessionLost,
             revealedDay: s.revealedDay,
+            petServer: s.petServer,
+            petLog: s.petLog,
+            petMyLast: s.petMyLast,
           }) as unknown as CoupleState,
         onRehydrateStorage: () => () => {
           useCouple.setState({ hydrated: true });

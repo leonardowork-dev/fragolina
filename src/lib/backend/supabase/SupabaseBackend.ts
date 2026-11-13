@@ -2,6 +2,7 @@ import { type RealtimeChannel, type SupabaseClient, createClient } from "@supaba
 import { Platform } from "react-native";
 
 import type { MoodId } from "@/features/home/moods";
+import { petFromRow, petSnapshotFromJson } from "@/lib/pet/wire";
 import {
   BackendError,
   type BackendErrorKind,
@@ -15,6 +16,7 @@ import type {
   CodeRenewed,
   CoupleCreated,
   CoupleJoined,
+  PetActInput,
   SubscriptionHandlers,
 } from "../types";
 import { secureSessionStorage } from "./secureStorage";
@@ -37,6 +39,9 @@ const KNOWN: BackendErrorKind[] = [
   "name_required",
   "invalid_date",
   "no_partner",
+  "cooldown",
+  "not_hatched",
+  "invalid_action",
 ];
 
 type AnyErr =
@@ -262,6 +267,31 @@ export class SupabaseBackend implements Backend {
     await this.rpc("set_display_name", { p_name: name });
   }
 
+  async getPet() {
+    try {
+      const d = await this.rpc<Parameters<typeof petSnapshotFromJson>[0]>("get_pet", { p_limit: 12 });
+      return petSnapshotFromJson(d);
+    } catch (e) {
+      // Migrazione del pet non ancora eseguita sul server: la funzione non esiste. Non è un errore dell'app.
+      if (e instanceof BackendError && /get_pet|PGRST202|Could not find|does not exist/i.test(e.message))
+        return null;
+      throw e;
+    }
+  }
+  async petAct(a: PetActInput) {
+    await this.rpc("pet_act", {
+      p_kind: a.kind,
+      p_item: a.item,
+      p_amount: a.amount,
+      p_day: a.day,
+      p_client_key: a.key,
+      p_client_at: Math.round(a.at),
+    });
+  }
+  async setPetName(name: string, at: number, key: string) {
+    await this.rpc("set_pet_name", { p_name: name, p_client_at: Math.round(at), p_client_key: key });
+  }
+
   subscribe(coupleId: string, h: SubscriptionHandlers): () => void {
     let ch: RealtimeChannel | null = this.client.channel(
       `couple-${coupleId}-${Math.random().toString(36).slice(2, 8)}`,
@@ -341,10 +371,25 @@ export class SupabaseBackend implements Backend {
         else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED")
           h.onStatus("down");
       });
+    // Canale a parte per il pet: se il server non ha ancora la tabella (migrazione non eseguita) questo canale
+    // può andare in errore senza far cadere il collegamento principale (umori, pensieri).
+    let petCh: RealtimeChannel | null = this.client.channel(
+      `pet-${coupleId}-${Math.random().toString(36).slice(2, 8)}`,
+    );
+    petCh
+      .on(
+        "postgres_changes",
+        { event: "*", schema: s, table: "pets", filter: f },
+        (p: P) => h.onEvent({ type: "pet", pet: petFromRow(p.new) }),
+      )
+      .subscribe();
     return () => {
       const c = ch;
+      const pc = petCh;
       ch = null;
+      petCh = null;
       if (c) void this.client.removeChannel(c);
+      if (pc) void this.client.removeChannel(pc);
     };
   }
 }

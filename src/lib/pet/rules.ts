@@ -72,7 +72,7 @@ export type PetState = {
   dayA: boolean;
   dayB: boolean;
   lastBy: string | null;
-  lastKind: PetKind | "hatch" | null;
+  lastKind: PetKind | "hatch" | "name" | null;
   lastItem: FoodId | null;
   /** Chiave di idempotenza dell'ultima azione (serve a non contarla due volte fra coda ed evento). */
   lastKey: string | null;
@@ -279,9 +279,24 @@ export function applyAction(p: PetState, a: PetAction): { pet: PetState; outcome
 }
 
 /** Cambio nome: vince l'ultima modifica (last-write-wins). Solo a pet schiuso. */
-export function applyName(p: PetState, name: string, at: number, key?: string | null): PetState {
+export function applyName(
+  p: PetState,
+  name: string,
+  at: number,
+  key?: string | null,
+  by?: string | null,
+): PetState {
   const nm = cleanPetName(name);
   if (!nm || p.hatchedAt === null) return p;
   if (p.name !== null && at < p.nameAt) return p;
-  return { ...p, name: nm, nameAt: at, rev: p.rev + 1, lastKey: key ?? null };
+  return {
+    ...p,
+    name: nm,
+    nameAt: at,
+    rev: p.rev + 1,
+    lastBy: by ?? p.lastBy,
+    lastKind: "name",
+    lastItem: null,
+    lastKey: key ?? null,
+  };
 }

@@ -1,6 +1,19 @@
 import { uuid } from "@/lib/uuid";
 import type { MoodId } from "@/features/home/moods";
 import { MOOD_IDS } from "@/features/home/moods";
+import {
+  COOLDOWN_MS,
+  FOOD_IDS,
+  NAME_MAX,
+  PET_KINDS,
+  type PetKind,
+  type PetState,
+  applyAction,
+  applyName,
+  cleanPetName,
+  emptyPet,
+} from "@/lib/pet/rules";
+import type { PetLogEntry, PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
 
 /**
@@ -31,6 +44,9 @@ export type MockState = {
     at: number;
   }[];
   rate: { kind: "create" | "join_fail"; userId: string; at: number }[];
+  /** Il pet (una riga per coppia) e il registro delle cure. Opzionali: i file salvati prima della sessione 4 non li hanno. */
+  pets?: Record<string, PetState>;
+  petLog?: (PetLogEntry & { coupleId: string; created: number })[];
 };
 
 export type MockStorage = { read(): MockState; write(s: MockState): void };
@@ -47,6 +63,8 @@ export const emptyMockState = (): MockState => ({
   pings: [],
   answers: [],
   rate: [],
+  pets: {},
+  petLog: [],
 });
 
 export const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -182,6 +200,8 @@ export class MockServer {
       s.moods = s.moods.filter((x) => x.coupleId !== cid);
       s.pings = s.pings.filter((x) => x.coupleId !== cid);
       s.answers = s.answers.filter((x) => x.coupleId !== cid);
+      if (s.pets) delete s.pets[cid];
+      if (s.petLog) s.petLog = s.petLog.filter((x) => x.coupleId !== cid);
     } else this.freshCode(s, cid);
     this.storage.write(s);
     // Come su Supabase: le cancellazioni non arrivano in tempo reale (la RLS non può valutarle). Nessun emit.
@@ -287,6 +307,106 @@ export class MockServer {
       event: { type: "answer", userId: uid, day, questionId, answer, at: now },
     });
     return { ok: true };
+  }
+
+  // ---------- pet (specchio di pet_act / set_pet_name / get_pet nel SQL) ----------
+  petAct(
+    uid: string,
+    a: { kind: PetKind; item: string | null; amount: number; day: string; key: string; at: number },
+  ): Res<{ pet: PetState; duplicate?: boolean; ignored?: boolean }> {
+    const s = this.storage.read();
+    const now = this.clock();
+    if (
+      !PET_KINDS.includes(a.kind) ||
+      typeof a.key !== "string" ||
+      a.key.length < 8 ||
+      a.key.length > 64 ||
+      (a.kind === "feed" && !(a.item && (FOOD_IDS as readonly string[]).includes(a.item)))
+    )
+      return { ok: false, error: "invalid_action" };
+    const m = s.members.find((x) => x.userId === uid);
+    if (!m) return { ok: false, error: "not_paired" };
+    s.pets ??= {};
+    s.petLog ??= [];
+    const cid = m.coupleId;
+    if (s.petLog.some((l) => l.userId === uid && l.key === a.key))
+      return { ok: true, duplicate: true, pet: s.pets[cid] ?? emptyPet() };
+    if (s.petLog.filter((l) => l.userId === uid && l.created > now - 60_000).length >= 60)
+      return { ok: false, error: "rate_limited" };
+    const cur = s.pets[cid] ?? emptyPet();
+    const t = Math.max(Math.min(a.at, now), now - 172_800_000);
+    const today = new Date(now).toISOString().slice(0, 10);
+    const dayOk = Math.abs(Date.parse(a.day) - Date.parse(today)) <= 2 * DAY && /^\d{4}-\d{2}-\d{2}$/.test(a.day);
+    if (a.kind !== "touch" && cur.hatchedAt === null) return { ok: false, error: "not_hatched" };
+    if (COOLDOWN_MS[a.kind] > 0) {
+      const last = Math.max(
+        0,
+        ...s.petLog.filter((l) => l.userId === uid && l.kind === a.kind).map((l) => l.at),
+      );
+      if (last && t - last < COOLDOWN_MS[a.kind]) return { ok: false, error: "cooldown" };
+    }
+    const r = applyAction(cur, {
+      kind: a.kind,
+      item: a.kind === "feed" ? (a.item as never) : null,
+      amount: a.amount,
+      role: m.role,
+      userId: uid,
+      at: t,
+      day: dayOk ? a.day : today,
+      key: a.key,
+    });
+    if (r.outcome === "bad_action") return { ok: false, error: "invalid_action" };
+    if (r.outcome === "not_hatched") return { ok: false, error: "not_hatched" };
+    if (r.pet.rev === cur.rev) return { ok: true, ignored: true, pet: cur };
+    s.pets[cid] = r.pet;
+    s.petLog.push({
+      coupleId: cid,
+      userId: uid,
+      kind: r.pet.lastKind === "hatch" ? "hatch" : a.kind,
+      item: a.kind === "feed" ? (a.item as never) : null,
+      at: t,
+      rev: r.pet.rev,
+      key: a.key,
+      created: now,
+    });
+    s.petLog = s.petLog.filter((l) => l.coupleId !== cid || l.rev >= r.pet.rev - 200);
+    this.storage.write(s);
+    this.emit({ coupleId: cid, actor: uid, event: { type: "pet", pet: r.pet } });
+    return { ok: true, pet: r.pet };
+  }
+
+  setPetName(uid: string, name: string, at: number, key: string): Res<{ pet: PetState }> {
+    const s = this.storage.read();
+    const now = this.clock();
+    const nm = cleanPetName(name).slice(0, NAME_MAX);
+    if (!nm) return { ok: false, error: "name_required" };
+    const m = s.members.find((x) => x.userId === uid);
+    if (!m) return { ok: false, error: "not_paired" };
+    const cur = s.pets?.[m.coupleId];
+    if (!cur || cur.hatchedAt === null) return { ok: false, error: "not_hatched" };
+    const t = Math.max(Math.min(at, now), now - 172_800_000);
+    const next = applyName(cur, nm, t, key, uid);
+    if (next.rev === cur.rev) return { ok: true, pet: cur };
+    s.pets![m.coupleId] = next;
+    this.storage.write(s);
+    this.emit({ coupleId: m.coupleId, actor: uid, event: { type: "pet", pet: next } });
+    return { ok: true, pet: next };
+  }
+
+  getPet(uid: string, limit = 12): Res<{ snapshot: PetSnapshot }> {
+    const s = this.storage.read();
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { ok: false, error: "not_paired" };
+    const log = (s.petLog ?? [])
+      .filter((l) => l.coupleId === cid)
+      .sort((x, y) => y.rev - x.rev)
+      .slice(0, Math.min(Math.max(limit, 1), 30))
+      .map(({ coupleId: _c, created: _t, ...e }) => e);
+    const myLast: PetSnapshot["myLast"] = {};
+    for (const l of s.petLog ?? [])
+      if (l.userId === uid && l.kind !== "hatch" && l.kind !== "name")
+        myLast[l.kind] = Math.max(myLast[l.kind] ?? 0, l.at);
+    return { ok: true, snapshot: { state: s.pets?.[cid] ?? null, log, myLast } };
   }
 
   /** Vero se `uid` può vedere questo evento (stessa regola della RLS). */
