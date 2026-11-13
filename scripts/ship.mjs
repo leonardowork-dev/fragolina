@@ -1,17 +1,21 @@
 // ship: un solo comando per mandare il codice su GitHub, costruire l'IPA e scaricarlo.
 // Uso:  npm run ship            (release: l'app completa, funziona da sola sul telefono)
 //       npm run ship:dev        (dev-client: serve il PC acceso con `npm run dev`)
-//       node scripts/ship.mjs release|dev-client
-// Funziona su Windows, Mac e Linux/WSL. Si può rilanciare quando vuoi (idempotente).
+//       node scripts/ship.mjs release|dev-client [--commit]
+// Funziona su Windows, Mac e Linux/WSL.
+// Regole (KNOWN_ISSUES 23): ship NON fa mai add/commit da solo (solo con --commit esplicito);
+// fa push solo se HEAD non è già su origin; i tentativi della catena ricompilano lo stesso SHA;
+// un file .ship.lock impedisce due catene insieme.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { acquireLock, dirtyFiles, dirtyMessage, parseArgs, pushDecision, releaseLock, updateLock } from "./lib/ship-guard.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 process.chdir(root);
-const mode = process.argv[2] === "dev" ? "dev-client" : (process.argv[2] ?? "release");
+const { mode, commit: wantCommit } = parseArgs(process.argv.slice(2));
 if (!["dev-client", "release"].includes(mode)) fail(`Variante sconosciuta "${mode}". Usa: release oppure dev-client.`);
 const REPO_NAME = "fragolina";
 const WORKFLOW = "build-ipa.yml";
@@ -44,6 +48,30 @@ if (gh(["--version"]).code !== 0) {
 }
 if (git(["rev-parse", "--git-dir"]).code !== 0) fail("Questa cartella non è un repository git.");
 
+// 1b) Una sola catena alla volta
+const LOCK = path.join(root, ".ship.lock");
+const lk = acquireLock(LOCK, { pid: process.pid, mode, sha: null });
+if (!lk.ok) {
+  const h = lk.holder ?? {};
+  fail(`C'è già una build in corso (processo ${h.pid ?? "?"}, variante ${h.mode ?? "?"}, commit ${String(h.sha ?? "non ancora noto").slice(0, 7)}, partita ${h.startedAt ?? "?"}). Aspetta che finisca, oppure se è rimasta bloccata cancella il file .ship.lock.`);
+}
+const freeLock = () => releaseLock(LOCK, process.pid);
+process.on("exit", freeLock);
+for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => process.exit(130));
+
+// 1c) Lavoro non salvato? Mai pubblicato di nascosto: ship si ferma (o committa solo con --commit).
+const branch = git(["branch", "--show-current"]).out || "main";
+{
+  const dirty = dirtyFiles(git(["status", "--porcelain"]).out);
+  if (dirty.length && !wantCommit) fail(dirtyMessage(dirty));
+  if (dirty.length && wantCommit) {
+    git(["add", "-A"]);
+    const c = git(["commit", "-m", "Aggiornamenti (ship --commit)"]);
+    if (c.code !== 0) fail(`Commit non riuscito: ${c.err || c.out}`);
+    log(`Salvato in un commit (--commit): ${dirty.length} file`);
+  }
+}
+
 // 2) Login GitHub (solo la prima volta)
 if (gh(["auth", "status"]).code !== 0) {
   console.log("\n==============================================================");
@@ -59,7 +87,7 @@ log("GitHub: accesso ok");
 
 // 3) Controllo segreti prima di pubblicare
 const tracked = git(["ls-files"]).out.split("\n");
-const staged = git(["status", "--porcelain"]).out.split("\n").map((l) => l.slice(3));
+const staged = dirtyFiles(git(["status", "--porcelain"]).out, []).map((x) => x.file);
 const bad = [...new Set([...tracked, ...staged])].filter((f) => /(^|\/)\.env(\.|$)/.test(f) && !f.endsWith(".example") || /\.(pem|p12|key|mobileprovision|jks)$/.test(f));
 if (bad.length) fail(`File sensibili nel progetto, non li pubblico: ${bad.join(", ")}. Aggiungili a .gitignore e toglili da git.`);
 
@@ -99,81 +127,90 @@ log(`Repository: ${repoUrl}`);
   }
 }
 
-// 5) Commit di quel che è cambiato + push
-const branch = git(["branch", "--show-current"]).out || "main";
-if (git(["status", "--porcelain"]).out) {
-  git(["add", "-A"]);
-  const c = git(["commit", "-m", "Aggiornamenti (ship)"]);
-  if (c.code !== 0) fail(`Commit non riuscito: ${c.err || c.out}`);
-  log("Modifiche salvate in un commit");
-}
-const p = git(["push", "-u", "origin", branch]);
-if (p.code !== 0) fail(`Push non riuscito: ${p.err}`);
 const sha = git(["rev-parse", "HEAD"]).out;
-log(`Codice caricato (${sha.slice(0, 7)})`);
+updateLock(LOCK, process.pid, { sha });
 
-// 6) Avvio build (GitHub a volte parte dal commit precedente se il push è appena arrivato: in quel caso annullo e riprovo)
+// 5b) Push solo se HEAD non è già su origin (i tentativi successivi non rifanno nulla)
+git(["fetch", "origin", branch]);
+{
+  const originSha = git(["rev-parse", `origin/${branch}`]).out;
+  const isAnc = git(["merge-base", "--is-ancestor", "HEAD", `origin/${branch}`]).code === 0;
+  const what = pushDecision(sha, originSha, isAnc);
+  if (what === "behind") fail(`Su GitHub c'è già un commit più nuovo di quello che hai qui (${originSha.slice(0, 7)} contro ${sha.slice(0, 7)}). Fai prima "git pull" e rilancia.`);
+  if (what === "push") {
+    const p = git(["push", "-u", "origin", branch]);
+    if (p.code !== 0) fail(`Push non riuscito: ${p.err}`);
+    log(`Codice caricato (${sha.slice(0, 7)})`);
+  } else {
+    log(`Il commit ${sha.slice(0, 7)} è già su GitHub: non ricarico niente`);
+  }
+}
+
+// 6-8) Build, attesa, esito. Se mancano i computer macOS si ritenta DENTRO questo processo: stesso SHA, nessun commit, nessun push.
+const slug = repoUrl.replace("https://github.com/", "");
 await sleep(8000); // dà tempo a GitHub di vedere il push
+const runners = ["macos-26", "macos-15"];
 let runId = null;
-for (let attempt = 1; attempt <= 3 && !runId; attempt++) {
-  log(`Avvio la build "${mode}" su GitHub (di solito 10-20 minuti)...`);
-  const started = Date.now() - 5000;
-  const trig = gh(["workflow", "run", WORKFLOW, "--ref", branch, "-f", `mode=${mode}`, "-f", `runner=${process.env.SHIP_RUNNER || "macos-26"}`]);
-  if (trig.code !== 0) fail(`Non riesco ad avviare la build: ${trig.err}`);
-  let found = null;
-  for (let i = 0; i < 30 && !found; i++) {
-    await sleep(4000);
-    const l = gh(["run", "list", "--workflow", WORKFLOW, "--limit", "5", "--json", "databaseId,createdAt,headSha,event"]);
-    try {
-      found = JSON.parse(l.out || "[]").find((x) => x.event === "workflow_dispatch" && new Date(x.createdAt).getTime() >= started) ?? null;
-    } catch {
-      /* riprova */
+for (let retry = 0; retry <= 12; retry++) {
+  const runner = process.env.SHIP_RUNNER || runners[retry % 2];
+  runId = null;
+  for (let attempt = 1; attempt <= 3 && !runId; attempt++) {
+    log(`Avvio la build "${mode}" su GitHub (${runner}, di solito 10-20 minuti)...`);
+    const started = Date.now() - 5000;
+    const trig = gh(["workflow", "run", WORKFLOW, "--ref", branch, "-f", `mode=${mode}`, "-f", `runner=${runner}`]);
+    if (trig.code !== 0) fail(`Non riesco ad avviare la build: ${trig.err}`);
+    let found = null;
+    for (let i = 0; i < 30 && !found; i++) {
+      await sleep(4000);
+      const l = gh(["run", "list", "--workflow", WORKFLOW, "--limit", "5", "--json", "databaseId,createdAt,headSha,event"]);
+      try {
+        found = JSON.parse(l.out || "[]").find((x) => x.event === "workflow_dispatch" && new Date(x.createdAt).getTime() >= started) ?? null;
+      } catch {
+        /* riprova */
+      }
     }
+    if (!found) fail("La build è partita ma non riesco a trovarla. Guarda la scheda Actions su GitHub.");
+    if (found.headSha !== sha) {
+      log(`La build è sul commit ${found.headSha.slice(0, 7)} invece di ${sha.slice(0, 7)}: la annullo e riprovo.`);
+      gh(["run", "cancel", String(found.databaseId)]);
+      await sleep(8000);
+      continue;
+    }
+    runId = found.databaseId;
   }
-  if (!found) fail("La build è partita ma non riesco a trovarla. Guarda la scheda Actions su GitHub.");
-  if (found.headSha !== sha) {
-    log(`La build è sul commit ${found.headSha.slice(0, 7)} invece di ${sha.slice(0, 7)}: la annullo e riprovo.`);
-    gh(["run", "cancel", String(found.databaseId)]);
-    await sleep(8000);
-    continue;
-  }
-  runId = found.databaseId;
-}
-if (!runId) fail("GitHub continua a partire dal commit sbagliato. Rilancia tra qualche minuto.");
-log(`Build avviata: ${repoUrl}/actions/runs/${runId}`);
+  if (!runId) fail("GitHub continua a partire dal commit sbagliato. Rilancia tra qualche minuto.");
+  log(`Build avviata: ${repoUrl}/actions/runs/${runId}`);
 
-// 7) Attesa
-let state = { status: "queued", conclusion: "" };
-let last = "";
-for (let i = 0; i < 130; i++) {
-  const v = gh(["run", "view", String(runId), "--json", "status,conclusion"]);
-  try {
-    state = JSON.parse(v.out);
-  } catch {
-    /* rete: riprova */
+  let state = { status: "queued", conclusion: "" };
+  let last = "";
+  for (let i = 0; i < 130; i++) {
+    const v = gh(["run", "view", String(runId), "--json", "status,conclusion"]);
+    try {
+      state = JSON.parse(v.out);
+    } catch {
+      /* rete: riprova */
+    }
+    const now = `${state.status}`;
+    if (now !== last) log(`Stato build: ${now}`);
+    last = now;
+    if (state.status === "completed") break;
+    await sleep(30000);
   }
-  const now = `${state.status}`;
-  if (now !== last) log(`Stato build: ${now}`);
-  last = now;
-  if (state.status === "completed") break;
-  await sleep(30000);
-}
-fs.mkdirSync(buildDir, { recursive: true });
-if (state.status !== "completed") fail("La build sta durando troppo (oltre 60 minuti). Controllala su GitHub.");
+  fs.mkdirSync(buildDir, { recursive: true });
+  if (state.status !== "completed") fail("La build sta durando troppo (oltre 60 minuti). Controllala su GitHub.");
+  if (state.conclusion === "success") break;
 
-// 8) Esito
-if (state.conclusion !== "success") {
   const logs = gh(["run", "view", String(runId), "--log-failed"]);
   let text = (logs.out || logs.err).replace(/\u001b\[[0-9;]*m/g, "");
   if (!text.trim()) {
     // Nessun log: spesso GitHub non ha trovato un computer macOS libero. Leggo il motivo vero.
-    const jobs = gh(["api", `repos/${repoUrl.replace("https://github.com/", "")}/actions/runs/${runId}/jobs`, "--jq", ".jobs[0].id"]);
-    const note = jobs.out.trim() ? gh(["api", `repos/${repoUrl.replace("https://github.com/", "")}/check-runs/${jobs.out.trim()}/annotations`, "--jq", ".[].message"]) : { out: "" };
+    const jobs = gh(["api", `repos/${slug}/actions/runs/${runId}/jobs`, "--jq", ".jobs[0].id"]);
+    const note = jobs.out.trim() ? gh(["api", `repos/${slug}/check-runs/${jobs.out.trim()}/annotations`, "--jq", ".[].message"]) : { out: "" };
     text = note.out || "";
-    if (/not acquired|capacity/i.test(text) && Number(process.env.SHIP_RETRY || 0) < 12) {
-      console.error("\nGitHub non ha trovato un computer macOS libero (succede nelle ore di punta). Riprovo da solo...");
-      const r = spawnSync(process.execPath, [process.argv[1], ...process.argv.slice(2)], { stdio: "inherit", env: { ...process.env, SHIP_RETRY: String(Number(process.env.SHIP_RETRY || 0) + 1), SHIP_RUNNER: ["macos-26", "macos-15"][(Number(process.env.SHIP_RETRY || 0) + 1) % 2] } });
-      process.exit(r.status ?? 2);
+    if (/not acquired|capacity/i.test(text) && retry < 12) {
+      console.error(`\nGitHub non ha trovato un computer macOS libero (succede nelle ore di punta). Riprovo da solo (stesso commit ${sha.slice(0, 7)})...`);
+      await sleep(60000);
+      continue;
     }
   }
   fs.writeFileSync(path.join(buildDir, "last-failure.txt"), text);

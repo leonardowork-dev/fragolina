@@ -49,7 +49,7 @@ TypeScript strict, ESLint (`--max-warnings=0`) e `tsc` puliti prima di ogni comm
 9. Installazione sul telefono di Nikole + routine di rinnovo settimanale.
 
 ## Sessione 3 — regole utili
-- Lavorare in `~/fragolina` mentre una catena `npm run ship*` è attiva è pericoloso: `ship.mjs` fa `git add -A` e pubblica tutto (KNOWN_ISSUES 23). Usa un worktree.
+- `ship.mjs` (dalla sessione 4) non committa mai da solo: se l'albero non è pulito si ferma e elenca i file (solo `--commit` salva tutto). Push solo se HEAD non è su origin; i ritentativi ricompilano lo stesso SHA; `.ship.lock` impedisce due catene (KNOWN_ISSUES 23 risolto). Prima di `npm run ship*`: tutto committato e pushato. Durante una catena attiva puoi lavorare, ma non toccare HEAD/branch: la build parte dallo SHA già pubblicato.
 - Modifichi lo schema del widget? Aggiorna insieme: `widgetPayload.ts`, fixture, `Model.swift` (`Snapshot`), `WIDGET_SCHEMA_VERSION`, e lancia `npm test`.
 - Modifichi un layout del widget? Aggiorna la replica in `src/features/lab/widgets/` e guarda `docs/shots/widgets/`.
 

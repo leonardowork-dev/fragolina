@@ -23,4 +23,11 @@
 - Storico delle build: pagina **Actions** del repository su GitHub.
 
 ## Per Claude (riferimento)
-`npm run ship` (= release), `npm run ship:dev` (dev-client), `npm run ship:release`. Lo script (`scripts/ship.mjs`) controlla i segreti, fa commit e push, avvia `build-ipa.yml`, attende, scarica `Fragolina-<modo>-ipa` e copia l'IPA sul Desktop di Windows (anche da WSL). Exit code 2 = build fallita (log in `build/last-failure.txt`).
+`npm run ship` (= release), `npm run ship:dev` (dev-client), `npm run ship:release`. Lo script (`scripts/ship.mjs`) controlla i segreti, avvia `build-ipa.yml`, attende, scarica `Fragolina-<modo>-ipa` e copia l'IPA sul Desktop di Windows (anche da WSL). Exit code 2 = build fallita (log in `build/last-failure.txt`).
+
+**Regole di sicurezza di ship (dalla sessione 4):**
+- Non fa mai `git add`/commit da solo. Se ci sono file non salvati, li elenca in italiano e si ferma ("Prima salva il lavoro: chiedi a Claude 'fai commit di tutto'"). Solo con `--commit` esplicito (`node scripts/ship.mjs release --commit`) salva tutto lui.
+- Fa `git push` solo se HEAD non è già su origin. I tentativi successivi (computer macOS occupati) restano nello stesso processo e ricompilano lo stesso commit: niente altri commit, niente altri push.
+- Una sola catena alla volta: file `.ship.lock` (PID, variante, commit; ignorato da git). Una seconda catena si rifiuta e dice quale è attiva. Il lock si libera alla fine, con Ctrl+C, o da solo se il PID non esiste più.
+- Se su GitHub c'è un commit più nuovo del tuo, si ferma e chiede `git pull`.
+- Prove: `tests/shipGuard.test.ts` (logica in `scripts/lib/ship-guard.mjs`).
