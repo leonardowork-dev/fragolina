@@ -201,6 +201,8 @@ export function applyEvent(
         partnerMood: null,
       };
     }
+    case "pet":
+      return base; // lo gestisce lo store (fetta del pet), non lo stato condiviso base
     case "member-renamed": {
       const members = base.members.map((m) =>
         m.userId === ev.userId ? { ...m, displayName: ev.displayName } : m,
@@ -232,5 +234,8 @@ export function rollbackOp(s: SyncedState, op: QueuedOp): SyncedState {
         : s;
     case "name":
       return { ...s, meName: op.prev };
+    case "pet":
+    case "petName":
+      return s; // il pet che si vede è "server + coda": togliere l'operazione dalla coda basta
   }
 }

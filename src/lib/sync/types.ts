@@ -1,4 +1,5 @@
 import type { MoodId } from "@/features/home/moods";
+import type { FoodId, PetKind, PetState } from "@/lib/pet/rules";
 
 export type DailyAnswer = "a" | "b";
 export type Role = "a" | "b";
@@ -50,7 +51,9 @@ export type RemoteEvent =
     }
   | { type: "member-joined"; member: Member }
   | { type: "member-left"; userId: string }
-  | { type: "member-renamed"; userId: string; displayName: string };
+  | { type: "member-renamed"; userId: string; displayName: string }
+  /** La riga del pet è cambiata (qualcuno l'ha curato, nome, schiusa). */
+  | { type: "pet"; pet: PetState };
 
 export type RemoteInput =
   | { kind: "snapshot"; state: RemoteState; day: string }
@@ -86,7 +89,15 @@ export type QueuedOp =
       startDate: string;
       prev: { startDate: string | null; at: number };
     }
-  | { key: string; kind: "name"; at: number; attempts: number; name: string; prev: string };
+  | { key: string; kind: "name"; at: number; attempts: number; name: string; prev: string }
+  | {
+      key: string;
+      kind: "pet";
+      at: number;
+      attempts: number;
+      action: { kind: PetKind; item: FoodId | null; amount: number; day: string };
+    }
+  | { key: string; kind: "petName"; at: number; attempts: number; name: string };
 
 export type BackendErrorKind =
   | "network" // nessuna rete / timeout: si riprova
@@ -101,6 +112,9 @@ export type BackendErrorKind =
   | "name_required"
   | "invalid_date"
   | "no_partner"
+  | "cooldown" // il pet ha appena fatto la stessa cosa: troppo presto
+  | "not_hatched"
+  | "invalid_action"
   | "unknown";
 
 export class BackendError extends Error {
