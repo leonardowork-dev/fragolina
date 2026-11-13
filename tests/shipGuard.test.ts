@@ -6,7 +6,6 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 // Percorso in variabile: tsc non cerca i tipi di un file .mjs.
 const GUARD = "../scripts/lib/ship-guard.mjs";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let g: any;
 beforeAll(async () => {
   g = await import(/* @vite-ignore */ GUARD);
