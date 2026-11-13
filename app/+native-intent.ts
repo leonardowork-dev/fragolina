@@ -1,7 +1,7 @@
 import { systemPathFor } from "@/lib/deepLink";
 
 /**
- * I link dei widget (`fragolina://ping`, `://mood`, `://us`, `://home`) non sono rotte: li traduciamo in una rotta
+ * I link dei widget (`fragolina://ping`, `://mood`, `://us`, `://home`, `://pet`) non sono rotte: li traduciamo in una rotta
  * vera, così il router non mostra "non trovato". L'azione (il pensiero, la scelta dell'umore) la fa `useDeepLinks`.
  */
 export function redirectSystemPath({ path }: { path: string; initial: boolean }) {

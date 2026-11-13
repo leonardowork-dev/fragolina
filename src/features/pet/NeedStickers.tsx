@@ -44,14 +44,14 @@ function Need({ id, value }: { id: NeedId; value: number }) {
           fill={look.fill}
           radius={id === "food" ? 28 : id === "love" ? 20 : 34}
           offset={4}
-          padding={10}
+          padding={8}
           tiltMax={0}
           style={{ transform: [{ rotate: `${look.tilt}deg` }] }}
           faceStyle={{ alignItems: "center", gap: 4 }}
           accessibilityRole="text"
           accessibilityLabel={S.pet.a11y.need(label, word)}
         >
-          <Glyph kind={look.glyph} size={44} level={value / NEED_MAX} fill={look.level} id={`need-${id}`} />
+          <Glyph kind={look.glyph} size={38} level={value / NEED_MAX} fill={look.level} id={`need-${id}`} />
           <Text variant="caption" align="center" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
             {label}
           </Text>

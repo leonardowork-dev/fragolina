@@ -9,6 +9,7 @@ struct FragolinaWidgetBundle: WidgetBundle {
         DaysWidget()
         LockWidget()
         LockMoodWidget()
+        PetWidget()
         FragolinaWidget()
     }
 }

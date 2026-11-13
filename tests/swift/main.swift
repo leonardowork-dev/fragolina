@@ -61,5 +61,37 @@ if let t = input["timeline"] as? [String: Any], let nowMs = t["nowMs"] as? Doubl
 }
 out["timeline"] = tl
 
+// 6) Pet: bisogni, faccia, testi e "ultima cura" per ogni voce della timeline (stesso calcolo del widget vero)
+var petOut: [Any] = []
+for item in (input["pet"] as? [[String: Any]]) ?? [] {
+    guard let raw = item["snapshot"] as? String, let snap = Snapshot.parse(raw), let nowMs = item["nowMs"] as? Double else { petOut.append(NSNull()); continue }
+    let e = FragolinaEntry(date: Date(timeIntervalSince1970: nowMs / 1000), snapshot: snap, group: nil)
+    let n = e.petNeeds
+    var row: [String: Any] = [
+        "hatched": e.petHatched, "stage": e.petStage, "name": e.petNameText, "mood": e.petMood,
+        "needs": ["food": n.food, "love": n.love, "energy": n.energy],
+        "dots": ["food": petDots(n.food), "love": petDots(n.love), "energy": petDots(n.energy)],
+        "say": e.petSay,
+    ]
+    row["lastLine"] = e.petLastLine ?? NSNull()
+    petOut.append(row)
+}
+out["pet"] = petOut
+
+var petTl: [Any] = []
+for item in (input["petTimeline"] as? [[String: Any]]) ?? [] {
+    guard let raw = item["snapshot"] as? String, let snap = Snapshot.parse(raw), let nowMs = item["nowMs"] as? Double else { petTl.append(NSNull()); continue }
+    let now = Date(timeIntervalSince1970: nowMs / 1000)
+    let mids = ((item["midnightsMs"] as? [Double]) ?? []).map { Date(timeIntervalSince1970: $0 / 1000) }
+    let ds = petTimelineDates(now: now, snapshot: snap, midnights: mids)
+    petTl.append(ds.map { Int(($0.timeIntervalSince1970 * 1000).rounded()) })
+}
+out["petTimeline"] = petTl
+
+// 7) Decadimento puro (bisogno, tasso, millisecondi)
+var dec: [Any] = []
+for item in (input["decay"] as? [[Double]]) ?? [] { dec.append(petDecay(Int(item[0]), Int(item[1]), item[2])) }
+out["decay"] = dec
+
 let data = try! JSONSerialization.data(withJSONObject: out, options: [.sortedKeys])
 try! data.write(to: URL(fileURLWithPath: args[2]))

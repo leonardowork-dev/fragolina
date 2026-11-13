@@ -63,7 +63,7 @@ describe("compatibilità iOS 16.4 (revisione statica)", () => {
     }
   });
   it("tutti i simboli SF usati esistono da iOS 15/16", () => {
-    const ok = new Set(["heart.fill", "clock", "moon.zzz.fill"]);
+    const ok = new Set(["heart.fill", "clock", "moon.zzz.fill", "fork.knife", "moon.fill"]);
     for (const [f, src] of Object.entries(all))
       for (const m of src.matchAll(/(?:systemName|systemImage): "([^"]+)"/g)) expect(ok.has(m[1]), `${f}: ${m[1]}`).toBe(true);
   });
@@ -99,15 +99,15 @@ describe("font, kind e bundle", () => {
     expect(kinds).toContain("FragolinaWidget");
     expect(new Set(kinds).size).toBe(kinds.length);
     expect(kinds.sort()).toEqual(
-      ["FragolinaDays", "FragolinaLock", "FragolinaLockMood", "FragolinaMood", "FragolinaPing", "FragolinaWidget"].sort(),
+      ["FragolinaDays", "FragolinaLock", "FragolinaLockMood", "FragolinaMood", "FragolinaPet", "FragolinaPing", "FragolinaWidget"].sort(),
     );
     const bundle = all["index.swift"];
-    for (const w of ["MoodWidget", "PingWidget", "DaysWidget", "LockWidget", "LockMoodWidget", "FragolinaWidget"])
+    for (const w of ["MoodWidget", "PingWidget", "DaysWidget", "LockWidget", "LockMoodWidget", "PetWidget", "FragolinaWidget"])
       expect(bundle, w).toContain(`${w}()`);
   });
   it("i link usati nei widget sono quelli che l'app capisce", () => {
     const urls = [...all["Model.swift"].matchAll(/URL\(string: "(fragolina:\/\/\w+)"\)/g)].map((m) => m[1]).sort();
-    expect(urls).toEqual(["fragolina://home", "fragolina://mood", "fragolina://ping", "fragolina://us"]);
+    expect(urls).toEqual(["fragolina://home", "fragolina://mood", "fragolina://pet", "fragolina://ping", "fragolina://us"]);
   });
   it("nessuna rete nel widget (Percorso A)", () => {
     for (const [f, src] of Object.entries(all)) expect(src, f).not.toMatch(/URLSession|URLRequest\(|AsyncImage/);
@@ -119,3 +119,35 @@ function hasUtf16Be(bin: Buffer, s: string) {
   for (let i = 0; i < s.length; i++) be.writeUInt16BE(s.charCodeAt(i), i * 2);
   return bin.includes(be);
 }
+
+describe("widget del pet (sessione 4)", () => {
+  it("il kind FragolinaPet è nel bundle e usa tutte le famiglie previste (iOS 16: niente interattivo)", () => {
+    expect(all["PetWidget.swift"]).toContain('let kind = "FragolinaPet"');
+    expect(all["PetWidget.swift"]).toMatch(/supportedFamilies\(\[\.systemSmall, \.systemMedium, \.accessoryRectangular\]\)/);
+    expect(all["PetWidget.swift"]).not.toMatch(/Button\(|Toggle\(/);
+  });
+  it("il widget tocca fragolina://pet in ogni famiglia", () => {
+    const n = (all["PetWidget.swift"].match(/widgetURL\(WidgetLink\.pet\)/g) ?? []).length;
+    expect(n).toBeGreaterThanOrEqual(3);
+  });
+  it("la timeline del pet ha un provider suo, con voci orarie", () => {
+    expect(all["Provider.swift"]).toContain("struct PetProvider: TimelineProvider");
+    expect(all["Model.swift"]).toMatch(/for i in 1\.\.\.24 \{ out\.append\(now\.addingTimeInterval\(Double\(i\) \* 3600\)\) \}/);
+  });
+  it("le costanti delle regole del pet in Swift sono quelle di TypeScript", async () => {
+    const r = await import("@/lib/pet/rules");
+    const m = all["Model.swift"];
+    const num = (name: string) => Number(new RegExp(`static let ${name}(?:: Double)? = ([0-9._* ]+)`).exec(m)?.[1]?.replace(/_/g, "").split("*").map(Number).reduce((a, b) => a * b, 1));
+    expect(num("decayFood")).toBe(r.DECAY_PER_HOUR.food);
+    expect(num("decayLove")).toBe(r.DECAY_PER_HOUR.love);
+    expect(num("decayEnergy")).toBe(r.DECAY_PER_HOUR.energy);
+    expect(num("lowNeed")).toBe(r.LOW_NEED);
+    expect(num("happyAvg")).toBe(r.HAPPY_AVG);
+    expect(num("awayAfterMs")).toBe(r.AWAY_AFTER_MS);
+  });
+  it("ogni stadio e ogni faccia dell'app esistono anche nel disegno Swift", () => {
+    const f = all["PetFaces.swift"];
+    for (const st of ["seed", "sprout", "berry", "big", "egg"]) expect(f, st).toContain(`"${st}"`);
+    for (const mood of ["happy", "love", "sleepy", "asleep", "hungry", "waiting"]) expect(f, mood).toContain(`"${mood}"`);
+  });
+});

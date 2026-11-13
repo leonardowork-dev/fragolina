@@ -2,11 +2,14 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { civilFromDays, daysFromCivil, daysInMonthYmd, daysTogether, nextRecurrence } from "@/lib/recurrence";
 import { timeAgo } from "@/lib/time";
-import { decodeSnapshot } from "@/lib/widgetPayload";
+import { decay } from "@/lib/pet/rules";
+import { petTimelineMs, petWidgetModel } from "@/lib/pet/widgetModel";
+import { type WidgetSnapshot, decodeSnapshot } from "@/lib/widgetPayload";
 
 /**
  * Prova opzionale: compila il codice Swift PURO del widget (targets/widget/Model.swift + Strings.swift) con un
@@ -17,6 +20,11 @@ import { decodeSnapshot } from "@/lib/widgetPayload";
 const root = path.resolve(__dirname, "..");
 const swiftc = process.env.SWIFTC;
 const available = !!swiftc && spawnSync(swiftc, ["--version"]).status === 0;
+
+function utcMidnightAfter(ms: number) {
+  const d = new Date(ms);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 10);
+}
 
 let seed = 12345;
 const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
@@ -36,7 +44,8 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
   const ago = [0, 1, 44, 45, 59, 60, 89, 90, 3599, 3600, 5399, 5400, 7200, 86399, 86400, 129599, 129600, 172800, 518400];
   const fx = (n: string) => fs.readFileSync(path.join(root, "tests/fixtures", n), "utf8");
   const snapshots: Record<string, string> = {
-    v3: fx("widget-snapshot.json"),
+    v4: fx("widget-snapshot.json"),
+    v3: fx("widget-snapshot-v3.json"),
     v2: fx("widget-snapshot-v2.json"),
     v1: fx("widget-snapshot-v1.json"),
     futuro: '{"v":9,"updatedAt":5,"partnerName":"N","nuovo":{"a":[1,2]},"questionMineDone":true}',
@@ -45,6 +54,58 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
     accenti: JSON.stringify({ v: 3, partnerName: "Zoë Àngela 🍓", questionText: "È già tardi?" }),
   };
   const nowMs = Date.UTC(2026, 10, 12, 20, 15, 0);
+
+  // ---- pet: stati e orari casuali (il widget ricalcola da solo, quindi Swift e TypeScript devono coincidere) ----
+  const H = 3_600_000;
+  const KINDS = ["", "feed", "cuddle", "play", "sleep", "hatch", "boh"];
+  const ITEMS = ["", "mora", "lampone", "mirtillo", "pesca", "pizza"];
+  const NAMES = ["", "Bacca", "Fragolotta Reale", "Zoë", "Ça va bene"];
+  const randSnap = (): WidgetSnapshot => {
+    const at = nowMs - Math.floor(rnd() * 30 * H);
+    const hatched = rnd() < 0.85;
+    const day = (n: number) => iso(randDay([2026, 11, Math.max(1, 12 - n)], [2026, 11, 13]));
+    const kind = KINDS[Math.floor(rnd() * KINDS.length)]!;
+    return {
+      ...(decodeSnapshot("{}") as WidgetSnapshot),
+      v: 4,
+      paired: true,
+      partnerName: rnd() < 0.2 ? "" : "Nikole",
+      updatedAt: nowMs - Math.floor(rnd() * 5 * H),
+      petHatched: hatched,
+      petStage: ["egg", "seed", "sprout", "berry", "big", ""][Math.floor(rnd() * 6)]!,
+      petName: NAMES[Math.floor(rnd() * NAMES.length)]!,
+      petFood: Math.floor(rnd() * 1001),
+      petLove: Math.floor(rnd() * 1001),
+      petEnergy: Math.floor(rnd() * 1001),
+      petAt: at,
+      petSleepUntil: rnd() < 0.2 ? nowMs + Math.floor((rnd() - 0.6) * 4 * H) : 0,
+      petLastAt: rnd() < 0.9 ? nowMs - Math.floor(rnd() * 120 * H) : null,
+      petDay: rnd() < 0.8 ? day(Math.floor(rnd() * 2)) : "",
+      petBoth: rnd() < 0.5,
+      petLastBy: ["", "me", "partner"][Math.floor(rnd() * 3)]!,
+      petLastKind: kind,
+      petLastItem: ITEMS[Math.floor(rnd() * ITEMS.length)]!,
+    };
+  };
+  const petCases: { snap: WidgetSnapshot; nowMs: number; today: string }[] = [];
+  const utcDay = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  for (let i = 0; i < 3000; i++) {
+    const t = nowMs + Math.floor((rnd() - 0.2) * 60 * H); // il momento della voce della timeline
+    petCases.push({ snap: randSnap(), nowMs: t, today: utcDay(t) });
+  }
+  // casi di confine esatti: soglie 350/650, tre giorni, fine nanna
+  const edge = (over: Partial<WidgetSnapshot>, dt = 0): void => {
+    petCases.push({ snap: { ...randSnap(), petHatched: true, petAt: nowMs, petSleepUntil: 0, petLastAt: nowMs, petBoth: false, ...over }, nowMs: nowMs + dt, today: utcDay(nowMs + dt) });
+  };
+  for (const v of [349, 350, 351]) edge({ petFood: v, petLove: 900, petEnergy: 900 });
+  for (const v of [649, 650, 651]) edge({ petFood: v, petLove: v, petEnergy: v });
+  edge({}, 72 * H);
+  edge({}, 72 * H + 1);
+  edge({ petSleepUntil: nowMs + 1000 }, 999);
+  edge({ petSleepUntil: nowMs + 1000 }, 1000);
+  const decayCases: number[][] = [];
+  for (let i = 0; i < 4000; i++) decayCases.push([Math.floor(rnd() * 1001), [45, 30, 20][i % 3]!, Math.floor((rnd() - 0.1) * 400 * H)]);
+  const petTlCases = petCases.slice(0, 400).map((c) => ({ ...c, midnights: [utcMidnightAfter(c.nowMs), utcMidnightAfter(c.nowMs) + 86400_000] }));
 
   beforeAll(() => {
     for (let i = 0; i < 4000; i++) {
@@ -74,9 +135,19 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
     );
     fs.writeFileSync(
       path.join(tmp, "in.json"),
-      JSON.stringify({ recurrence: recCases, days: recCases, ago, snapshots, timeline: { nowMs, updatedAtMs: nowMs - 3600_000 } }),
+      JSON.stringify({
+        recurrence: recCases,
+        days: recCases,
+        ago,
+        snapshots,
+        timeline: { nowMs, updatedAtMs: nowMs - 3600_000 },
+        pet: petCases.map((c) => ({ snapshot: JSON.stringify(c.snap), nowMs: c.nowMs })),
+        petTimeline: petTlCases.map((c) => ({ snapshot: JSON.stringify(c.snap), nowMs: c.nowMs, midnightsMs: c.midnights })),
+        decay: decayCases,
+      }),
     );
-    execFileSync(bin, [path.join(tmp, "in.json"), path.join(tmp, "out.json")], { stdio: "inherit" });
+    // TZ=UTC: il "giorno di oggi" del widget (calendario locale) e quello di TypeScript sono lo stesso
+    execFileSync(bin, [path.join(tmp, "in.json"), path.join(tmp, "out.json")], { stdio: "inherit", env: { ...process.env, TZ: "UTC" } });
     out = JSON.parse(fs.readFileSync(path.join(tmp, "out.json"), "utf8"));
   }, 240_000);
   afterAll(() => tmp && fs.rmSync(tmp, { recursive: true, force: true }));
@@ -123,5 +194,38 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
     expect(tl.offsets[0]).toBe(0);
     for (const o of [2 * 3600 + 1, 47 * 3600 + 1]) expect(tl.offsets).toContain(o);
     expect(Math.max(...tl.offsets.filter((o: number) => o < 13 * 3600))).toBeGreaterThan(11 * 3600);
+  });
+  it("pet: decadimento dei bisogni identico (4000 casi, anche tempo negativo e mesi di distanza)", () => {
+    const diffs = decayCases.flatMap((c, i) => (decay(c[0]!, c[1]!, c[2]!) === out.decay[i] ? [] : [`${JSON.stringify(c)} TS=${decay(c[0]!, c[1]!, c[2]!)} Swift=${out.decay[i]}`]));
+    expect(diffs.slice(0, 5)).toEqual([]);
+  });
+  it("pet: facce, bisogni, pallini, frasi e ultima cura identici su 3000+ stati (e sulle soglie esatte)", () => {
+    const diffs: string[] = [];
+    petCases.forEach((c, i) => {
+      const ts = petWidgetModel(c.snap, c.nowMs, c.today);
+      const sw = out.pet[i];
+      if (!isDeepStrictEqual(ts, { hatched: sw.hatched, stage: sw.stage, name: sw.name, mood: sw.mood, needs: sw.needs, dots: sw.dots, say: sw.say, lastLine: sw.lastLine }))
+        diffs.push(`#${i} TS=${JSON.stringify(ts)} Swift=${JSON.stringify(sw)}`);
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    const moods = new Set(out.pet.map((p: { mood: string }) => p.mood));
+    for (const m of ["egg", "asleep", "away", "love", "happy", "calm", "hungry", "waiting", "sleepy"]) expect(moods.has(m), `faccia ${m} mai provata`).toBe(true);
+    const lines = out.pet.map((p: { lastLine: string | null }) => p.lastLine).filter(Boolean) as string[];
+    expect(lines.some((l) => l.startsWith("Hai dato una "))).toBe(true);
+    expect(lines.some((l) => l.includes("Nikole ha fatto le coccole"))).toBe(true);
+  });
+  it("pet: la timeline ha una voce ogni ora e gli istanti esatti (nanna, tre giorni, mezzanotte): identica a TypeScript", () => {
+    const diffs = petTlCases.flatMap((c, i) => {
+      const ts = petTimelineMs(c.nowMs, c.snap, c.midnights);
+      return JSON.stringify(ts) === JSON.stringify(out.petTimeline[i]) ? [] : [`#${i} TS=${ts.length} voci Swift=${out.petTimeline[i]?.length}`];
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    const first = out.petTimeline[0] as number[];
+    expect(first.length).toBeGreaterThanOrEqual(25);
+    expect(first[0]).toBe(petTlCases[0]!.nowMs);
+  });
+  it("pet: snapshot v4 e v3 letti uguali da Swift e TypeScript", () => {
+    expect(out.snapshots.v4?.petName).toBe("Bacca");
+    expect(out.snapshots.v3.petName).toBeUndefined();
   });
 });

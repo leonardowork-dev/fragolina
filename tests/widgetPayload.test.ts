@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
+import { emptyPet } from "@/lib/pet/rules";
 import {
   QUESTION_MAX,
   buildSnapshot,
@@ -16,6 +17,7 @@ const root = path.resolve(__dirname, "..");
 const fixtureRaw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot.json"), "utf8");
 const fixture = JSON.parse(fixtureRaw) as WidgetSnapshot;
 const v2Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v2.json"), "utf8");
+const v3Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v3.json"), "utf8");
 const v1Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v1.json"), "utf8");
 
 const baseSource = {
@@ -32,6 +34,26 @@ const baseSource = {
   meName: "Leonardo",
   myMood: { moodId: "carica", at: fixture.myMoodAt! },
   question: { text: "Cena di sabato: cosa vince?", myAnswer: "a", partnerAnswer: null },
+  myUserId: "ua",
+  // il pet della fixture v4: germoglio "Bacca", curato da lei (ub) con una mora, oggi in due
+  pet: {
+    ...emptyPet(),
+    hatchedAt: 1794000000000,
+    name: "Bacca",
+    food: 640,
+    love: 820,
+    energy: 410,
+    at: 1794571200000 - 1800000,
+    lastAt: 1794571200000 - 1800000,
+    careDays: 3,
+    bothDays: 1,
+    day: "2026-11-12",
+    dayA: true,
+    dayB: true,
+    lastBy: "ub",
+    lastKind: "feed" as const,
+    lastItem: "mora" as const,
+  },
 };
 
 describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
@@ -229,5 +251,50 @@ describe("modello Swift Codable ↔ fixture", () => {
   it("gli interi della fixture che Swift legge come Int sono interi (niente decimali)", () => {
     for (const f of fields.filter((x) => x.type === "Int"))
       expect(Number.isInteger((fixture as Record<string, unknown>)[f.name])).toBe(true);
+  });
+});
+
+describe("payload v4: il pet", () => {
+  const snap = (over: Record<string, unknown> = {}) =>
+    buildSnapshot({ ...baseSource, ...over } as typeof baseSource, fixture.updatedAt, "2026-11-12");
+  it("la fixture v3 (senza pet) si legge ancora: campi del pet vuoti", () => {
+    const d = decodeSnapshot(v3Raw)!;
+    expect(d.v).toBe(3);
+    expect(d).toMatchObject({ petHatched: false, petStage: "", petName: "", petFood: 0, petAt: null, petBoth: false, petLastKind: "" });
+    expect(d.partnerName).toBe("Nikole");
+  });
+  it("v1 e v2 si leggono come prima", () => {
+    expect(decodeSnapshot(v1Raw)).toMatchObject({ v: 1, petHatched: false });
+    expect(decodeSnapshot(v2Raw)).toMatchObject({ v: 2, petStage: "" });
+  });
+  it("i campi del pet stanno IN FONDO e in questo ordine (mai in mezzo)", () => {
+    const keys = Object.keys(fixture);
+    expect(keys.slice(-14)).toEqual([
+      "petHatched", "petStage", "petName", "petFood", "petLove", "petEnergy", "petAt",
+      "petSleepUntil", "petLastAt", "petDay", "petBoth", "petLastBy", "petLastKind", "petLastItem",
+    ]);
+    expect(keys.slice(-15)[0]).toBe("questionBothDone");
+  });
+  it("non collegati: nessun pet, stadio vuoto", () => {
+    const s = snap({ coupleId: null, members: [] });
+    expect(s).toMatchObject({ petHatched: false, petStage: "", petName: "", petFood: 0, petLastBy: "" });
+  });
+  it("collegati senza pet sul server: uovo", () => {
+    expect(snap({ pet: null })).toMatchObject({ petHatched: false, petStage: "egg", petName: "" });
+    expect(snap({ pet: emptyPet() })).toMatchObject({ petHatched: false, petStage: "egg" });
+  });
+  it("chi ha curato per ultimo: 'me' se sono io, 'partner' se è lei; vuoto se l'ultima azione è un cambio di nome", () => {
+    expect(snap().petLastBy).toBe("partner");
+    expect(snap({ myUserId: "ub" }).petLastBy).toBe("me");
+    const named = snap({ pet: { ...baseSource.pet, lastKind: "name" as const } });
+    expect(named).toMatchObject({ petLastBy: "", petLastKind: "", petLastItem: "" });
+  });
+  it("una nanna in corso e il giorno 'in due' passano allo snapshot", () => {
+    const s = snap({ pet: { ...baseSource.pet, sleepUntil: 1794575000000, dayB: false } });
+    expect(s).toMatchObject({ petSleepUntil: 1794575000000, petBoth: false });
+  });
+  it("il valore di un tipo sbagliato nel pet vale 'vuoto' ma non butta via il resto", () => {
+    const d = decodeSnapshot('{"v":4,"partnerName":"N","petFood":"tanto","petStage":3,"petHatched":"si","petName":"Bacca"}')!;
+    expect(d).toMatchObject({ petFood: 0, petStage: "", petHatched: false, petName: "Bacca", partnerName: "N" });
   });
 });

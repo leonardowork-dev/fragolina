@@ -17,6 +17,8 @@ enum WS {
     static let lockDesc = "Giorni insieme e umore di lei sulla schermata di blocco."
     static let lockMoodName = "Umore, sul blocco"
     static let lockMoodDesc = "La faccina di lei sulla schermata di blocco."
+    static let petGalleryName = "Il vostro pet"
+    static let petGalleryDesc = "La fragolina che curate in due: la sua faccia dice come sta."
 
     // ---- Stati comuni ----
     static let emptyTitle = "Ancora niente"
@@ -65,6 +67,48 @@ enum WS {
     static func lockDaysWith(_ days: String, _ name: String) -> String { "\(days) giorni con \(name)" }
     static func lockDaysWithOne(_ name: String) -> String { "1 giorno con \(name)" }
     static func lockPings(_ n: Int) -> String { n == 1 ? "1 pensiero" : "\(n) pensieri" }
+
+    // ---- Pet (stesse parole di src/lib/strings.it.ts, sezione pet: le confronta tests/swiftParity.test.ts) ----
+    static let petDefaultName = "Fragolina"
+    static let petEggTitle = "L'uovo"
+    static let petEggLine = "Toccatelo in due."
+    static let petNeedFood = "Pancia"
+    static let petNeedLove = "Coccole"
+    static let petNeedEnergy = "Sonno"
+    static let petLockEmpty = "Apri Fragolina"
+    static func petSay(_ mood: String) -> String {
+        switch mood {
+        case "asleep": return "Zzz…"
+        case "away": return "Dormiva. Vi aspettava."
+        case "love": return "Vi vuole bene."
+        case "happy": return "Che bella giornata."
+        case "calm": return "Tutto tranquillo."
+        case "hungry": return "Ha fame."
+        case "waiting": return "Vi aspetta."
+        case "sleepy": return "Ha sonno."
+        default: return petEggLine
+        }
+    }
+    static func petFoodGiven(_ id: String) -> String {
+        switch id {
+        case "mora": return "una mora"
+        case "lampone": return "un lampone"
+        case "mirtillo": return "un mirtillo"
+        case "pesca": return "una pesca"
+        default: return "un frutto"
+        }
+    }
+    /// `who` = nil quando sei tu ("Hai dato…"). `nil` se il tipo di cura non è da raccontare.
+    static func petLogLine(kind: String, who: String?, item: String) -> String? {
+        switch kind {
+        case "feed": return who.map { "\($0) ha dato \(petFoodGiven(item))" } ?? "Hai dato \(petFoodGiven(item))"
+        case "cuddle": return who.map { "\($0) ha fatto le coccole" } ?? "Hai fatto le coccole"
+        case "play": return who.map { "\($0) ha giocato" } ?? "Hai giocato"
+        case "sleep": return who.map { "\($0) ha spento la luce" } ?? "Hai spento la luce"
+        case "hatch": return who.map { "\($0) l'ha fatto nascere" } ?? "L'hai fatto nascere"
+        default: return nil
+        }
+    }
 
     // ---- "aggiornato" ----
     static func updated(_ ago: String) -> String { "aggiornato " + ago }

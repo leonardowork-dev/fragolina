@@ -7,6 +7,7 @@ import type { WidgetSnapshot } from "@/lib/widgetPayload";
 
 import { PreviewEntry } from "./widgets/model";
 import { Confetti, Frame } from "./widgets/kit-exports";
+import * as PV from "./widgets/petViews";
 import * as V from "./widgets/views";
 
 /**
@@ -26,7 +27,7 @@ const iso = (days: number) => {
 };
 
 const base: WidgetSnapshot = {
-  v: 3,
+  v: 4,
   updatedAt: NOW - 5 * MIN,
   paired: true,
   partnerName: "Nikole",
@@ -44,6 +45,20 @@ const base: WidgetSnapshot = {
   questionText: "Cena di sabato: cosa vince?",
   questionMineDone: true,
   questionBothDone: false,
+  petHatched: true,
+  petStage: "sprout",
+  petName: "Bacca",
+  petFood: 640,
+  petLove: 820,
+  petEnergy: 600,
+  petAt: NOW - 30 * MIN,
+  petSleepUntil: 0,
+  petLastAt: NOW - 30 * MIN,
+  petDay: TODAY,
+  petBoth: false,
+  petLastBy: "partner",
+  petLastKind: "feed",
+  petLastItem: "mora",
 };
 
 type Case = { id: string; title: string; snap: WidgetSnapshot | null };
@@ -77,6 +92,14 @@ const CASES: Case[] = [
   { id: "un-giorno", title: "1 giorno insieme", snap: { ...base, startDate: iso(-1) } },
   { id: "senza-data", title: "Data non scelta", snap: { ...base, startDate: null } },
   { id: "senza-umore", title: "Nessun umore (né suo né mio), nessun pensiero", snap: { ...base, moodId: null, moodLabel: "", moodAt: null, myMoodId: null, myMoodLabel: "", myMoodAt: null, pingsReceived: 0, lastPingAt: null, thinkingToday: 0 } },
+  { id: "pet-fame", title: "Pet: ha fame (pancia bassa), germoglio", snap: { ...base, petFood: 200, petLove: 700, petEnergy: 700, petAt: NOW } },
+  { id: "pet-aspetta", title: "Pet: vi aspetta (coccole basse), fragolina", snap: { ...base, petStage: "berry", petFood: 800, petLove: 150, petEnergy: 700, petAt: NOW } },
+  { id: "pet-sonno", title: "Pet: ha sonno (energia bassa), semino", snap: { ...base, petStage: "seed", petFood: 800, petLove: 700, petEnergy: 100, petAt: NOW } },
+  { id: "pet-nanna", title: "Pet: fa la nanna (luce spenta), fragolona", snap: { ...base, petStage: "big", petSleepUntil: NOW + 80 * MIN, petAt: NOW } },
+  { id: "pet-amore", title: "Pet: 'vi vuole bene' (curato in due oggi), fragolona", snap: { ...base, petStage: "big", petBoth: true, petFood: 900, petLove: 900, petEnergy: 900, petAt: NOW } },
+  { id: "pet-abbandono", title: "Pet: nessuna cura da 5 giorni, torna a dormire", snap: { ...base, petLastAt: NOW - 5 * 86400_000, petAt: NOW - 5 * 86400_000, petLastBy: "me", petLastKind: "cuddle", petLastItem: "", updatedAt: NOW - 20 * MIN } },
+  { id: "pet-uovo", title: "Pet: l'uovo", snap: { ...base, petHatched: false, petStage: "egg", petName: "", petLastAt: null, petLastBy: "", petLastKind: "", petLastItem: "", petAt: null } },
+  { id: "pet-nome16", title: "Pet: nome di 16 caratteri, ultima cura mia", snap: { ...base, petName: "Fragolotta Reale", partnerName: "Maria Antonietta", petLastBy: "partner", petLastKind: "play", petLastItem: "" } },
   { id: "dati-vecchi", title: "Dati vecchi (> 3 h): 'aggiornato X fa'", snap: { ...base, updatedAt: NOW - 5 * H } },
   { id: "dorme", title: "Fermo da > 48 h: la fragola dorme", snap: { ...base, updatedAt: NOW - 50 * H } },
   { id: "non-collegati", title: "Non collegati", snap: { ...base, paired: false, partnerName: "Nikole" } },
@@ -141,7 +164,16 @@ function CaseView({ c, report }: { c: Case; report: (m: string) => void }) {
           {md("Fragolina · medio", <V.LegacyMedium e={e} report={r} />)}
         </Row>
       ) : null}
+      <Row>
+        {sm("Pet · piccolo", <PV.PetSmall e={e} report={r} />)}
+        {md("Pet · medio", <PV.PetMedium e={e} report={r} />)}
+      </Row>
       <View style={{ backgroundColor: "#3a3340", borderRadius: 14, padding: 14, gap: 12 }}>
+        {!sleepy ? (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
+            <PV.PetLock e={e} report={r} />
+          </View>
+        ) : null}
         <RNText style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: "#d8cfd6" }}>Schermata di blocco (monocromatico)</RNText>
         {(["Noi", "Umore"] as const).map((k) => (
           <View key={k} style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, alignItems: "center" }}>

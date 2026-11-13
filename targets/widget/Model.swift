@@ -7,7 +7,7 @@ import Foundation
 
 /// Tutti i campi sono opzionali e si leggono uno per uno: un payload v1, v2, v3 o incompleto si legge comunque,
 /// mai un crash; un campo del tipo sbagliato vale `nil` ma non butta via gli altri.
-/// NOTA: i campi si AGGIUNGONO in fondo (v2 = prima parte, v3 = seconda). tests/widgetPayload.test.ts controlla
+/// NOTA: i campi si AGGIUNGONO in fondo (v2 = prima parte, v3 = seconda, v4 = il pet). tests/widgetPayload.test.ts controlla
 /// che nomi, tipi e ordine coincidano con la fixture.
 struct Snapshot: Codable {
     var v: Int?
@@ -28,6 +28,20 @@ struct Snapshot: Codable {
     var questionText: String?
     var questionMineDone: Bool?
     var questionBothDone: Bool?
+    var petHatched: Bool?       // v4 (pet condiviso)
+    var petStage: String?       // egg | seed | sprout | berry | big
+    var petName: String?
+    var petFood: Int?           // bisogni 0...1000 all'istante petAt (poi scendono da soli)
+    var petLove: Int?
+    var petEnergy: Int?
+    var petAt: Double?
+    var petSleepUntil: Double?  // fine della nanna (ms), 0 = non dorme
+    var petLastAt: Double?      // ultima cura vera (ms)
+    var petDay: String?         // ultimo giorno di cura AAAA-MM-GG
+    var petBoth: Bool?          // quel giorno avete curato entrambi
+    var petLastBy: String?      // "me" | "partner" | ""
+    var petLastKind: String?    // feed | cuddle | play | sleep | hatch
+    var petLastItem: String?
 }
 
 extension Snapshot {
@@ -35,6 +49,8 @@ extension Snapshot {
         case v, updatedAt, paired, partnerName, moodId, moodLabel, moodAt, thinkingToday, pingsReceived
         case lastPingAt, startDate, myName, myMoodId, myMoodLabel, myMoodAt
         case questionText, questionMineDone, questionBothDone
+        case petHatched, petStage, petName, petFood, petLove, petEnergy, petAt, petSleepUntil
+        case petLastAt, petDay, petBoth, petLastBy, petLastKind, petLastItem
     }
 
     init(from decoder: Decoder) throws {
@@ -60,7 +76,21 @@ extension Snapshot {
             myMoodAt: get(Double.self, .myMoodAt),
             questionText: get(String.self, .questionText),
             questionMineDone: get(Bool.self, .questionMineDone),
-            questionBothDone: get(Bool.self, .questionBothDone)
+            questionBothDone: get(Bool.self, .questionBothDone),
+            petHatched: get(Bool.self, .petHatched),
+            petStage: get(String.self, .petStage),
+            petName: get(String.self, .petName),
+            petFood: get(Int.self, .petFood),
+            petLove: get(Int.self, .petLove),
+            petEnergy: get(Int.self, .petEnergy),
+            petAt: get(Double.self, .petAt),
+            petSleepUntil: get(Double.self, .petSleepUntil),
+            petLastAt: get(Double.self, .petLastAt),
+            petDay: get(String.self, .petDay),
+            petBoth: get(Bool.self, .petBoth),
+            petLastBy: get(String.self, .petLastBy),
+            petLastKind: get(String.self, .petLastKind),
+            petLastItem: get(String.self, .petLastItem)
         )
     }
 
@@ -351,6 +381,128 @@ func timelineDates(now: Date, updatedAtMs: Double?, calendar: Calendar = .curren
     return unique
 }
 
+// MARK: - Pet condiviso (regole in src/lib/pet/rules.ts, specchio in src/lib/pet/widgetModel.ts)
+
+/// Tutto in interi (bisogni 0...1000, tempi in millisecondi): gli stessi numeri di TypeScript e di SQL.
+enum PetRules {
+    static let decayFood = 45
+    static let decayLove = 30
+    static let decayEnergy = 20
+    static let lowNeed = 350
+    static let happyAvg = 650.0
+    static let awayAfterMs: Double = 72 * 3_600_000
+    static let hourMs: Double = 3_600_000
+}
+
+struct PetNeeds: Equatable {
+    var food: Int
+    var love: Int
+    var energy: Int
+}
+
+/// Un bisogno dopo `dtMs`: scende di `rate` unità l'ora (parte intera), mai sotto 0.
+func petDecay(_ v: Int, _ rate: Int, _ dtMs: Double) -> Int {
+    let lost = Int((Double(rate) * max(dtMs, 0) / PetRules.hourMs).rounded(.down))
+    return min(1000, max(0, v - lost))
+}
+
+func petNeedsAt(food: Int, love: Int, energy: Int, at: Double, now: Double) -> PetNeeds {
+    let dt = now - at
+    return PetNeeds(
+        food: petDecay(food, PetRules.decayFood, dt),
+        love: petDecay(love, PetRules.decayLove, dt),
+        energy: petDecay(energy, PetRules.decayEnergy, dt)
+    )
+}
+
+/// La faccia: egg, asleep, away, love, happy, calm, hungry, waiting, sleepy.
+func petMoodId(hatched: Bool, needs n: PetNeeds, sleepUntil: Double, lastAt: Double, day: String, both: Bool, now: Double, todayIso: String) -> String {
+    if !hatched { return "egg" }
+    if now < sleepUntil { return "asleep" }
+    if now - lastAt > PetRules.awayAfterMs { return "away" }
+    // il più basso; a parità: pancia, poi coccole, poi energia
+    var low = "food"
+    var lowV = n.food
+    if n.love < lowV { low = "love"; lowV = n.love }
+    if n.energy < lowV { low = "energy"; lowV = n.energy }
+    if lowV < PetRules.lowNeed { return low == "food" ? "hungry" : (low == "love" ? "waiting" : "sleepy") }
+    if both && day == todayIso { return "love" }
+    return Double(n.food + n.love + n.energy) / 3 >= PetRules.happyAvg ? "happy" : "calm"
+}
+
+/// Pallini pieni (1-3) di un bisogno.
+func petDots(_ v: Int) -> Int { v < PetRules.lowNeed ? 1 : (v < 650 ? 2 : 3) }
+
+extension FragolinaEntry {
+    var petHatched: Bool { snapshot?.petHatched ?? false }
+    var petStage: String {
+        let s = snapshot?.petStage ?? ""
+        return s.isEmpty ? "egg" : s
+    }
+    var petNameText: String {
+        let n = snapshot?.petName ?? ""
+        return n.isEmpty ? WS.petDefaultName : n
+    }
+    var petNowMs: Double { date.timeIntervalSince1970 * 1000 }
+    /// I bisogni AL MOMENTO della voce della timeline (non al momento della scrittura).
+    var petNeeds: PetNeeds {
+        petNeedsAt(
+            food: snapshot?.petFood ?? 0, love: snapshot?.petLove ?? 0, energy: snapshot?.petEnergy ?? 0,
+            at: snapshot?.petAt ?? 0, now: petNowMs
+        )
+    }
+    var petMood: String {
+        petMoodId(
+            hatched: petHatched, needs: petNeeds, sleepUntil: snapshot?.petSleepUntil ?? 0,
+            lastAt: snapshot?.petLastAt ?? 0, day: snapshot?.petDay ?? "", both: snapshot?.petBoth ?? false,
+            now: petNowMs, todayIso: today.iso
+        )
+    }
+    var petSay: String { petHatched ? WS.petSay(petMood) : WS.petEggLine }
+    /// "Nikole ha dato una mora · 10 min fa"; `nil` se non c'è una cura da raccontare.
+    var petLastLine: String? {
+        guard petHatched, let at = snapshot?.petLastAt, at > 0,
+              let by = snapshot?.petLastBy, !by.isEmpty,
+              let text = WS.petLogLine(kind: snapshot?.petLastKind ?? "", who: by == "me" ? nil : partner, item: snapshot?.petLastItem ?? "")
+        else { return nil }
+        return text + " · " + agoIt(date.timeIntervalSince1970 - at / 1000)
+    }
+}
+
+/// Voci della timeline del pet: ogni ora per 24 h (la faccia cambia anche con l'app chiusa), più gli istanti esatti
+/// in cui cambia qualcosa di netto (fine nanna, "torna a dormire") e i `midnights` (la festa "vi vuole bene" vale
+/// per il giorno). I mezzanotte li calcola il chiamante col calendario; qui si resta in puri numeri.
+func petTimelineDates(now: Date, snapshot: Snapshot?, midnights: [Date]) -> [Date] {
+    var out: [Date] = [now]
+    for i in 1...24 { out.append(now.addingTimeInterval(Double(i) * 3600)) }
+    let end = now.addingTimeInterval(24 * 3600 + 1)
+    func add(_ ms: Double) {
+        let d = Date(timeIntervalSince1970: ms / 1000)
+        if d > now && d <= end { out.append(d) }
+    }
+    if snapshot?.petHatched == true {
+        if let su = snapshot?.petSleepUntil, su > 0 { add(su + 1000) }
+        if let la = snapshot?.petLastAt, la > 0 { add(la + PetRules.awayAfterMs + 1000) }
+    }
+    for m in midnights where m > now && m <= end { out.append(m) }
+    let sorted = out.sorted()
+    var unique: [Date] = []
+    for d in sorted where unique.last.map({ d.timeIntervalSince($0) >= 1 }) ?? true { unique.append(d) }
+    return unique
+}
+
+/// Le prossime `count` mezzanotti (+10 s) nel calendario locale.
+func nextMidnights(after now: Date, count: Int, calendar: Calendar = .current) -> [Date] {
+    var out: [Date] = []
+    var cursor = now
+    for _ in 0..<count {
+        guard let m = calendar.nextDate(after: cursor, matching: DateComponents(hour: 0, minute: 0, second: 10), matchingPolicy: .nextTime) else { break }
+        out.append(m)
+        cursor = m
+    }
+    return out
+}
+
 // MARK: - Link dei widget (gestiti in app/+native-intent.ts e src/lib/deepLink.ts)
 
 enum WidgetLink {
@@ -358,4 +510,5 @@ enum WidgetLink {
     static let mood = URL(string: "fragolina://mood")!
     static let us = URL(string: "fragolina://us")!
     static let home = URL(string: "fragolina://home")!
+    static let pet = URL(string: "fragolina://pet")!
 }

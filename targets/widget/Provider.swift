@@ -34,7 +34,7 @@ struct FragolinaProvider: TimelineProvider {
         completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(60 * 60))))
     }
 
-    private func load(at date: Date) -> FragolinaEntry {
+    func load(at date: Date) -> FragolinaEntry {
         let group = GroupResolver.resolve()
         var snap: Snapshot?
         if let group,
@@ -42,5 +42,44 @@ struct FragolinaProvider: TimelineProvider {
             snap = Snapshot.parse(raw)
         }
         return FragolinaEntry(date: date, snapshot: snap, group: group)
+    }
+}
+
+/// Provider del pet: voci ogni ora per 24 h (+ istanti esatti), così la faccia cambia anche con l'app chiusa.
+/// Ogni voce porta lo stesso snapshot: i bisogni si ricalcolano per la data della voce (`FragolinaEntry.petNeeds`).
+struct PetProvider: TimelineProvider {
+    func placeholder(in context: Context) -> FragolinaEntry {
+        let nowMs = Date().timeIntervalSince1970 * 1000
+        return FragolinaEntry(
+            date: Date(),
+            snapshot: Snapshot(
+                v: 4, updatedAt: nowMs, paired: true, partnerName: "Nikole", myName: "Leonardo",
+                petHatched: true, petStage: "sprout", petName: "Bacca", petFood: 640, petLove: 820, petEnergy: 600,
+                petAt: nowMs, petSleepUntil: 0, petLastAt: nowMs - 30 * 60 * 1000, petDay: "", petBoth: false,
+                petLastBy: "partner", petLastKind: "feed", petLastItem: "mora"
+            ),
+            group: nil
+        )
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (FragolinaEntry) -> Void) {
+        completion(context.isPreview ? placeholder(in: context) : FragolinaProvider().load(at: Date()))
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<FragolinaEntry>) -> Void) {
+        let now = Date()
+        let base = FragolinaProvider().load(at: now)
+        var dates = petTimelineDates(now: now, snapshot: base.snapshot, midnights: nextMidnights(after: now, count: 2))
+        // anche le soglie "dati vecchi" (3 h) e "dorme" (48 h) dall'ultimo aggiornamento, come negli altri widget
+        if let ms = base.snapshot?.updatedAt, ms > 0 {
+            let at = Date(timeIntervalSince1970: ms / 1000)
+            for t in [softStaleAfter + 1, hardStaleAfter + 1] {
+                let d = at.addingTimeInterval(t)
+                if d > now && d <= now.addingTimeInterval(24 * 3600) { dates.append(d) }
+            }
+            dates.sort()
+        }
+        let entries = dates.map { FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group) }
+        completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(60 * 60))))
     }
 }

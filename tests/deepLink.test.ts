@@ -14,6 +14,9 @@ describe("parser dei link dei widget", () => {
     expect(parseDeepLink("fragolina://mood")).toBe("mood");
     expect(parseDeepLink("fragolina://us")).toBe("us");
     expect(parseDeepLink("fragolina://home")).toBe("home");
+    expect(parseDeepLink("fragolina://pet")).toBe("pet");
+    expect(parseDeepLink("fragolina://pet/")).toBe("pet");
+    expect(parseDeepLink("fragolina:///pet?x=1")).toBe("pet");
   });
   it("tollera maiuscole, slash finale, tre slash, query e spazi", () => {
     expect(parseDeepLink("Fragolina://PING")).toBe("ping");
@@ -45,6 +48,7 @@ describe("parser dei link dei widget", () => {
     expect(systemPathFor("fragolina://mood")).toBe("/");
     expect(systemPathFor("fragolina://home")).toBe("/");
     expect(systemPathFor("fragolina://us")).toBe("/us");
+    expect(systemPathFor("fragolina://pet")).toBe("/pet");
     expect(systemPathFor("fragolina://boh")).toBeNull();
     expect(systemPathFor("https://esempio.it")).toBeNull();
   });
@@ -130,5 +134,29 @@ describe("cancello di idempotenza (un tocco = un pensiero)", () => {
     for (const [initial, t] of [[true, 0], [false, 300]] as const)
       if (g.accept("fragolina://ping", t, initial)) sent++;
     expect(sent).toBe(1);
+  });
+});
+
+describe("link del Pet (sessione 4)", () => {
+  it("fragolina://pet apre il Pet, collegati o no, e non fa altro", () => {
+    for (const paired of [true, false]) {
+      const calls: string[] = [];
+      const out = runDeepLink("pet", {
+        paired,
+        sendThought: () => (calls.push("send"), true),
+        goTo: (p) => calls.push(`go:${p}`),
+        requestMoodSheet: () => calls.push("mood"),
+        confirmPing: () => calls.push("confirm"),
+      });
+      expect(out).toBe("to-pet");
+      expect(calls).toEqual(["go:/pet"]);
+    }
+  });
+  it("idempotente: lo stesso link due volte entro 4 s vale una volta, l'URL iniziale una volta per esecuzione", () => {
+    const g = createLinkGate();
+    expect(g.accept("fragolina://pet", 1000, true)).toBe(true);
+    expect(g.accept("fragolina://pet", 1500, false)).toBe(false);
+    expect(g.accept("fragolina://pet", 1600, true)).toBe(false);
+    expect(g.accept("fragolina://pet", 6000, false)).toBe(true);
   });
 });

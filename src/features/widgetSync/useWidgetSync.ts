@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AppState } from "react-native";
 
+import { replayPet } from "@/lib/pet/sync";
 import { createPushScheduler } from "@/lib/pushScheduler";
 import { localDayKey } from "@/lib/time";
 import { widgetBridge } from "@/lib/widgetBridge";
@@ -17,7 +18,7 @@ const HEARTBEAT_MS = 5 * 60_000;
 /**
  * Tiene i widget allineati ai dati VERI della coppia: umore mio e suo, pensieri (inviati e ricevuti, anche in tempo
  * reale), risposta alla domanda del giorno, data d'inizio, collegamento/scollegamento. A ogni cambio scrive lo
- * snapshot v3 nel container condiviso e chiama reloadAllTimelines (dentro `widgetBridge.push`), raggruppando le
+ * snapshot v4 (v3 + il pet) nel container condiviso e chiama reloadAllTimelines (dentro `widgetBridge.push`), raggruppando le
  * raffiche con un debounce di 1,5 s (massimo 6 s). Al ritorno in primo piano riscrive (anche se uguale: aggiorna
  * "aggiornato X fa"); quando l'app va in secondo piano scrive subito un'ultima volta.
  * Nessuna notifica push (serve un account a pagamento): il widget si aggiorna quando l'app gira o quando iOS decide.
@@ -32,8 +33,15 @@ export function useWidgetSync() {
       const day = localDayKey(new Date(now));
       const st = useCouple.getState();
       const q = selectQuestion(st, day);
+      // il pet come lo vede questo telefono (con le cure ancora in coda): il widget mostra subito ciò che hai fatto
+      const pet = replayPet(st, st.queue, { userId: st.userId, role: st.myRole }, st.pendingTouches, st.pendingTouchAt, day);
       const snap = buildSnapshot(
-        { ...st, question: { text: q.text, myAnswer: q.myAnswer, partnerAnswer: q.partnerAnswer } },
+        {
+          ...st,
+          question: { text: q.text, myAnswer: q.myAnswer, partnerAnswer: q.partnerAnswer },
+          pet,
+          myUserId: st.userId,
+        },
         now,
         day,
       );

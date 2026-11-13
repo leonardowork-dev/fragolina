@@ -1,5 +1,5 @@
 {
-  "v": 3,
+  "v": 4,
   "updatedAt": 1794571200000,
   "paired": true,
   "partnerName": "Nikole",
@@ -16,5 +16,19 @@
   "myMoodAt": 1794560400000,
   "questionText": "Cena di sabato: cosa vince?",
   "questionMineDone": true,
-  "questionBothDone": false
+  "questionBothDone": false,
+  "petHatched": true,
+  "petStage": "sprout",
+  "petName": "Bacca",
+  "petFood": 640,
+  "petLove": 820,
+  "petEnergy": 410,
+  "petAt": 1794569400000,
+  "petSleepUntil": 0,
+  "petLastAt": 1794569400000,
+  "petDay": "2026-11-12",
+  "petBoth": true,
+  "petLastBy": "partner",
+  "petLastKind": "feed",
+  "petLastItem": "mora"
 }

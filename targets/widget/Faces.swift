@@ -7,7 +7,7 @@ import UIKit
 
 // MARK: - Percorsi
 
-private func heartPath(_ cx: CGFloat, _ cy: CGFloat, _ s: CGFloat) -> Path {
+func heartPath(_ cx: CGFloat, _ cy: CGFloat, _ s: CGFloat) -> Path {
     var p = Path()
     p.move(to: CGPoint(x: cx, y: cy + 8 * s))
     p.addCurve(to: CGPoint(x: cx, y: cy - 5 * s), control1: CGPoint(x: cx - 12 * s, y: cy - 2 * s), control2: CGPoint(x: cx - 8 * s, y: cy - 12 * s))
@@ -27,7 +27,7 @@ private func starPath(_ cx: CGFloat, _ cy: CGFloat, _ s: CGFloat) -> Path {
     return p
 }
 
-private func quad(_ a: (CGFloat, CGFloat), _ c: (CGFloat, CGFloat), _ b: (CGFloat, CGFloat)) -> Path {
+func quad(_ a: (CGFloat, CGFloat), _ c: (CGFloat, CGFloat), _ b: (CGFloat, CGFloat)) -> Path {
     var p = Path()
     p.move(to: CGPoint(x: a.0, y: a.1))
     p.addQuadCurve(to: CGPoint(x: b.0, y: b.1), control: CGPoint(x: c.0, y: c.1))
@@ -120,7 +120,7 @@ private func drawMoodFeatures(_ ctx: inout GraphicsContext, mood: String?, ink: 
 
 // MARK: - Fragola (corpo)
 
-private let strawberryBody: Path = {
+let strawberryBody: Path = {
     var p = Path()
     p.move(to: CGPoint(x: 110, y: 64))
     p.addCurve(to: CGPoint(x: 188, y: 118), control1: CGPoint(x: 150, y: 48), control2: CGPoint(x: 192, y: 66))
@@ -131,7 +131,7 @@ private let strawberryBody: Path = {
     return p
 }()
 
-private func leafPath(_ a: (CGFloat, CGFloat), _ c1: (CGFloat, CGFloat), _ c2: (CGFloat, CGFloat), _ b: (CGFloat, CGFloat), _ c3: (CGFloat, CGFloat), _ c4: (CGFloat, CGFloat)) -> Path {
+func leafPath(_ a: (CGFloat, CGFloat), _ c1: (CGFloat, CGFloat), _ c2: (CGFloat, CGFloat), _ b: (CGFloat, CGFloat), _ c3: (CGFloat, CGFloat), _ c4: (CGFloat, CGFloat)) -> Path {
     var p = Path()
     p.move(to: CGPoint(x: a.0, y: a.1))
     p.addCurve(to: CGPoint(x: b.0, y: b.1), control1: CGPoint(x: c1.0, y: c1.1), control2: CGPoint(x: c2.0, y: c2.1))

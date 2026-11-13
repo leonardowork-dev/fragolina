@@ -1,4 +1,5 @@
 import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
+import { type PetState, stageOf } from "@/lib/pet/rules";
 import { S } from "@/lib/strings.it";
 
 /**
@@ -36,6 +37,29 @@ export type WidgetSnapshot = {
   questionMineDone: boolean;
   /** Abbiamo risposto entrambi (il server mostra la risposta di lei solo dopo la mia: prima è sempre false). */
   questionBothDone: boolean;
+  // ---- v4 (pet condiviso) ----
+  /** Il pet è nato (false = uovo, o nessun pet ancora). */
+  petHatched: boolean;
+  /** egg | seed | sprout | berry | big. Vuoto se non collegati. */
+  petStage: string;
+  petName: string;
+  /** Bisogni (0-1000) all'istante `petAt`: il widget li fa scendere da solo (stesse regole di src/lib/pet/rules.ts). */
+  petFood: number;
+  petLove: number;
+  petEnergy: number;
+  petAt: number | null;
+  /** Fine della nanna (ms), 0 = non dorme. */
+  petSleepUntil: number;
+  /** Ultima cura vera (ms): serve a "torna a dormire dopo 3 giorni" e a "X fa". */
+  petLastAt: number | null;
+  /** Ultimo giorno di cura (AAAA-MM-GG) e se in quel giorno avete curato entrambi. */
+  petDay: string;
+  petBoth: boolean;
+  /** Chi ha fatto l'ultima cura: "me", "partner" o vuoto. */
+  petLastBy: string;
+  /** feed | cuddle | play | sleep | hatch, o vuoto. */
+  petLastKind: string;
+  petLastItem: string;
 };
 
 export const QUESTION_MAX = 60;
@@ -55,7 +79,12 @@ export type WidgetSource = {
   myMood: { moodId: string; at: number } | null;
   /** Domanda di oggi già risolta (testo + risposte), o null se non disponibile. */
   question: { text: string; myAnswer: unknown | null; partnerAnswer: unknown | null } | null;
+  /** Il pet come lo vede questo telefono (con le cure in coda). Facoltativo: senza, il widget mostra l'uovo. */
+  pet?: PetState | null;
+  myUserId?: string | null;
 };
+
+const CARE_KINDS = ["feed", "cuddle", "play", "sleep", "hatch"];
 
 const clip = (t: string, n: number) => (t.length <= n ? t : t.slice(0, n - 1).trimEnd() + "…");
 const moodLabelOf = (id: string) => (S.moods as Record<string, string>)[id] ?? "";
@@ -84,6 +113,49 @@ export function buildSnapshot(s: WidgetSource, now: number, today: string): Widg
     questionText: q ? clip(q.text, QUESTION_MAX) : "",
     questionMineDone: !!q && q.myAnswer !== null,
     questionBothDone: !!q && q.myAnswer !== null && q.partnerAnswer !== null,
+    ...petFields(paired ? (s.pet ?? null) : null, paired, s.myUserId ?? null),
+  };
+}
+
+function petFields(
+  pet: PetState | null,
+  paired: boolean,
+  me: string | null,
+): Pick<
+  WidgetSnapshot,
+  | "petHatched"
+  | "petStage"
+  | "petName"
+  | "petFood"
+  | "petLove"
+  | "petEnergy"
+  | "petAt"
+  | "petSleepUntil"
+  | "petLastAt"
+  | "petDay"
+  | "petBoth"
+  | "petLastBy"
+  | "petLastKind"
+  | "petLastItem"
+> {
+  const p = pet;
+  const hatched = !!p && p.hatchedAt !== null;
+  const kind = p?.lastKind && CARE_KINDS.includes(p.lastKind) ? p.lastKind : "";
+  return {
+    petHatched: hatched,
+    petStage: !paired ? "" : p ? stageOf(p) : "egg",
+    petName: p?.name ?? "",
+    petFood: p?.food ?? 0,
+    petLove: p?.love ?? 0,
+    petEnergy: p?.energy ?? 0,
+    petAt: hatched && p ? p.at : null,
+    petSleepUntil: hatched && p ? p.sleepUntil : 0,
+    petLastAt: hatched && p && p.lastAt > 0 ? p.lastAt : null,
+    petDay: hatched && p?.day ? p.day : "",
+    petBoth: hatched && !!p && p.dayA && p.dayB,
+    petLastBy: kind && p?.lastBy ? (p.lastBy === me ? "me" : "partner") : "",
+    petLastKind: kind,
+    petLastItem: kind === "feed" && p?.lastItem ? p.lastItem : "",
   };
 }
 
@@ -106,6 +178,20 @@ const KEYS: (keyof WidgetSnapshot)[] = [
   "questionText",
   "questionMineDone",
   "questionBothDone",
+  "petHatched",
+  "petStage",
+  "petName",
+  "petFood",
+  "petLove",
+  "petEnergy",
+  "petAt",
+  "petSleepUntil",
+  "petLastAt",
+  "petDay",
+  "petBoth",
+  "petLastBy",
+  "petLastKind",
+  "petLastItem",
 ];
 
 /** JSON con l'ordine delle chiavi fisso (diff leggibili, firma stabile). */
@@ -115,7 +201,7 @@ export function encodeSnapshot(snap: WidgetSnapshot): string {
   return JSON.stringify(o);
 }
 
-/** Legge un payload (anche vecchio, v1 o v2, o incompleto) senza mai lanciare. Restituisce null se illeggibile. */
+/** Legge un payload (anche vecchio, v1-v3, o incompleto) senza mai lanciare. Restituisce null se illeggibile. */
 export function decodeSnapshot(raw: string): WidgetSnapshot | null {
   try {
     const o = JSON.parse(raw) as Record<string, unknown>;
@@ -141,6 +227,20 @@ export function decodeSnapshot(raw: string): WidgetSnapshot | null {
       questionText: str(o.questionText) ?? "",
       questionMineDone: o.questionMineDone === true,
       questionBothDone: o.questionBothDone === true,
+      petHatched: o.petHatched === true,
+      petStage: str(o.petStage) ?? "",
+      petName: str(o.petName) ?? "",
+      petFood: num(o.petFood) ?? 0,
+      petLove: num(o.petLove) ?? 0,
+      petEnergy: num(o.petEnergy) ?? 0,
+      petAt: num(o.petAt),
+      petSleepUntil: num(o.petSleepUntil) ?? 0,
+      petLastAt: num(o.petLastAt),
+      petDay: str(o.petDay) ?? "",
+      petBoth: o.petBoth === true,
+      petLastBy: str(o.petLastBy) ?? "",
+      petLastKind: str(o.petLastKind) ?? "",
+      petLastItem: str(o.petLastItem) ?? "",
     };
   } catch {
     return null;

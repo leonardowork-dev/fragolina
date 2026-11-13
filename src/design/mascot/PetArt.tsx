@@ -22,7 +22,7 @@ export type PetFace =
   | "eat"
   | "surprised";
 
-const SCALE: Record<Exclude<PetStage, "egg">, number> = { seed: 0.62, sprout: 0.76, berry: 0.9, big: 1 };
+export const STAGE_SCALE: Record<Exclude<PetStage, "egg">, number> = { seed: 0.62, sprout: 0.76, berry: 0.9, big: 1 };
 const FILL: Record<Exclude<PetStage, "egg">, string> = {
   seed: palette.butter,
   sprout: palette.strawberrySoft,
@@ -242,7 +242,7 @@ export function PetArt({ stage, face, size = 260, crack = 0, blink = false, shad
       </Svg>
     );
   }
-  const s = SCALE[stage];
+  const s = STAGE_SCALE[stage];
   const swe = sw / s;
   const border = 14 / s;
   const leaves = LEAVES.slice(0, LEAF_COUNT[stage]);

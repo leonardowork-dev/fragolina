@@ -15,7 +15,7 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 
 import { Sticker, useTheme } from "@/design";
-import { type PetFace, PetArt, faceForMood } from "@/design/mascot/PetArt";
+import { type PetFace, PetArt, STAGE_SCALE, faceForMood } from "@/design/mascot/PetArt";
 import { motion } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
 import type { PetMood, PetStage } from "@/lib/pet/rules";
@@ -211,6 +211,8 @@ export function PetStageView({
 
   const face: PetFace = stage === "egg" ? "calm" : (shown ?? (petting ? "love" : faceForMood(mood)));
   const h = size * (250 / 220);
+  // Il pannello cresce col pet: il semino non galleggia in uno spazio enorme.
+  const panelH = Math.round(h * (stage === "egg" ? 1 : 0.4 + 0.6 * STAGE_SCALE[stage]) + 56);
 
   return (
     <Sticker
@@ -235,7 +237,7 @@ export function PetStageView({
           accessibilityLabel={a11yLabel}
           accessibilityHint={a11yHint}
           onAccessibilityTap={onPoke}
-          style={{ alignItems: "center", justifyContent: "flex-end", paddingTop: 22, paddingBottom: 22, minHeight: h + 44 }}
+          style={{ alignItems: "center", justifyContent: "flex-end", paddingTop: 22, paddingBottom: 22, minHeight: panelH }}
         >
           <View
             pointerEvents="none"
