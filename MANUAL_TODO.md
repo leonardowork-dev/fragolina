@@ -185,3 +185,60 @@ Il pet ha bisogno di due tabelle nuove su Supabase. Senza questo passo l'app fun
 - [ ] **Widget Pet:** la faccia corrisponde a quella nell'app; toccandolo si apre la scheda **Pet**; dopo qualche ora (app chiusa) la faccia può cambiare da sola. Il **medio** mostra i tre bisogni e l'ultima cura ("Nikole ha dato una mora · 30 min fa").
 - [ ] Nessun testo tagliato male nel widget (prova con un nome di 16 lettere); nessun bordo attaccato al margine.
 - [ ] I widget di prima (umore, Penso a te, Giorni, blocco) funzionano ancora.
+
+## Sessione 5 — Biglietti sul blocco e distanza (passo-passo, in ordine)
+
+### S5-1. Accendi biglietti e distanza sul database (una volta sola, 3 minuti)
+Servono tre tabelle nuove su Supabase. Senza questo passo l'app funziona lo stesso, ma la scheda **Disegna** dice "Manca un passo" e il widget Biglietto resta vuoto.
+1. Sul PC apri il browser e vai su **https://supabase.com/dashboard** (accedi se serve). Clicca il tuo progetto (quello di Fragolina).
+2. Nella colonna a sinistra clicca **SQL Editor** (l'icona con `>_`).
+3. Clicca **New query** (in alto a sinistra).
+4. Apri il file **`supabase\sessione5-note.sql`** del progetto (Esplora file → cartella `fragolina` → `supabase`; si apre con il Blocco note). Premi **Ctrl+A** (seleziona tutto) e **Ctrl+C** (copia).
+   *Se il file non lo trovi da Windows:* `\\wsl$\Ubuntu\home\leonardo\fragolina\supabase\sessione5-note.sql`.
+5. Torna sul sito Supabase, clicca dentro la grande casella di testo e premi **Ctrl+V** (incolla).
+6. Clicca il bottone verde **Run** (in basso a destra, oppure **Ctrl+Invio**).
+   *Se compare un avviso giallo "potential issue / destructive operations":* è normale. Clicca **Run this query**.
+7. **Devi vedere** in basso **Success. No rows returned** (verde). Se vedi un errore rosso, copia il testo e mandalo a Claude. Il file **non tocca** nulla di ciò che c'è già (umori, pensieri, pet). Si può rilanciare quante volte vuoi.
+8. Controllo: apri il Terminale Ubuntu, scrivi `cd ~/fragolina && npm run backend:check` e premi **Invio**.
+   **Devi vedere:** tante righe **PASS** (anche quelle che iniziano con "biglietto", "widget" e "distanza") e alla fine `… prove passate` **senza** la riga `MANCA`. Se c'è ancora **MANCA**, il passo 6 non è andato a buon fine. Se vedi qualche **FAIL** con `ConnectTimeoutError`, è la rete: rilancia il comando.
+
+### S5-2. Installa la nuova app sul tuo iPhone (Sideloadly)
+1. Collega l'iPhone al PC col cavo, sbloccalo (se chiede "Registra questo computer" tocca **Registra**).
+2. Apri **Sideloadly** e trascina dentro **`Fragolina-release.ipa`** (cartella **Desktop → Fragolina-build**; il Desktop è su OneDrive: `OneDrive\Desktop\Fragolina-build`).
+3. Nella casella **Apple ID** scrivi lo **stesso Apple ID** dell'altra volta.
+4. Clicca la freccia accanto a **Advanced Options**: **"Remove extensions" deve restare SPENTO**.
+5. Clicca **Start**, scrivi la password (e il codice a 6 cifre se lo chiede). **Devi vedere** **Done.** È un'installazione "sopra": i tuoi dati restano.
+6. **Se i widget nuovi non compaiono nella galleria dopo l'installazione:** riavvia l'iPhone (tieni premuto il tasto laterale → scorri per spegnere → riaccendi). iOS a volte tiene in memoria l'elenco vecchio.
+
+### S5-3. Il permesso della posizione (solo se vuoi la distanza)
+1. Apri **Fragolina → scheda Noi**. Scorri fino al riquadro **Distanza**.
+2. Accendi **Condividi la distanza**. Compare una schermata nostra che spiega perché: tocca **Va bene**.
+3. iOS chiede il permesso: tocca **Consenti mentre usi l'app**.
+4. *Facoltativo:* accendi **Aggiorna anche ad app chiusa**: iOS chiede «Sempre» (o ti manda in Impostazioni → Fragolina → Posizione → **Sempre**). Serve solo se vuoi la distanza fresca senza aprire l'app. Si può spegnere quando vuoi.
+5. La distanza compare solo quando **tutti e due** l'avete accesa. Finché Nikole non c'è vedrai "Non ancora condivisa": è normale.
+
+### S5-4. Aggiungi i widget nuovi
+**Home:** tieni premuto **2 secondi** su uno spazio vuoto finché le icone tremano → **+** in alto a sinistra → scrivi **Fragolina** nella ricerca e toccala → scorri **di lato**: **Biglietto**, **Distanza tra noi**, e anche **Il vostro pet** (se prima non c'era, ora deve esserci) → scegli piccolo o medio → **Aggiungi widget** → **Fine**.
+**Schermata di blocco:** tieni premuto sullo sfondo bloccato → **Personalizza** → il riquadro sotto l'ora → **Fragolina**: **Biglietto** (rettangolare), **Distanza** (tondo o riga).
+
+### S5-5. Provalo da solo (Nikole non c'è ancora): il Percorso B
+Scopo: controllare che il widget riceva il biglietto **da solo**, senza che l'app sia aperta.
+1. Nell'app: scheda **Disegna** → disegna qualcosa (o scegli **Scritta** e scrivi due parole) → **Manda**. Compare "Sul blocco adesso" con "sparisce tra 60 min".
+2. Il widget **Biglietto** sulla Home (e quello sul blocco) lo mostra entro pochi secondi, con "da te · adesso".
+3. **Togli l'app dalle app recenti** (scorri verso l'alto dal bordo e spingi l'app Fragolina fuori dallo schermo). **Blocca il telefono.**
+4. Controlla il widget sul **blocco**: deve mostrare il biglietto (disegno in bianco e nero). Se lo vedi, la strada del widget verso il server funziona.
+5. Per provare che arrivi anche quando è **cambiato sul server**: rientra nell'app, tocca **Pulisci**, togli di nuovo l'app dalle recenti e blocca. Dopo un po' (iOS ricarica ogni 15–30 minuti, non subito) il widget deve tornare a "Niente biglietti".
+6. Dopo **un'ora** dall'invio il widget si svuota da solo (anche col telefono bloccato e senza rete).
+Se non va: scrivi a Claude **cosa vedi** (testo esatto) e **quanto tempo è passato**.
+
+### S5-6. Cosa guardare sul telefono (checklist: scrivi a Claude cosa non va)
+- [ ] **Galleria widget:** compaiono **Il vostro pet**, **Biglietto**, **Distanza tra noi** (oltre a umore, Penso a te, Giorni, blocco). Se "Il vostro pet" manca ancora: riavvia l'iPhone e riguarda; se manca ancora scrivi a Claude.
+- [ ] **Disegna:** la tela è quadrata; 5 colori, "Fine"/"Spesso", "Annulla", "Pulisci tela"; il disegno si fa col dito senza far scorrere la pagina. L'anteprima in basso ("Così lo vede il widget") somiglia al widget vero.
+- [ ] **Scritta:** scrivi 80 caratteri (il contatore si ferma a 80), scegli lo sfondo; la scritta sul widget è leggibile.
+- [ ] **Manda:** una vibrazione piena, compare "Mandato" e il biglietto in cima con "sparisce tra N min" e **Pulisci**.
+- [ ] **Offline:** modalità aereo → Manda → compare "in coda"; togli la modalità aereo: parte da solo.
+- [ ] **Widget Biglietto** piccolo, medio e sul blocco: disegno nitido, "da te · X min fa", nessun testo tagliato male; toccandolo si apre **Disegna**.
+- [ ] **Widget vuoto:** "Niente biglietti — Toccami per disegnare."
+- [ ] **Distanza** (quando ci sarà Nikole): "a 342 km" / "vicinissimi" / "aggiornata 3 h fa"; se uno spegne: "Distanza nascosta".
+- [ ] I widget di prima (umore, Penso a te, Giorni, Pet, blocco) funzionano ancora.
+- [ ] Il widget **Giorni insieme** (già esistente) sta bene accanto ai nuovi (stessa grafica, stessi margini).

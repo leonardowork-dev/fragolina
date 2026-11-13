@@ -27,3 +27,13 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - Pet: un widget "ultime cure" e una versione grande (large) con il registro.
 - Distinguere nelle prove a due schede la fase "uovo" con il tempo finto, per verificare davvero il "torna a dormire dopo 3 giorni" anche nell'interfaccia.
 
+
+## Idee dalla sessione 5
+- Biglietto: più pagine per i disegni complessi, o un "timbro" (stickers) da trascinare; una gomma per cancellare un solo tratto.
+- Biglietto: scadenza a scelta (15 min / 1 h / fino a stasera) e "lo vedo" (conferma di lettura gentile).
+- Distanza: "ora siamo vicinissimi" come momento raro (coriandoli) quando scendete sotto 2 km; storia dei chilometri percorsi per vedersi.
+- Distanza: posizione in `Posto` con nome ("a casa", "in ufficio") senza coordinate; mappa disegnata a adesivi con due puntini.
+- Percorso B: tabella `widget_state` unica (umore, pensieri, domanda) servita dallo stesso feed, così anche umore e pet si aggiornano senza aprire l'app.
+- Widget: AppIntent/widget interattivi quando il telefono sarà iOS 17+ (disegno veloce dal widget).
+- Notifiche vere (APNs) se un giorno si paga l'account developer: il biglietto arriverebbe subito.
+- Prova automatica del feed dal widget con un finto server locale (il Swift di rete non gira su Linux senza FoundationNetworking: serve un test a parte).
