@@ -46,3 +46,23 @@ Publication `supabase_realtime`: `pings`, `mood_events`, `daily_answers`, `coupl
 
 ## Cosa fa il client al posto del server
 Idempotenza (`client_key` unica per persona: un invio ripetuto dopo un errore di rete non duplica), coda offline, ritentativi con backoff. Vedi `src/lib/sync`.
+
+
+## Sessione 5: biglietti, distanza e accesso del widget (migrazione `20261114000001_note.sql`)
+File da incollare: `supabase/sessione5-note.sql` (solo questa migrazione; rieseguibile).
+
+**Tabelle:** `notes` (biglietti: tipo `draw|text`, contenuto `jsonb`, autore, `expires_at` = +1 h, `cleared_at/by`; storico di 30 per coppia), `locations` (UNA riga per persona: consenso `sharing`, ultima posizione in centesimi di grado, `at`), `widget_tokens` (UNA riga per persona: hash sha256 del token). RLS: `notes` visibile ai due membri; `locations` visibile a te e, solo se condividi anche tu, all'altra persona (consenso reciproco anche nel tempo reale); `widget_tokens` senza nessuna policy né privilegio. Nessuna scrittura diretta.
+
+**Funzioni (tutte `security definer`, `search_path` fissato):** `send_note` (idempotente per chiave client, validazione di forma e dimensione, 20/min), `clear_note(id)`, `get_board` (ultimo biglietto + posizioni), `set_location_sharing`, `set_location` (ultima scrittura vince, mai nel futuro, 30/min), `rotate_widget_token`, `widget_feed(token)`, `widget_set_location(token, …)`. Errori nuovi: `invalid_content`, `not_sharing`, `invalid_location`, `invalid_token`. Le funzioni interne (`_note_valid`, `_loc_state`, `_set_location`, `_token_user`…) non sono chiamabili dai client.
+
+**Modello di sicurezza del token del widget (parole semplici):**
+- Il widget è un programma a parte: non può usare la sessione dell'app. Quindi ha un *suo* segreto: 32 byte casuali (64 caratteri esadecimali) generati dal server, mostrati **una volta sola** all'app e salvati nel database solo come hash. Se il database venisse letto, i token non si ricaverebbero.
+- L'app scrive nello snapshot dell'App Group: URL del progetto, chiave **pubblica** e token. Mai la `service_role` (non esiste nell'app né nell'IPA; controllato).
+- Con la chiave pubblica + un token valido si può chiamare **solo** `widget_feed` (legge: ora del server, biglietto attivo, nome e posizione arrotondata dell'altra persona se vi siete dati il consenso) e `widget_set_location` (scrive: la tua posizione arrotondata, solo se hai acceso la condivisione). Niente altro: né tabelle, né altre funzioni.
+- Indovinare un token è impossibile (2^256). I tentativi sbagliati si registrano con un tetto di 60 al minuto in tutto (il registro non cresce all'infinito) e **non bloccano mai i token validi**. Un token valido ha 240 richieste/ora.
+- Revoca: ruotando il token il vecchio smette subito; chi esce dalla coppia (o viene liberato da "ha cambiato telefono") perde token e posizione (trigger `couple_members_cleanup`). Il feed risponde `invalid_token` e il widget si svuota.
+- **Limiti onesti:** chi ottiene il telefono sbloccato (o il contenuto dell'App Group) ha il token; il token sta nell'App Group in chiaro come il resto dello snapshot; i dati dei biglietti sono in chiaro nel database (non cifrati end-to-end).
+
+**Posizione:** si scambiano solo interi `latE2/lonE2` (gradi × 100 ≈ 1 km); il telefono arrotonda prima di inviare (`roundE2`) e il server rifiuta valori fuori scala. Si salva solo l'ultima posizione; spegnendo la condivisione il server cancella anche quella. La distanza (haversine) la calcola chi guarda.
+
+**Tempo reale:** publication aggiornata con `notes` e `locations` (canale a parte `board-…`: se la migrazione manca non fa cadere il resto).

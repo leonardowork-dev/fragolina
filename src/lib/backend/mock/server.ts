@@ -13,6 +13,10 @@ import {
   cleanPetName,
   emptyPet,
 } from "@/lib/pet/rules";
+import { NOTE_TTL_MS, type Note, type NoteContent, type NoteKind, validateContent } from "@/lib/note/rules";
+import { validE2 } from "@/lib/geo/distance";
+import type { LocationState, PartnerLocState } from "@/lib/geo/types";
+import type { Board } from "@/lib/note/wire";
 import type { PetLogEntry, PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
 
@@ -47,6 +51,20 @@ export type MockState = {
   /** Il pet (una riga per coppia) e il registro delle cure. Opzionali: i file salvati prima della sessione 4 non li hanno. */
   pets?: Record<string, PetState>;
   petLog?: (PetLogEntry & { coupleId: string; created: number })[];
+  /** Biglietti, posizioni e token del widget (sessione 5). Opzionali: i file salvati prima non li hanno. */
+  notes?: {
+    id: string;
+    coupleId: string;
+    userId: string;
+    kind: NoteKind;
+    content: NoteContent;
+    key: string;
+    createdAt: number;
+    expiresAt: number;
+    clearedAt: number | null;
+  }[];
+  locations?: Record<string, { coupleId: string; sharing: boolean; latE2: number | null; lonE2: number | null; at: number }>;
+  widgetTokens?: Record<string, string>;
 };
 
 export type MockStorage = { read(): MockState; write(s: MockState): void };
@@ -65,6 +83,9 @@ export const emptyMockState = (): MockState => ({
   rate: [],
   pets: {},
   petLog: [],
+  notes: [],
+  locations: {},
+  widgetTokens: {},
 });
 
 export const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -202,7 +223,11 @@ export class MockServer {
       s.answers = s.answers.filter((x) => x.coupleId !== cid);
       if (s.pets) delete s.pets[cid];
       if (s.petLog) s.petLog = s.petLog.filter((x) => x.coupleId !== cid);
+      if (s.notes) s.notes = s.notes.filter((x) => x.coupleId !== cid);
     } else this.freshCode(s, cid);
+    // chi esce perde posizione e token (come il trigger tg_member_cleanup)
+    if (s.locations) delete s.locations[uid];
+    if (s.widgetTokens) delete s.widgetTokens[uid];
     this.storage.write(s);
     // Come su Supabase: le cancellazioni non arrivano in tempo reale (la RLS non può valutarle). Nessun emit.
     return { ok: true };
@@ -409,10 +434,150 @@ export class MockServer {
     return { ok: true, snapshot: { state: s.pets?.[cid] ?? null, log, myLast } };
   }
 
+  // ---------- biglietti, distanza, token (specchio di send_note / clear_note / get_board / set_location…) ----------
+  private noteView(n: NonNullable<MockState["notes"]>[number], viewer: string, s: MockState): Note {
+    return {
+      id: n.id,
+      kind: n.kind,
+      content: n.content,
+      by: n.userId === viewer ? "me" : "partner",
+      byName: s.members.find((m) => m.userId === n.userId)?.displayName ?? "",
+      createdAt: n.createdAt,
+      expiresAt: n.expiresAt,
+      clearedAt: n.clearedAt,
+    };
+  }
+  private noteRow(n: NonNullable<MockState["notes"]>[number]): RemoteEvent {
+    return {
+      type: "note",
+      note: { id: n.id, kind: n.kind, content: n.content, userId: n.userId, createdAt: n.createdAt, expiresAt: n.expiresAt, clearedAt: n.clearedAt },
+    };
+  }
+
+  sendNote(
+    uid: string,
+    a: { kind: NoteKind; content: NoteContent; key: string; at: number },
+  ): Res<{ note: Note; duplicate?: boolean }> {
+    const s = this.storage.read();
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { ok: false, error: "not_paired" };
+    if ((a.kind !== "draw" && a.kind !== "text") || a.key.length < 8 || a.key.length > 64)
+      return { ok: false, error: "invalid_action" };
+    s.notes ??= [];
+    const dup = s.notes.find((n) => n.userId === uid && n.key === a.key);
+    if (dup) return { ok: true, duplicate: true, note: this.noteView(dup, uid, s) };
+    const now = this.clock();
+    if (s.notes.filter((n) => n.userId === uid && n.createdAt > now - 60_000).length >= 20)
+      return { ok: false, error: "rate_limited" };
+    if (validateContent(a.kind, a.content) !== null) return { ok: false, error: "invalid_content" };
+    const n = { id: uuid(), coupleId: cid, userId: uid, kind: a.kind, content: a.content, key: a.key, createdAt: now, expiresAt: now + NOTE_TTL_MS, clearedAt: null as number | null };
+    s.notes.push(n);
+    const mine = s.notes.filter((x) => x.coupleId === cid).sort((x, y) => y.createdAt - x.createdAt);
+    const drop = new Set(mine.slice(30).map((x) => x.id));
+    if (drop.size) s.notes = s.notes.filter((x) => !drop.has(x.id));
+    this.storage.write(s);
+    this.emit({ coupleId: cid, actor: uid, event: this.noteRow(n) });
+    return { ok: true, note: this.noteView(n, uid, s) };
+  }
+
+  clearNote(uid: string, id: string | null): Res<{ note: Note | null }> {
+    const s = this.storage.read();
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { ok: false, error: "not_paired" };
+    const list = (s.notes ?? []).filter((n) => n.coupleId === cid).sort((x, y) => y.createdAt - x.createdAt);
+    const n = id === null ? list[0] : list.find((x) => x.id === id);
+    if (!n) return { ok: true, note: null };
+    if (n.clearedAt === null) {
+      n.clearedAt = this.clock();
+      this.storage.write(s);
+      this.emit({ coupleId: cid, actor: uid, event: this.noteRow(n) });
+    }
+    return { ok: true, note: this.noteView(n, uid, s) };
+  }
+
+  private locState(s: MockState, uid: string): LocationState {
+    const cid = this.coupleOf(s, uid);
+    const mine = s.locations?.[uid];
+    const me = mine && mine.latE2 !== null && mine.lonE2 !== null ? { latE2: mine.latE2, lonE2: mine.lonE2, at: mine.at } : null;
+    const other = s.members.find((m) => m.coupleId === cid && m.userId !== uid);
+    if (!other) return { sharing: !!mine?.sharing, me, partner: null };
+    const theirs = s.locations?.[other.userId];
+    const state: PartnerLocState = !mine?.sharing
+      ? "mine_off"
+      : !theirs
+        ? "none"
+        : !theirs.sharing
+          ? "hidden"
+          : theirs.latE2 === null
+            ? "none"
+            : "ok";
+    return {
+      sharing: !!mine?.sharing,
+      me,
+      partner: {
+        name: other.displayName,
+        state,
+        latE2: state === "ok" ? theirs!.latE2 : null,
+        lonE2: state === "ok" ? theirs!.lonE2 : null,
+        at: state === "ok" ? theirs!.at : null,
+      },
+    };
+  }
+
+  getBoard(uid: string): Res<{ board: Board }> {
+    const s = this.storage.read();
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { ok: false, error: "not_paired" };
+    const last = (s.notes ?? []).filter((n) => n.coupleId === cid).sort((x, y) => y.createdAt - x.createdAt)[0];
+    return { ok: true, board: { now: this.clock(), note: last ? this.noteView(last, uid, s) : null, location: this.locState(s, uid) } };
+  }
+
+  setLocationSharing(uid: string, on: boolean): Res {
+    const s = this.storage.read();
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { ok: false, error: "not_paired" };
+    s.locations ??= {};
+    const cur = s.locations[uid];
+    s.locations[uid] = on
+      ? { coupleId: cid, sharing: true, latE2: cur?.latE2 ?? null, lonE2: cur?.lonE2 ?? null, at: cur?.at ?? 0 }
+      : { coupleId: cid, sharing: false, latE2: null, lonE2: null, at: 0 };
+    this.storage.write(s);
+    this.emit({ coupleId: cid, actor: uid, event: { type: "location" } });
+    return { ok: true };
+  }
+
+  setLocation(uid: string, p: { latE2: number; lonE2: number; at: number }): Res<{ ignored?: boolean }> {
+    const s = this.storage.read();
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { ok: false, error: "not_paired" };
+    if (!validE2(p)) return { ok: false, error: "invalid_location" };
+    const cur = s.locations?.[uid];
+    if (!cur?.sharing) return { ok: false, error: "not_sharing" };
+    const now = this.clock();
+    const t = Math.max(Math.min(p.at, now), now - 7 * DAY);
+    if (t < cur.at) return { ok: true, ignored: true };
+    s.locations![uid] = { ...cur, latE2: p.latE2, lonE2: p.lonE2, at: t };
+    this.storage.write(s);
+    this.emit({ coupleId: cid, actor: uid, event: { type: "location" } });
+    return { ok: true };
+  }
+
+  rotateWidgetToken(uid: string): Res<{ token: string }> {
+    const s = this.storage.read();
+    if (!this.coupleOf(s, uid)) return { ok: false, error: "not_paired" };
+    let token = "";
+    for (let i = 0; i < 64; i++) token += "0123456789abcdef"[Math.floor(this.rng() * 16)];
+    s.widgetTokens ??= {};
+    s.widgetTokens[uid] = token;
+    this.storage.write(s);
+    return { ok: true, token };
+  }
+
   /** Vero se `uid` può vedere questo evento (stessa regola della RLS). */
   canSee(uid: string, c: ServerChange): boolean {
     const s = this.storage.read();
     if (this.coupleOf(s, uid) !== c.coupleId) return false;
+    if (c.event.type === "location" && c.actor !== uid) return !!s.locations?.[uid]?.sharing;
     if (c.event.type === "answer" && c.actor !== uid) {
       const day = c.event.day;
       return s.answers.some((a) => a.userId === uid && a.day === day && a.coupleId === c.coupleId);

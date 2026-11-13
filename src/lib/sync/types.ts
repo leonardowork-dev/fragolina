@@ -1,4 +1,5 @@
 import type { MoodId } from "@/features/home/moods";
+import type { NoteContent, NoteKind, NoteRow } from "@/lib/note/rules";
 import type { FoodId, PetKind, PetState } from "@/lib/pet/rules";
 
 export type DailyAnswer = "a" | "b";
@@ -53,7 +54,11 @@ export type RemoteEvent =
   | { type: "member-left"; userId: string }
   | { type: "member-renamed"; userId: string; displayName: string }
   /** La riga del pet è cambiata (qualcuno l'ha curato, nome, schiusa). */
-  | { type: "pet"; pet: PetState };
+  | { type: "pet"; pet: PetState }
+  /** Un biglietto è nato o è stato pulito (riga della tabella notes). */
+  | { type: "note"; note: NoteRow }
+  /** La posizione di qualcuno è cambiata: il telefono rilegge la lavagna (get_board). */
+  | { type: "location" };
 
 export type RemoteInput =
   | { kind: "snapshot"; state: RemoteState; day: string }
@@ -97,7 +102,10 @@ export type QueuedOp =
       attempts: number;
       action: { kind: PetKind; item: FoodId | null; amount: number; day: string };
     }
-  | { key: string; kind: "petName"; at: number; attempts: number; name: string };
+  | { key: string; kind: "petName"; at: number; attempts: number; name: string }
+  | { key: string; kind: "note"; at: number; attempts: number; noteKind: NoteKind; content: NoteContent }
+  /** `id` = biglietto da pulire (`local-<chiave>` se è ancora in coda: allora si pulisce l'ultimo). */
+  | { key: string; kind: "noteClear"; at: number; attempts: number; id: string };
 
 export type BackendErrorKind =
   | "network" // nessuna rete / timeout: si riprova
@@ -115,6 +123,9 @@ export type BackendErrorKind =
   | "cooldown" // il pet ha appena fatto la stessa cosa: troppo presto
   | "not_hatched"
   | "invalid_action"
+  | "invalid_content" // il biglietto non rispetta i limiti
+  | "not_sharing"
+  | "invalid_location"
   | "unknown";
 
 export class BackendError extends Error {

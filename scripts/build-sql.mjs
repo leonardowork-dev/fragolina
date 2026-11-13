@@ -28,3 +28,14 @@ if (petFile) {
   fs.writeFileSync(path.join(root, "supabase", "sessione4-pet.sql"), petHead + "\n" + fs.readFileSync(path.join(dir, petFile), "utf8"));
   console.log("supabase/sessione4-pet.sql: solo la migrazione del pet");
 }
+
+// Solo la migrazione dei biglietti/distanza/widget (sessione 5).
+const noteFile = files.find((f) => f.includes("_note"));
+if (noteFile) {
+  const noteHead = `-- Fragolina · SOLO LA MIGRAZIONE DEI BIGLIETTI, DELLA DISTANZA E DEL WIDGET (sessione 5). Generato da scripts/build-sql.mjs: non modificarlo a mano.
+-- Incollalo nell'editor SQL di Supabase (SQL Editor → New query) e premi Run. Non tocca nulla di ciò che c'è già.
+-- Si può rilanciare quante volte vuoi. Sotto "Success. No rows returned" = fatto.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione5-note.sql"), noteHead + "\n" + fs.readFileSync(path.join(dir, noteFile), "utf8"));
+  console.log("supabase/sessione5-note.sql: solo la migrazione dei biglietti");
+}

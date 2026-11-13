@@ -2,6 +2,8 @@ import { type RealtimeChannel, type SupabaseClient, createClient } from "@supaba
 import { Platform } from "react-native";
 
 import type { MoodId } from "@/features/home/moods";
+import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
+import { boardFromJson, noteFromJson, noteRowFromRecord } from "@/lib/note/wire";
 import { petFromRow, petSnapshotFromJson } from "@/lib/pet/wire";
 import {
   BackendError,
@@ -42,6 +44,9 @@ const KNOWN: BackendErrorKind[] = [
   "cooldown",
   "not_hatched",
   "invalid_action",
+  "invalid_content",
+  "not_sharing",
+  "invalid_location",
 ];
 
 type AnyErr =
@@ -298,6 +303,43 @@ export class SupabaseBackend implements Backend {
     return d.pet ? petFromRow(d.pet) : null;
   }
 
+  async getBoard() {
+    try {
+      const d = await this.rpc<Record<string, unknown>>("get_board");
+      return boardFromJson(d);
+    } catch (e) {
+      // Migrazione dei biglietti non ancora eseguita sul server: la funzione non esiste. Non è un errore dell'app.
+      if (e instanceof BackendError && /get_board|PGRST202|Could not find|does not exist/i.test(e.message)) return null;
+      throw e;
+    }
+  }
+  async sendNote(a: { kind: NoteKind; content: NoteContent; key: string; at: number }): Promise<Note> {
+    const d = await this.rpc<{ note?: unknown }>("send_note", {
+      p_kind: a.kind,
+      p_content: a.content,
+      p_client_key: a.key,
+      p_client_at: Math.round(a.at),
+    });
+    const n = noteFromJson(d.note);
+    if (!n) throw new BackendError("unknown", "risposta senza biglietto");
+    return n;
+  }
+  async clearNote(id: string | null): Promise<Note | null> {
+    const d = await this.rpc<{ note?: unknown }>("clear_note", { p_id: id });
+    return noteFromJson(d.note);
+  }
+  async setLocationSharing(on: boolean) {
+    await this.rpc("set_location_sharing", { p_on: on });
+  }
+  async setLocation(p: { latE2: number; lonE2: number; at: number }) {
+    await this.rpc("set_location", { p_lat_e2: p.latE2, p_lon_e2: p.lonE2, p_at: Math.round(p.at) });
+  }
+  async rotateWidgetToken() {
+    const d = await this.rpc<{ token?: string }>("rotate_widget_token");
+    if (!d.token) throw new BackendError("unknown", "risposta senza token");
+    return d.token;
+  }
+
   subscribe(coupleId: string, h: SubscriptionHandlers): () => void {
     let ch: RealtimeChannel | null = this.client.channel(
       `couple-${coupleId}-${Math.random().toString(36).slice(2, 8)}`,
@@ -389,13 +431,29 @@ export class SupabaseBackend implements Backend {
         (p: P) => h.onEvent({ type: "pet", pet: petFromRow(p.new) }),
       )
       .subscribe();
+    // Altro canale a parte: biglietti e posizioni (stessa ragione del pet: la migrazione può mancare).
+    let boardCh: RealtimeChannel | null = this.client.channel(
+      `board-${coupleId}-${Math.random().toString(36).slice(2, 8)}`,
+    );
+    boardCh
+      .on("postgres_changes", { event: "*", schema: s, table: "notes", filter: f }, (p: P) => {
+        const row = noteRowFromRecord(p.new);
+        if (row) h.onEvent({ type: "note", note: row });
+      })
+      .on("postgres_changes", { event: "*", schema: s, table: "locations", filter: f }, () =>
+        h.onEvent({ type: "location" }),
+      )
+      .subscribe();
     return () => {
       const c = ch;
       const pc = petCh;
+      const bc = boardCh;
       ch = null;
       petCh = null;
+      boardCh = null;
       if (c) void this.client.removeChannel(c);
       if (pc) void this.client.removeChannel(pc);
+      if (bc) void this.client.removeChannel(bc);
     };
   }
 }

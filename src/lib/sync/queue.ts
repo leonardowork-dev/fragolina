@@ -15,6 +15,8 @@ export function enqueue(queue: QueuedOp[], op: QueuedOp): QueuedOp[] {
   if (queue.some((q) => q.key === op.key)) return queue;
   let next = queue;
   if (op.kind === "petName") next = next.filter((q) => q.kind !== "petName"); // last-write-wins: resta l'ultimo
+  // un biglietto nuovo sostituisce quello ancora in coda (e le pulizie che lo riguardavano)
+  if (op.kind === "note") next = next.filter((q) => q.kind !== "note" && q.kind !== "noteClear");
   if (op.kind === "mood" || op.kind === "startDate" || op.kind === "name") {
     const prior = next.filter((q) => q.kind === op.kind);
     next = next.filter((q) => q.kind !== op.kind);

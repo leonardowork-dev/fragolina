@@ -202,7 +202,9 @@ export function applyEvent(
       };
     }
     case "pet":
-      return base; // lo gestisce lo store (fetta del pet), non lo stato condiviso base
+    case "note":
+    case "location":
+      return base; // li gestisce lo store (fette del pet e della lavagna), non lo stato condiviso base
     case "member-renamed": {
       const members = base.members.map((m) =>
         m.userId === ev.userId ? { ...m, displayName: ev.displayName } : m,
@@ -236,6 +238,8 @@ export function rollbackOp(s: SyncedState, op: QueuedOp): SyncedState {
       return { ...s, meName: op.prev };
     case "pet":
     case "petName":
+    case "note":
+    case "noteClear":
       return s; // il pet che si vede è "server + coda": togliere l'operazione dalla coda basta
   }
 }

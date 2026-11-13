@@ -1,4 +1,6 @@
 import type { MoodId } from "@/features/home/moods";
+import type { Board } from "@/lib/note/wire";
+import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
 import type { FoodId, PetKind, PetState } from "@/lib/pet/rules";
 import type { PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
@@ -61,6 +63,20 @@ export interface Backend {
   petAct(a: PetActInput): Promise<PetState | null>;
   /** Last-write-wins sul server. */
   setPetName(name: string, at: number, key: string): Promise<PetState | null>;
+  /**
+   * La lavagna: ultimo biglietto + posizioni. `null` = il server non ha la migrazione dei biglietti (sessione 5):
+   * l'app resta usabile e la scheda Disegna dice che manca un passo.
+   */
+  getBoard(): Promise<Board | null>;
+  /** Idempotente per `key`. Restituisce il biglietto come lo vede il server (scadenza vera). */
+  sendNote(a: { kind: NoteKind; content: NoteContent; key: string; at: number }): Promise<Note>;
+  /** Pulisce per entrambi. `id = null` = l'ultimo. Restituisce il biglietto pulito (o null se non c'era). */
+  clearNote(id: string | null): Promise<Note | null>;
+  setLocationSharing(on: boolean): Promise<void>;
+  /** Posizione GIÀ arrotondata (centesimi di grado). */
+  setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void>;
+  /** Crea (o cambia) il token con cui il widget legge il feed. Il token in chiaro esiste solo qui e nel container del widget. */
+  rotateWidgetToken(): Promise<string>;
   /** App in primo piano o no (rinnovo del token). Facoltativo. */
   setForeground?(active: boolean): void;
 }

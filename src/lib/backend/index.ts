@@ -31,3 +31,13 @@ export function getBackend(): Backend {
 export function setBackendForTests(b: Backend | null) {
   instance = b;
 }
+
+/**
+ * URL e chiave PUBBLICA di Supabase per il widget (Percorso B). `null` con la prova locale (nessuna chiave): il widget
+ * allora usa solo i dati dell'app. Mai la chiave segreta di amministrazione: nell'app non esiste.
+ */
+export function widgetFeedBase(): { url: string; key: string } | null {
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  return url && key ? { url, key } : null;
+}

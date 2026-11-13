@@ -597,7 +597,7 @@ check(
   `);
   await db2.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note")).sort())
     await db2.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -612,6 +612,210 @@ check(
     why = String(e.message);
   }
   check("sessione4-pet.sql da solo, sopra le migrazioni 1-4 già eseguite (e rieseguibile)", ok, why);
+}
+
+
+// ---------- biglietti, distanza, widget (migrazione 6) ----------
+{
+  const N1 = await newUser(),
+    N2 = await newUser(),
+    N3 = await newUser(),
+    N4 = await newUser();
+  const mk = await rpc(N1, "public.create_couple('Leonardo')");
+  await rpc(N2, `public.join_couple('${mk.code}','Nikole')`);
+  const mk2 = await rpc(N3, "public.create_couple('Altra')");
+  await rpc(N4, `public.join_couple('${mk2.code}','Altro')`);
+  const jq = (o) => `'${JSON.stringify(o).replace(/'/g, "''")}'::jsonb`;
+  const send = (u, kind, content, key) => rpc(u, `public.send_note('${kind}', ${jq(content)}, '${key}')`);
+  const draw = (n = 3, extra = {}) => ({
+    strokes: [{ c: "strawberry", w: 1, p: Array.from({ length: n }, (_, i) => [10 + i, 20 + i]), ...extra }],
+  });
+  const feed = (tok) =>
+    asAnon(async () => (await db.query("select public.widget_feed($1) as r", [tok])).rows[0].r);
+
+  // invio: scritta
+  const t1 = await send(N1, "text", { text: "Ti penso", bg: "butter" }, "note-key-0001");
+  check("N1 manda una scritta", t1.ok && t1.note.kind === "text" && t1.note.by === "me" && t1.note.byName === "Leonardo", JSON.stringify(t1));
+  check("scade tra 1 ora esatta", Math.abs(t1.note.expiresAt - t1.note.createdAt - 3600000) < 2000);
+  const t1b = await send(N1, "text", { text: "Ti penso", bg: "butter" }, "note-key-0001");
+  check("stessa chiave: nessun duplicato (idempotente)", t1b.ok && t1b.duplicate === true && t1b.note.id === t1.note.id);
+  check("una sola riga dopo il doppio invio", (await db.query("select count(*)::int n from notes where user_id=$1", [N1])).rows[0].n === 1);
+  const b2 = await rpc(N2, "public.get_board()");
+  check("N2 vede il biglietto come 'partner' con il nome", b2.ok && b2.note.by === "partner" && b2.note.byName === "Leonardo" && b2.note.content.text === "Ti penso", JSON.stringify(b2));
+
+  // validazione lato server
+  const bad = async (kind, content, why) =>
+    check(`rifiutato: ${why}`, (await send(N1, kind, content, `note-bad-${Math.random().toString(36).slice(2, 10)}`)).error === "invalid_content");
+  await bad("text", { text: "x".repeat(81), bg: "butter" }, "scritta di 81 caratteri");
+  await bad("text", { text: "   ", bg: "butter" }, "scritta vuota");
+  await bad("text", { text: "ciao", bg: "viola" }, "sfondo fuori palette");
+  await bad("draw", { strokes: [] }, "disegno senza tratti");
+  await bad("draw", draw(2, { c: "viola" }), "colore fuori palette");
+  await bad("draw", draw(2, { w: 3 }), "spessore 3");
+  await bad("draw", { strokes: [{ c: "ink", w: 1, p: [[1001, 5]] }] }, "coordinata 1001");
+  await bad("draw", { strokes: [{ c: "ink", w: 1, p: [[-1, 5]] }] }, "coordinata negativa");
+  await bad("draw", { strokes: [{ c: "ink", w: 1, p: [[1.5, 5]] }] }, "coordinata non intera");
+  await bad("draw", { strokes: [{ c: "ink", w: 1, p: [["1", 5]] }] }, "coordinata stringa");
+  await bad("draw", { strokes: [{ c: "ink", w: 1, p: [[1, 2, 3]] }] }, "punto a tre valori");
+  await bad("draw", { strokes: [{ c: "ink", w: 1, p: [] }] }, "tratto senza punti");
+  await bad("draw", draw(401), "401 punti in un tratto");
+  await bad("draw", { strokes: Array.from({ length: 41 }, () => ({ c: "ink", w: 1, p: [[1, 1]] })) }, "41 tratti");
+  await bad("draw", { strokes: Array.from({ length: 4 }, () => ({ c: "ink", w: 1, p: Array.from({ length: 400 }, (_, i) => [i, i]) })) }, "1600 punti in tutto");
+  check("tipo sconosciuto", (await send(N1, "photo", { a: 1 }, "note-key-0003")).error === "invalid_action");
+  check("chiave troppo corta", (await send(N1, "text", { text: "a", bg: "sky" }, "short")).error === "invalid_action");
+  check("un NON membro non può mandare biglietti", (await send(S, "text", { text: "a", bg: "sky" }, "note-key-0004")).error === "not_paired");
+
+  // un disegno al limite (1500 punti, 24 KB) passa
+  const maxDraw = { strokes: Array.from({ length: 4 }, (_, k) => ({ c: "ink", w: 2, p: Array.from({ length: 375 }, (_, i) => [1000 - (i % 1000), 1000 - ((i + k) % 1000)]) })) };
+  const mx = await send(N2, "draw", maxDraw, "note-key-0005");
+  check("disegno al limite (1500 punti, coordinate a 4 cifre) accettato", mx.ok === true, JSON.stringify(mx).slice(0, 200));
+  check("e nell'ultimo biglietto vince il più recente (di N2)", (await rpc(N1, "public.get_board()")).note.id === mx.note.id);
+
+  // RLS
+  check("scrittura diretta su notes negata", !(await tryq(N1, "insert into notes (couple_id,user_id,kind,content,client_key,expires_at) values ($1,$2,'text','{}','direct-key-01', now())", [mk.couple_id, N1])).ok);
+  check("update diretto su notes negato", !(await tryq(N1, "update notes set cleared_at = now()")).ok);
+  check("un'altra coppia non vede i biglietti", (await tryq(N3, "select * from notes")).rows.every((r) => r.couple_id === mk2.couple_id));
+  check("lo sconosciuto non vede biglietti", (await tryq(S, "select * from notes")).rows.length === 0);
+  check("i membri vedono i biglietti della coppia", (await tryq(N2, "select * from notes")).rows.length === 2);
+  check("l'altra coppia non può pulire i nostri", (await rpc(N3, `public.clear_note('${mx.note.id}')`)).none === true);
+  check("…e il biglietto è ancora vivo", (await rpc(N1, "public.get_board()")).note.clearedAt === null);
+
+  // pulisci
+  const nxt = await send(N1, "text", { text: "Nuovo", bg: "sky" }, "note-key-0006");
+  const clOld = await rpc(N2, `public.clear_note('${mx.note.id}')`);
+  check("pulire un biglietto vecchio non tocca quello nuovo", clOld.ok && (await rpc(N1, "public.get_board()")).note.clearedAt === null);
+  const cl = await rpc(N2, `public.clear_note('${nxt.note.id}')`);
+  check("N2 pulisce il biglietto di N1 (vale per entrambi)", cl.ok && cl.note.clearedAt !== null);
+  const bN1 = await rpc(N1, "public.get_board()");
+  check("N1 vede 'pulito'", bN1.note.clearedAt !== null && bN1.note.id === nxt.note.id);
+  check("pulire due volte va bene", (await rpc(N1, `public.clear_note('${nxt.note.id}')`)).ok === true);
+  check("pulire senza id pulisce l'ultimo", (await rpc(N1, "public.clear_note()")).ok === true);
+  check("un NON membro non può pulire", (await rpc(S, "public.clear_note()")).error === "not_paired");
+
+  // limite di invio
+  for (let i = 0; i < 20; i++) await send(N3, "text", { text: "r", bg: "sky" }, `note-rate-${String(i).padStart(4, "0")}`);
+  check("20 biglietti al minuto, poi rate_limited", (await send(N3, "text", { text: "r", bg: "sky" }, "note-rate-9999")).error === "rate_limited");
+  check("lo storico resta corto (max 30)", (await db.query("select count(*)::int n from notes where couple_id=$1", [mk2.couple_id])).rows[0].n <= 30);
+
+  // ---- distanza ----
+  check("senza consenso set_location dice not_sharing", (await rpc(N1, "public.set_location(4400, 1200, null)")).error === "not_sharing");
+  check("sharing on", (await rpc(N1, "public.set_location_sharing(true)")).sharing === true);
+  check("coordinate fuori scala rifiutate", (await rpc(N1, "public.set_location(9001, 0, null)")).error === "invalid_location" && (await rpc(N1, "public.set_location(0, -18001, null)")).error === "invalid_location");
+  const tNow = String(Date.now());
+  check("N1 manda la posizione (Roma ≈ 41.90, 12.50)", (await rpc(N1, `public.set_location(4190, 1250, ${tNow} - 5000)`)).ok === true);
+  check("posizione più vecchia ignorata (ultima vince)", (await rpc(N1, `public.set_location(1, 1, ${tNow} - 60000)`)).ignored === true);
+  check("N2 non condivide: vede 'mine_off' e nessuna coordinata", await (async () => {
+    const l = (await rpc(N2, "public.get_board()")).location;
+    return l.sharing === false && l.partner.state === "mine_off" && l.partner.latE2 === null;
+  })());
+  check("N1 vede 'none' (N2 non ha ancora condiviso)", (await rpc(N1, "public.get_board()")).location.partner.state === "none");
+  await rpc(N2, "public.set_location_sharing(true)");
+  check("N1 vede 'none' finché N2 non manda una posizione", (await rpc(N1, "public.get_board()")).location.partner.state === "none");
+  await rpc(N2, `public.set_location(4510, 900, ${tNow} - 1000)`);
+  const lb = (await rpc(N1, "public.get_board()")).location;
+  check("con il consenso di entrambi N1 vede la posizione di N2", lb.partner.state === "ok" && lb.partner.latE2 === 4510 && lb.partner.lonE2 === 900 && lb.me.latE2 === 4190, JSON.stringify(lb));
+  check("N2 può leggere la riga di N1 (consenso reciproco, per il realtime)", (await tryq(N2, "select * from locations where user_id=$1", [N1])).rows.length === 1);
+  await rpc(N2, "public.set_location_sharing(false)");
+  const lb2 = (await rpc(N1, "public.get_board()")).location;
+  check("N2 spegne: N1 vede 'hidden' senza coordinate", lb2.partner.state === "hidden" && lb2.partner.latE2 === null, JSON.stringify(lb2));
+  const raw = (await db.query("select * from locations where user_id=$1", [N2])).rows[0];
+  check("spento: sul server non resta nessuna coordinata", raw.sharing === false && raw.lat_e2 === null && raw.lon_e2 === null && Number(raw.at) === 0);
+  check("N2 spento non vede più la riga di N1 (nessun consenso)", (await tryq(N2, "select * from locations where user_id=$1", [N1])).rows.length === 0);
+  check("l'altra coppia non vede le posizioni", (await tryq(N3, "select * from locations")).rows.length === 0);
+  check("scrittura diretta su locations negata", !(await tryq(N1, "update locations set lat_e2 = 1")).ok);
+  check("uno sconosciuto non può condividere", (await rpc(S, "public.set_location_sharing(true)")).error === "not_paired");
+
+  // ---- token del widget ----
+  check("uno sconosciuto non può avere un token", (await rpc(S, "public.rotate_widget_token()")).error === "not_paired");
+  const k1 = await rpc(N1, "public.rotate_widget_token()");
+  check("token da 32 byte casuali (64 caratteri esadecimali)", k1.ok && /^[0-9a-f]{64}$/.test(k1.token), JSON.stringify(k1));
+  check("nel database c'è solo l'hash, non il token", await (async () => {
+    const r = (await db.query("select token_hash from widget_tokens where user_id=$1", [N1])).rows[0];
+    return r && r.token_hash !== k1.token && /^[0-9a-f]{64}$/.test(r.token_hash) && (await db.query("select count(*)::int n from widget_tokens where token_hash = $1", [k1.token])).rows[0].n === 0;
+  })());
+  check("i client non leggono widget_tokens", !(await tryq(N1, "select * from widget_tokens")).ok);
+  const f1 = await feed(k1.token);
+  check("il widget (anon + token) legge il feed", f1.ok === true && f1.note === null, JSON.stringify(f1));
+  check("il feed contiene SOLO now, note, partner", JSON.stringify(Object.keys(f1).sort()) === JSON.stringify(["note", "now", "ok", "partner"]), Object.keys(f1).join());
+  await send(N1, "text", { text: "Per il blocco", bg: "blush" }, "note-key-0010");
+  const f2 = await feed(k1.token);
+  check("il feed mostra il biglietto attivo ('me': il mio widget mostra i miei)", f2.note && f2.note.by === "me" && f2.note.content.text === "Per il blocco", JSON.stringify(f2));
+  const k2 = await rpc(N2, "public.rotate_widget_token()");
+  const f3 = await feed(k2.token);
+  check("il feed di N2 lo mostra come 'partner' con il nome", f3.note && f3.note.by === "partner" && f3.note.byName === "Leonardo");
+  check("posizione dell'altra persona nel feed: 'hidden' se spenta", f3.partner.state === "mine_off" || f3.partner.state === "hidden", JSON.stringify(f3.partner));
+  check("token sbagliato → invalid_token", (await feed("0".repeat(64))).error === "invalid_token");
+  check("token malformato → invalid_token", (await feed("ciao")).error === "invalid_token" && (await feed(null)).error === "invalid_token");
+  // il test di rate limit sui token sbagliati NON deve bloccare i token buoni
+  for (let i = 0; i < 70; i++) await feed(String(i).padStart(64, "a").replace(/[^0-9a-f]/g, "b"));
+  check("tanti token sbagliati: rate_limited per loro", (await feed("1".repeat(64))).error === "rate_limited");
+  { const fk = await feed(k1.token); check("…ma un token valido funziona lo stesso (nessun blocco per tutti)", fk.ok === true, JSON.stringify(fk)); }
+  await db.exec("delete from rate_events where kind='widget_bad'");
+  // scadenza e pulizia viste dal widget
+  await db.exec("update notes set expires_at = now() - interval '1 second' where couple_id = '" + mk.couple_id + "'");
+  check("dopo la scadenza il feed non mostra più il biglietto", (await feed(k1.token)).note === null);
+  await send(N1, "text", { text: "Ancora", bg: "leaf" }, "note-key-0011");
+  check("un biglietto nuovo ricompare", (await feed(k1.token)).note?.content.text === "Ancora");
+  await rpc(N2, "public.clear_note()");
+  check("dopo 'Pulisci' il feed è vuoto (anche per chi non ha pulito)", (await feed(k1.token)).note === null);
+  // rotazione: il vecchio smette di funzionare
+  const k1b = await rpc(N1, "public.rotate_widget_token()");
+  check("ruotando, il token vecchio non vale più", (await feed(k1.token)).error === "invalid_token" && (await feed(k1b.token)).ok === true);
+  // il widget manda la posizione (aggiornamento in background)
+  const wl = await asAnon(async () => (await db.query("select public.widget_set_location($1, 4000, 1000, null) as r", [k1b.token])).rows[0].r);
+  check("widget_set_location col token (N1 condivide)", wl.ok === true);
+  check("…e con token sbagliato no", (await asAnon(async () => (await db.query("select public.widget_set_location($1, 4000, 1000, null) as r", ["f".repeat(64)])).rows[0].r)).error === "invalid_token");
+  // mutual: N2 condivide di nuovo e vede N1 dal feed
+  await rpc(N2, "public.set_location_sharing(true)");
+  await rpc(N2, `public.set_location(4510, 900, ${tNow})`);
+  const f4 = await feed(k2.token);
+  check("feed: posizione di N1 per N2 quando entrambi condividono", f4.partner.state === "ok" && f4.partner.latE2 === 4000, JSON.stringify(f4.partner));
+  // anon non può usare nient'altro
+  const anonTry = async (q) => { try { return await asAnon(() => db.query(q)); } catch { return null; } };
+  check("anon non può chiamare send_note/get_board/rotate_widget_token", (await anonTry("select public.send_note('text','{}'::jsonb,'xxxxxxxx-anon')")) === null && (await anonTry("select public.get_board()")) === null && (await anonTry("select public.rotate_widget_token()")) === null);
+  check("anon non legge notes/locations/widget_tokens", (await anonTry("select * from notes")) === null && (await anonTry("select * from locations")) === null && (await anonTry("select * from widget_tokens")) === null);
+  check("le funzioni interne non sono chiamabili", (await anonTry("select public._set_location('" + N1 + "', 1, 1, 1)")) === null && (await tryq(N1, "select public._note_latest($1,$2,false)", [mk.couple_id, N1])).ok === false);
+
+  // uscire dalla coppia: token e posizione spariscono
+  await rpc(N2, "public.leave_couple()");
+  check("chi esce perde il token: il suo widget non legge più", (await feed(k2.token)).error === "invalid_token");
+  check("…e la sua posizione sparisce dal server", (await db.query("select count(*)::int n from locations where user_id=$1", [N2])).rows[0].n === 0);
+  check("l'altro (da solo) ha ancora il suo token e vede partner = null", await (async () => { const f = await feed(k1b.token); return f.ok && f.partner === null; })());
+  const pub = (await db.query("select tablename from pg_publication_tables where pubname='supabase_realtime'")).rows.map((r) => r.tablename);
+  check("la publication realtime contiene notes e locations", pub.includes("notes") && pub.includes("locations"));
+}
+
+
+// sessione5-note.sql da solo, sopra le migrazioni 1-5
+{
+  const db3 = new PGlite({ extensions: { pgcrypto } });
+  await db3.exec(`
+    create role anon nologin; create role authenticated nologin;
+    create schema auth; create schema extensions;
+    create table auth.users (id uuid primary key default gen_random_uuid());
+    create function auth.uid() returns uuid language sql stable as $$
+      select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+    create publication supabase_realtime;
+    grant usage on schema public, auth to anon, authenticated;
+    grant execute on function auth.uid() to anon, authenticated;
+  `);
+  await db3.exec("create extension if not exists pgcrypto with schema extensions");
+  const dir = path.join(root, "supabase", "migrations");
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note")).sort())
+    await db3.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+  let ok = true;
+  let why = "";
+  try {
+    const solo = fs.readFileSync(path.join(root, "supabase", "sessione5-note.sql"), "utf8");
+    await db3.exec(solo);
+    await db3.exec(solo);
+    const r = await db3.query("select count(*)::int n from pg_proc where proname in ('send_note','clear_note','get_board','set_location','set_location_sharing','rotate_widget_token','widget_feed','widget_set_location')");
+    ok = r.rows[0].n === 8;
+  } catch (e) {
+    ok = false;
+    why = String(e.message);
+  }
+  check("sessione5-note.sql da solo, sopra le migrazioni 1-5 già eseguite (e rieseguibile)", ok, why);
 }
 
 const w = Math.max(...rows.map((r) => r[1].length));

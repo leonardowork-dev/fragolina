@@ -315,6 +315,95 @@ try {
     await B.c.removeChannel(ch);
   }
 
+
+  // ---------- biglietti, distanza e accesso del widget (migrazione 6) ----------
+  const gb = await rpc(A.c, "get_board", {});
+  const noteMissing = !!gb.error && /get_board|PGRST202|Could not find|does not exist/i.test(String(gb.error));
+  if (noteMissing) {
+    rows.push([
+      "MANCA",
+      "Biglietti/distanza: la migrazione della sessione 5 NON è ancora stata eseguita su questo Supabase",
+      "→ MANUAL_TODO.md, Sessione 5, passo 1 (incolla supabase/sessione5-note.sql). Poi rilancia questo comando.",
+    ]);
+  } else {
+    const sendN = (c, kind, content, key) => rpc(c, "send_note", { p_kind: kind, p_content: content, p_client_key: key, p_client_at: Date.now() });
+    const kn = (x) => `chk5-${x}-${uuid().slice(0, 8)}`;
+    check("biglietto: get_board risponde (nessun biglietto all'inizio)", gb.ok === true && gb.note === null && gb.location.sharing === false, JSON.stringify(gb).slice(0, 160));
+    const n1 = await sendN(A.c, "text", { text: "Ti penso", bg: "butter" }, kn("a"));
+    check("biglietto: A manda una scritta, scade tra 1 h", n1.ok && n1.note.by === "me" && Math.abs(n1.note.expiresAt - n1.note.createdAt - 3600000) < 3000, JSON.stringify(n1).slice(0, 200));
+    const key = kn("dup");
+    const d1 = await sendN(A.c, "draw", { strokes: [{ c: "leaf", w: 2, p: [[1, 2], [300, 400]] }] }, key);
+    const d2 = await sendN(A.c, "draw", { strokes: [{ c: "leaf", w: 2, p: [[1, 2], [300, 400]] }] }, key);
+    check("biglietto: stessa chiave = nessun duplicato (idempotente)", d1.ok && d2.duplicate === true && d1.note.id === d2.note.id, JSON.stringify(d2).slice(0, 160));
+    check("biglietto: contenuto non valido rifiutato dal server", (await sendN(A.c, "draw", { strokes: [{ c: "viola", w: 1, p: [[1, 1]] }] }, kn("bad"))).error === "invalid_content");
+    check("biglietto: il terzo non può mandarne", !!(await sendN(C.c, "text", { text: "x", bg: "sky" }, kn("c"))).error);
+    const bb = await rpc(B.c, "get_board", {});
+    check("biglietto: B vede il disegno di A ('partner', con il nome)", bb.note && bb.note.by === "partner" && bb.note.kind === "draw" && bb.note.byName.length > 0, JSON.stringify(bb.note).slice(0, 160));
+    check("biglietto RLS: il terzo non legge notes", ((await C.c.from("notes").select("*")).data ?? []).length === 0);
+    const hackN = await A.c.from("notes").update({ cleared_at: null, expires_at: "2099-01-01" }).eq("couple_id", cid).select();
+    check("biglietto RLS: nessuna scrittura diretta", !!hackN.error || (hackN.data ?? []).length === 0);
+
+    // tempo reale
+    let nGot = 0;
+    const chn = B.c
+      .channel("chk-note-" + uuid().slice(0, 6))
+      .on("postgres_changes", { event: "*", schema: "public", table: "notes", filter: `couple_id=eq.${cid}` }, () => nGot++);
+    await new Promise((r) => chn.subscribe((st) => st === "SUBSCRIBED" && r()));
+
+    // token del widget
+    const t = await rpc(A.c, "rotate_widget_token", {});
+    check("widget: token da 64 caratteri esadecimali (32 byte)", t.ok && /^[0-9a-f]{64}$/.test(t.token), JSON.stringify(t).slice(0, 80));
+    const anon = mk();
+    const feed = (tok) => rpc(anon, "widget_feed", { p_token: tok });
+    const f1 = await feed(t.token);
+    check("widget: con chiave pubblica + token valido il feed risponde (solo now, note, partner)", f1.ok === true && JSON.stringify(Object.keys(f1).sort()) === JSON.stringify(["note", "now", "ok", "partner"]), JSON.stringify(f1).slice(0, 200));
+    check("widget: il feed mostra l'ultimo biglietto attivo", f1.note && f1.note.id === d1.note.id, JSON.stringify(f1.note).slice(0, 120));
+    check("widget: token sbagliato → invalid_token", (await feed("0".repeat(64))).error === "invalid_token");
+    check("widget: token malformato → invalid_token", (await feed("ciao")).error === "invalid_token");
+    check("widget: senza token il feed non c'è", !!(await rpc(anon, "widget_feed", {})).error);
+    check("widget: la chiave pubblica da sola non legge nulla (notes, locations, widget_tokens)", ((await anon.from("notes").select("*")).data ?? []).length === 0 && ((await anon.from("locations").select("*")).data ?? []).length === 0 && ((await anon.from("widget_tokens").select("*")).data ?? []).length === 0);
+    check("widget: la chiave pubblica non può mandare biglietti né ruotare token", !!(await rpc(anon, "send_note", { p_kind: "text", p_content: { text: "x", bg: "sky" }, p_client_key: kn("z") })).error && !!(await rpc(anon, "rotate_widget_token", {})).error);
+    check("widget: il terzo non ha un token (non è in una coppia)", !!(await rpc(C.c, "rotate_widget_token", {})).error);
+
+    // pulisci: B pulisce, il feed di A diventa vuoto
+    const cl = await rpc(B.c, "clear_note", { p_id: d1.note.id });
+    check("pulisci: B pulisce il biglietto di A", cl.ok && cl.note.clearedAt !== null, JSON.stringify(cl).slice(0, 160));
+    const f2 = await feed(t.token);
+    check("pulisci: il feed di A è vuoto dopo 'Pulisci' di B", f2.ok && f2.note === null, JSON.stringify(f2).slice(0, 160));
+    check("pulisci: ripetuto va bene", (await rpc(B.c, "clear_note", { p_id: d1.note.id })).ok === true);
+    check("scadenza a 1 h: non si può aspettare qui; è provata in backend:sqltest (scadenza forzata) e nell'e2e (orologio finto)", true);
+
+    // distanza: consenso reciproco
+    check("distanza: senza consenso set_location dice not_sharing", (await rpc(A.c, "set_location", { p_lat_e2: 4190, p_lon_e2: 1250, p_at: Date.now() })).error === "not_sharing");
+    await rpc(A.c, "set_location_sharing", { p_on: true });
+    await rpc(A.c, "set_location", { p_lat_e2: 4190, p_lon_e2: 1250, p_at: Date.now() - 1000 });
+    const lb0 = (await rpc(B.c, "get_board", {})).location;
+    check("distanza: B non condivide → vede 'mine_off' e nessuna coordinata", lb0.partner.state === "mine_off" && lb0.partner.latE2 === null, JSON.stringify(lb0).slice(0, 200));
+    await rpc(B.c, "set_location_sharing", { p_on: true });
+    await rpc(B.c, "set_location", { p_lat_e2: 4546, p_lon_e2: 919, p_at: Date.now() - 1000 });
+    const la = (await rpc(A.c, "get_board", {})).location;
+    check("distanza: con il consenso di entrambi A vede la posizione arrotondata di B", la.partner.state === "ok" && la.partner.latE2 === 4546 && la.me.latE2 === 4190, JSON.stringify(la).slice(0, 200));
+    const f3 = await feed(t.token);
+    check("distanza: il feed del widget porta la posizione di B", f3.partner && f3.partner.state === "ok" && f3.partner.latE2 === 4546, JSON.stringify(f3.partner));
+    check("distanza: coordinate fuori scala rifiutate", (await rpc(A.c, "set_location", { p_lat_e2: 9001, p_lon_e2: 0, p_at: Date.now() })).error === "invalid_location");
+    check("distanza: il widget può mandare la posizione col token", (await rpc(anon, "widget_set_location", { p_token: t.token, p_lat_e2: 4191, p_lon_e2: 1251, p_at: Date.now() })).ok === true);
+    check("distanza: …e con token sbagliato no", (await rpc(anon, "widget_set_location", { p_token: "f".repeat(64), p_lat_e2: 1, p_lon_e2: 1, p_at: Date.now() })).error === "invalid_token");
+    await rpc(B.c, "set_location_sharing", { p_on: false });
+    const lh = (await rpc(A.c, "get_board", {})).location;
+    check("distanza: B spegne → A vede 'hidden' senza coordinate", lh.partner.state === "hidden" && lh.partner.latE2 === null, JSON.stringify(lh.partner));
+    check("distanza RLS: il terzo non legge posizioni", ((await C.c.from("locations").select("*")).data ?? []).length === 0);
+
+    await new Promise((r) => setTimeout(r, 1500));
+    check("biglietto realtime: B ha ricevuto le modifiche della tabella notes", nGot >= 2, `eventi ricevuti: ${nGot}`);
+    await B.c.removeChannel(chn);
+
+    // uscire dalla coppia: il token smette di funzionare
+    const tb = await rpc(B.c, "rotate_widget_token", {});
+    await rpc(B.c, "leave_couple");
+    check("widget: chi esce dalla coppia perde il token (invalid_token)", (await feed(tb.token)).error === "invalid_token");
+    await rpc(B.c, "join_couple", { p_code: (await rpc(A.c, "get_state", { p_day: day, p_day_start: new Date().toISOString() })).couple?.join_code ?? "", p_display_name: "Nikole" });
+  }
+
   // pulizia: entrambi escono (la coppia si cancella da sola)
   await rpc(A.c, "leave_couple");
   await rpc(B.c, "leave_couple");
@@ -330,5 +419,5 @@ console.log("\nESITO  PROVA");
 for (const [s, n, d] of rows) console.log(`${s}   ${n.padEnd(w)}${d ? "   → " + d : ""}`);
 const real = rows.filter((r) => r[0] !== "MANCA");
 console.log(`\n${real.length - failed}/${real.length} prove passate`);
-if (missing) console.log("ATTENZIONE: le prove del pet NON sono state fatte (migrazione mancante). Vedi la riga MANCA qui sopra.");
+if (missing) console.log("ATTENZIONE: alcune prove NON sono state fatte (migrazione mancante: vedi le righe MANCA qui sopra e MANUAL_TODO.md).");
 process.exit(failed ? 1 : 0);

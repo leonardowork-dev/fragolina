@@ -1,4 +1,6 @@
 import type { MoodId } from "@/features/home/moods";
+import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
+import type { Board } from "@/lib/note/wire";
 import type { PetState } from "@/lib/pet/rules";
 import type { PetSnapshot } from "@/lib/pet/sync";
 import {
@@ -145,6 +147,9 @@ export class MockBackend implements Backend {
       "cooldown",
       "not_hatched",
       "invalid_action",
+      "invalid_content",
+      "not_sharing",
+      "invalid_location",
     ];
     throw new BackendError(
       known.includes(r.error as BackendErrorKind) ? (r.error as BackendErrorKind) : "unknown",
@@ -205,6 +210,25 @@ export class MockBackend implements Backend {
   }
   setPetName(name: string, at: number, key: string): Promise<PetState | null> {
     return this.wire(() => this.ok(this.server.setPetName(this.uid, name, at, key)).pet);
+  }
+
+  getBoard(): Promise<Board | null> {
+    return this.wire(() => this.ok(this.server.getBoard(this.uid)).board);
+  }
+  sendNote(a: { kind: NoteKind; content: NoteContent; key: string; at: number }): Promise<Note> {
+    return this.wire(() => this.ok(this.server.sendNote(this.uid, a)).note);
+  }
+  clearNote(id: string | null): Promise<Note | null> {
+    return this.wire(() => this.ok(this.server.clearNote(this.uid, id)).note);
+  }
+  setLocationSharing(on: boolean): Promise<void> {
+    return this.wire(() => void this.ok(this.server.setLocationSharing(this.uid, on)));
+  }
+  setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void> {
+    return this.wire(() => void this.ok(this.server.setLocation(this.uid, p)));
+  }
+  rotateWidgetToken(): Promise<string> {
+    return this.wire(() => this.ok(this.server.rotateWidgetToken(this.uid)).token);
   }
 
   subscribe(coupleId: string, h: SubscriptionHandlers): () => void {
