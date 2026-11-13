@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { StateStorage } from "zustand/middleware";
 
+import { petToastText } from "@/features/pet/petToast";
 import { MockBackend, memoryTransport } from "@/lib/backend/mock/MockBackend";
 import { COOLDOWN_MS, petMood, stageOf } from "@/lib/pet/rules";
 import { buildLogView, replayPet } from "@/lib/pet/sync";
@@ -251,5 +252,23 @@ describe("pet: server senza migrazione", () => {
     await A.store.getState().createCouple();
     await settle();
     expect(A.store.getState().link).toBe("live");
+  });
+});
+
+
+describe("pet: testo del toast", () => {
+  const members = [
+    { userId: "ua", displayName: "Leonardo", role: "a" as const },
+    { userId: "ub", displayName: "Nikole", role: "b" as const },
+  ];
+  it("dice chi ha fatto cosa, col nome del pet", () => {
+    const pet = { name: "Bacca" };
+    expect(petToastText({ by: "ub", kind: "feed", item: "mora", at: 1 }, members, "Nikole", pet)).toBe("Nikole ha dato una mora a Bacca");
+    expect(petToastText({ by: "ub", kind: "cuddle", item: null, at: 1 }, members, "Nikole", pet)).toBe("Nikole ha fatto le coccole a Bacca");
+    expect(petToastText({ by: "ub", kind: "hatch", item: null, at: 1 }, members, "Nikole", pet)).toBe("Nikole ha fatto nascere Bacca!");
+    expect(petToastText({ by: "ub", kind: "name", item: null, at: 1 }, members, "Nikole", pet)).toBe("Ora si chiama Bacca");
+  });
+  it("senza nome usa Fragolina; senza membro noto usa il nome di lei", () => {
+    expect(petToastText({ by: "zz", kind: "play", item: null, at: 1 }, [], "Nikole", null)).toBe("Nikole ha giocato con Fragolina");
   });
 });

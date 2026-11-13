@@ -3,6 +3,7 @@ import { AppState, Dimensions } from "react-native";
 
 import { useEffectsBus, useMascot, useToast } from "@/design";
 import { haptics } from "@/lib/haptics";
+import { petToastText } from "@/features/pet/petToast";
 import { S } from "@/lib/strings.it";
 import { syncEngine, useCouple } from "@/state/coupleStore";
 
@@ -39,6 +40,11 @@ export function useRealtimeEffects() {
         useEffectsBus.getState().fireHearts(width / 2, height * 0.4);
         useMascot.getState().react("love");
         haptics.success();
+      }
+      if (s.petIncomingSeq !== before.petIncomingSeq && s.petIncoming) {
+        // l'altra persona ha curato il pet: avviso ovunque tu sia nell'app
+        toast.show(petToastText(s.petIncoming, s.members, s.partnerName, s.petServer));
+        haptics.light();
       }
       if (s.pairedSeq !== before.pairedSeq) toast.show(S.toast.joined(s.partnerName));
       if (s.rejectedSeq !== before.rejectedSeq) toast.show(S.link.rejected);

@@ -40,16 +40,16 @@ export type MascotProps = {
   shadow?: boolean;
 };
 
-const BODY =
+export const BODY =
   "M110 64 C150 48 192 66 188 118 C184 170 146 214 110 222 C74 214 36 170 32 118 C28 66 70 48 110 64 Z";
-const LEAVES = [
+export const LEAVES = [
   "M110 68 C98 46 102 26 110 14 C118 26 122 46 110 68 Z",
   "M106 70 C82 70 58 60 48 42 C74 38 98 48 106 70 Z",
   "M114 70 C138 70 162 60 172 42 C146 38 122 48 114 70 Z",
   "M104 72 C78 80 54 78 40 64 C62 56 90 58 104 72 Z",
   "M116 72 C142 80 166 78 180 64 C158 56 130 58 116 72 Z",
 ];
-const SEEDS: [number, number][] = [
+export const SEEDS: [number, number][] = [
   [58, 146],
   [164, 146],
   [84, 180],
@@ -59,7 +59,7 @@ const SEEDS: [number, number][] = [
   [154, 106],
   [110, 104],
 ];
-const HEART = "M0 9 C-13 -1 -9 -13 0 -5.5 C9 -13 13 -1 0 9 Z";
+export const HEART = "M0 9 C-13 -1 -9 -13 0 -5.5 C9 -13 13 -1 0 9 Z";
 
 function Face({ mood, blink, sw }: { mood: MascotMood; blink: boolean; sw: number }) {
   const ink = palette.ink;
