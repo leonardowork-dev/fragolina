@@ -1,5 +1,5 @@
 // Prova a DUE SCHEDE nel browser: ogni scheda è un telefono (identità per scheda), il finto server è condiviso.
-// Uso: avvia `npm run web` (porta 8081), poi  ROUND=1 npm run e2e   → screenshot in docs/shots/session2/r<ROUND>/
+// Uso: avvia `npm run web` (porta 8081), poi  ROUND=1 npm run e2e   → screenshot in docs/shots/session4/r<ROUND>/
 // Stampa una tabella PASS/FAIL. Nessun servizio a pagamento: solo Chromium via playwright-core.
 import { chromium } from "playwright-core";
 import fs from "node:fs";
@@ -12,7 +12,7 @@ const base = process.env.PREVIEW_URL ?? "http://localhost:8081";
 const round = process.env.ROUND ?? "1";
 const W = Number(process.env.W ?? 390);
 const H = Number(process.env.H ?? 844);
-const outDir = path.join(root, "docs", "shots", "session2", `r${round}${W === 390 ? "" : "-" + W}`);
+const outDir = path.join(root, "docs", "shots", "session4", `r${round}${W === 390 ? "" : "-" + W}`);
 fs.mkdirSync(outDir, { recursive: true });
 
 function findBrowser() {
@@ -250,6 +250,93 @@ try {
   check("B: riceve la carta di A in tempo reale", await seen(B, /Tocca per scoprire/, 12000));
   await settle(B, 700);
   await shot(B, "B", "domanda-carta-da-girare");
+
+  // ---------- 6b. Pet condiviso ----------
+  for (const p of [A, B]) {
+    await p.getByRole("tab", { name: "Pet" }).click();
+    await settle(p, 1100);
+  }
+  check("Pet: l'uovo dorme (A e B)", (await seen(A, /Toccatelo piano/, 6000)) && (await seen(B, /Toccatelo piano/, 6000)));
+  await shot(A, "A", "pet-uovo");
+  await btn(A, /^L'uovo\./).click();
+  await settle(A, 900);
+  await shot(A, "A", "pet-uovo-toccato-da-me");
+  check("Pet: A ha toccato, l'uovo lo segna subito", await seen(A, /Tu l'hai toccato/, 6000));
+  check("Pet: B vede in tempo reale che A l'ha toccato", await seen(B, /l'ha toccato/, 12000));
+  await shot(B, "B", "pet-uovo-toccato-da-lei");
+  await btn(B, /^L'uovo\./).click();
+  check("Pet: toccato da entrambi → si SCHIUDE su B", await seen(B, /Come la chiamate\?/, 12000));
+  await settle(B, 900);
+  await shot(B, "B", "pet-schiusa-nome");
+  await B.getByLabel("Nome", { exact: true }).fill("Bacca");
+  await btn(B, "Va bene così").click();
+  await settle(B, 900);
+  check("Pet: B ha dato il nome", await seen(B, /^Bacca$/, 6000));
+  check("Pet: A vede il pet nato con il nome scelto da B", await seen(A, /^Bacca$/, 15000));
+  await settle(A, 900);
+  await shot(A, "A", "pet-nato");
+  await shot(B, "B", "pet-nato");
+  // A nutre: B vede il toast e la cura nel registro
+  await btn(A, "Mangia").click();
+  await settle(A, 700);
+  await shot(A, "A", "pet-vassoio");
+  await btn(A, /^Mora\./).click();
+  await settle(A, 500);
+  await shot(A, "A", "pet-mangia");
+  check("Pet: B riceve 'ha dato una mora a Bacca' in tempo reale", await seen(B, /ha dato una mora a Bacca/, 12000));
+  await shot(B, "B", "pet-toast-cibo");
+  await settle(B, 900);
+  check("Pet: il registro di B mostra la cura di A", await seen(B, /ha dato una mora/, 6000));
+  check("Pet: il registro di A dice 'Hai dato una mora'", await seen(A, /Hai dato una mora/, 6000));
+  // B trascina una pesca sul pet (drag col mouse): A vede il toast
+  await btn(B, "Mangia").click();
+  await settle(B, 700);
+  const peach = await btn(B, /^Pesca\./).boundingBox();
+  const petBox = await B.getByRole("button", { name: /Bacca, / }).first().boundingBox();
+  if (peach && petBox) {
+    await B.mouse.move(peach.x + peach.width / 2, peach.y + peach.height / 2);
+    await B.mouse.down();
+    await B.mouse.move(petBox.x + petBox.width / 2, petBox.y + petBox.height * 0.6, { steps: 14 });
+    await shot(B, "B", "pet-trascina-frutto");
+    await B.mouse.up();
+  }
+  check("Pet: il frutto TRASCINATO sul pet vale come cibo (A vede 'una pesca')", await seen(A, /ha dato una pesca a Bacca/, 12000));
+  await settle(B, 700);
+  await btn(B, "Mangia").click(); // richiude il vassoio
+  // carezza col dito (trascinamento avanti e indietro)
+  const stage = await B.getByRole("button", { name: /Bacca, / }).first().boundingBox();
+  if (stage) {
+    const cx = stage.x + stage.width / 2;
+    const cy = stage.y + stage.height / 2;
+    await B.mouse.move(cx - 80, cy);
+    await B.mouse.down();
+    for (let i = 0; i < 6; i++) {
+      await B.mouse.move(cx + (i % 2 ? -90 : 90), cy + 8, { steps: 8 });
+    }
+    await shot(B, "B", "pet-carezza");
+    await B.mouse.up();
+  }
+  await settle(B, 900);
+  check("Pet: la carezza completa conta come coccola (registro di B)", await seen(B, /Hai fatto le coccole/, 6000));
+  check("Pet: A vede le coccole di B", await seen(A, /ha fatto le coccole a Bacca/, 12000));
+  await shot(A, "A", "pet-toast-coccole");
+  // offline: la cura resta in coda e arriva al ritorno
+  await offline(A, true);
+  await settle(A, 400);
+  await btn(A, "Gioca").click();
+  await settle(A, 700);
+  await shot(A, "A", "pet-gioco");
+  await A.keyboard.press("Escape");
+  await settle(A, 300);
+  await offline(A, false);
+  await settle(A, 300);
+  await shot(A, "A", "pet-dopo-rete");
+  // Nanna: luce spenta
+  await btn(B, "Nanna").click();
+  await settle(B, 900);
+  check("Pet: B mette a nanna, A lo vede dormire", await seen(A, /Luce spenta/, 15000));
+  await shot(A, "A", "pet-nanna");
+  await shot(B, "B", "pet-nanna");
 
   // ---------- 7. Noi ----------
   for (const [p, w] of [

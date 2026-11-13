@@ -1,5 +1,5 @@
 import type { MoodId } from "@/features/home/moods";
-import type { FoodId, PetKind } from "@/lib/pet/rules";
+import type { FoodId, PetKind, PetState } from "@/lib/pet/rules";
 import type { PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
 
@@ -57,9 +57,10 @@ export interface Backend {
    * usabile e la scheda Pet dice che manca un passo.
    */
   getPet(): Promise<PetSnapshot | null>;
-  petAct(a: PetActInput): Promise<void>;
+  /** Restituisce la riga del pet dopo la cura (null se il server non la manda): serve a non far "tornare indietro" il pet fra coda e sincronizzazione. */
+  petAct(a: PetActInput): Promise<PetState | null>;
   /** Last-write-wins sul server. */
-  setPetName(name: string, at: number, key: string): Promise<void>;
+  setPetName(name: string, at: number, key: string): Promise<PetState | null>;
   /** App in primo piano o no (rinnovo del token). Facoltativo. */
   setForeground?(active: boolean): void;
 }

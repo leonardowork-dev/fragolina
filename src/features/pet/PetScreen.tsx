@@ -119,7 +119,8 @@ function ActionButton({
         haptic={kind === "sleep" ? "success" : "light"}
         accessibilityLabel={label}
         accessibilityRole="button"
-        style={{ transform: [{ rotate: `${look.tilt}deg` }], alignItems: "center", gap: 2, minHeight: 78, justifyContent: "center" }}
+        style={{ transform: [{ rotate: `${look.tilt}deg` }] }}
+        faceStyle={{ alignItems: "center", gap: 2, minHeight: 78, justifyContent: "center" }}
       >
         {kind === "cuddle" ? (
           <Glyph kind="love" size={30} fill={palette.strawberry} id="act-cuddle" />
@@ -147,6 +148,7 @@ function PetMain() {
   const meId = useCouple((s) => s.userId);
   const myRole = useCouple((s) => s.myRole);
   const link = useCouple((s) => s.link);
+  const petAvailable = useCouple((s) => s.petAvailable);
   const incomingSeq = useCouple((s) => s.petIncomingSeq);
   const petAct = useCouple((s) => s.petAct);
   const touchEgg = useCouple((s) => s.touchEgg);
@@ -179,13 +181,12 @@ function PetMain() {
   );
 
   // La schiusa è un momento raro: coriandoli, e chi l'ha fatto nascere sceglie il nome.
-  const wasHatched = useRef(hatched);
+  // Solo se l'uovo era davvero visto come uovo (dati del server già arrivati): caricare un pet già nato non è una schiusa.
+  const sawEgg = useRef(false);
   useEffect(() => {
-    if (!hatched || wasHatched.current) {
-      wasHatched.current = hatched;
-      return;
-    }
-    wasHatched.current = true;
+    if (!hatched && petAvailable === true) sawEgg.current = true;
+    if (!hatched || !sawEgg.current) return;
+    sawEgg.current = false;
     const { width, height } = Dimensions.get("window");
     useEffectsBus.getState().fireConfetti(width / 2, height * 0.3);
     haptics.success();
@@ -195,7 +196,7 @@ function PetMain() {
       if (pet.hatchedBy === meId) setNameOpen(true);
     }, 700);
     return () => clearTimeout(t);
-  }, [hatched, pet.hatchedBy, meId, react]);
+  }, [hatched, petAvailable, pet.hatchedBy, meId, react]);
 
   // L'altra persona cura il pet mentre sei qui: il pet reagisce (il toast lo mostra la radice dell'app).
   const lastIncoming = useRef(incomingSeq);
@@ -292,6 +293,8 @@ function PetMain() {
         a11yHint={hatched ? S.pet.cuddleHint : undefined}
       />
 
+      {hatched && tray ? <FoodTray petRef={petRef} onFeed={feed} /> : null}
+
       <Sticker
         id="pet-parla"
         fill={colors.butter}
@@ -303,7 +306,7 @@ function PetMain() {
         accessibilityRole="text"
       >
         <Text variant="bodyStrong" accessibilityLiveRegion="polite">
-          {asleep ? `${S.pet.sleepOn} ${sleepMinutes} min` : line}
+          {asleep ? S.pet.sleepOn(sleepMinutes) : line}
         </Text>
       </Sticker>
 
@@ -322,7 +325,6 @@ function PetMain() {
             <ActionButton kind="play" onPress={() => setPlayOpen(true)} />
             <ActionButton kind="sleep" onPress={sleep} />
           </View>
-          {tray ? <FoodTray petRef={petRef} onFeed={feed} /> : null}
           <PetLog entries={log} me={meId} members={members} partnerName={partnerName} now={now} />
           <View style={{ gap: 4 }}>
             {prog && nextStage ? (

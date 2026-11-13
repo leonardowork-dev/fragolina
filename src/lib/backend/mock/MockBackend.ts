@@ -1,4 +1,5 @@
 import type { MoodId } from "@/features/home/moods";
+import type { PetState } from "@/lib/pet/rules";
 import type { PetSnapshot } from "@/lib/pet/sync";
 import {
   BackendError,
@@ -199,11 +200,11 @@ export class MockBackend implements Backend {
   getPet(): Promise<PetSnapshot | null> {
     return this.wire(() => this.ok(this.server.getPet(this.uid)).snapshot);
   }
-  petAct(a: PetActInput): Promise<void> {
-    return this.wire(() => void this.ok(this.server.petAct(this.uid, a)));
+  petAct(a: PetActInput): Promise<PetState | null> {
+    return this.wire(() => this.ok(this.server.petAct(this.uid, a)).pet);
   }
-  setPetName(name: string, at: number, key: string): Promise<void> {
-    return this.wire(() => void this.ok(this.server.setPetName(this.uid, name, at, key)));
+  setPetName(name: string, at: number, key: string): Promise<PetState | null> {
+    return this.wire(() => this.ok(this.server.setPetName(this.uid, name, at, key)).pet);
   }
 
   subscribe(coupleId: string, h: SubscriptionHandlers): () => void {

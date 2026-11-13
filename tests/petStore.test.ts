@@ -92,6 +92,18 @@ describe("pet: schiusa a due", () => {
     expect(view(A).hatchedBy).toBe("ub");
     expect(stageOf(view(A))).toBe("seed");
   });
+  it("la schiusa non 'torna indietro' mai: l'uovo non si richiude fra coda e sincronizzazione", async () => {
+    const { A, B } = await paired();
+    await touch(A);
+    const seen: boolean[] = [];
+    const unsub = B.store.subscribe(() => seen.push(view(B).hatchedAt !== null));
+    await touch(B);
+    await settle(10);
+    unsub();
+    const first = seen.indexOf(true);
+    expect(first).toBeGreaterThanOrEqual(0);
+    expect(seen.slice(first).every(Boolean)).toBe(true);
+  });
   it("molti tocchi si raggruppano in pochi invii", async () => {
     const { A } = await paired();
     for (let i = 0; i < 7; i++) A.store.getState().touchEgg();

@@ -279,7 +279,7 @@ export class SupabaseBackend implements Backend {
     }
   }
   async petAct(a: PetActInput) {
-    await this.rpc("pet_act", {
+    const d = await this.rpc<{ pet?: Record<string, unknown> | null }>("pet_act", {
       p_kind: a.kind,
       p_item: a.item,
       p_amount: a.amount,
@@ -287,9 +287,15 @@ export class SupabaseBackend implements Backend {
       p_client_key: a.key,
       p_client_at: Math.round(a.at),
     });
+    return d.pet ? petFromRow(d.pet) : null;
   }
   async setPetName(name: string, at: number, key: string) {
-    await this.rpc("set_pet_name", { p_name: name, p_client_at: Math.round(at), p_client_key: key });
+    const d = await this.rpc<{ pet?: Record<string, unknown> | null }>("set_pet_name", {
+      p_name: name,
+      p_client_at: Math.round(at),
+      p_client_key: key,
+    });
+    return d.pet ? petFromRow(d.pet) : null;
   }
 
   subscribe(coupleId: string, h: SubscriptionHandlers): () => void {

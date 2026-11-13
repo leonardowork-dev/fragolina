@@ -285,16 +285,23 @@ export function createCoupleStore(deps: CoupleDeps) {
           if (op.kind === "name") return backend.setDisplayName(op.name);
           if (!coupleId) throw new BackendError("not_paired");
           if (op.kind === "ping") return backend.sendPing(coupleId, op.key);
-          if (op.kind === "pet")
-            return backend.petAct({
-              kind: op.action.kind,
-              item: op.action.item,
-              amount: op.action.amount,
-              day: op.action.day,
-              key: op.key,
-              at: op.at,
-            });
-          if (op.kind === "petName") return backend.setPetName(op.name, op.at, op.key);
+          if (op.kind === "pet" || op.kind === "petName") {
+            const pet =
+              op.kind === "pet"
+                ? await backend.petAct({
+                    kind: op.action.kind,
+                    item: op.action.item,
+                    amount: op.action.amount,
+                    day: op.action.day,
+                    key: op.key,
+                    at: op.at,
+                  })
+                : await backend.setPetName(op.name, op.at, op.key);
+            // La risposta del server porta il pet già aggiornato: lo prendo SUBITO, prima che l'operazione esca dalla
+            // coda, così il pet non "torna indietro" (es. l'uovo che si richiude) fra la coda e la sincronizzazione.
+            if (pet) ingestPetEvent(pet);
+            return;
+          }
           if (op.kind === "mood") return backend.setMood(coupleId, op.moodId, op.key, op.at);
           if (op.kind === "answer")
             return backend.answerDaily(coupleId, op.day, op.questionId, op.answer, op.key);

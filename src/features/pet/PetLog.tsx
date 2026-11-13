@@ -7,10 +7,11 @@ import type { PetLogView } from "@/lib/pet/sync";
 import { S } from "@/lib/strings.it";
 import { timeAgo } from "@/lib/time";
 
+/** null = sei tu. */
 const nameOf = (userId: string, me: string | null, members: Member[], partnerName: string) =>
-  userId === me ? S.pet.who.me : (members.find((m) => m.userId === userId)?.displayName ?? partnerName);
+  userId === me ? null : (members.find((m) => m.userId === userId)?.displayName ?? partnerName);
 
-export function logLine(e: PetLogView, who: string): string {
+export function logLine(e: PetLogView, who: string | null): string {
   switch (e.kind) {
     case "feed":
       return S.pet.logLine.feed(who, e.item ? S.pet.foodGiven[e.item] : "un frutto");

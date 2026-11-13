@@ -22,7 +22,7 @@ export type PetFace =
   | "eat"
   | "surprised";
 
-const SCALE: Record<Exclude<PetStage, "egg">, number> = { seed: 0.52, sprout: 0.7, berry: 0.86, big: 1 };
+const SCALE: Record<Exclude<PetStage, "egg">, number> = { seed: 0.62, sprout: 0.76, berry: 0.9, big: 1 };
 const FILL: Record<Exclude<PetStage, "egg">, string> = {
   seed: palette.butter,
   sprout: palette.strawberrySoft,

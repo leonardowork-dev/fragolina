@@ -46,7 +46,8 @@ function Need({ id, value }: { id: NeedId; value: number }) {
           offset={4}
           padding={10}
           tiltMax={0}
-          style={{ transform: [{ rotate: `${look.tilt}deg` }], alignItems: "center", gap: 4 }}
+          style={{ transform: [{ rotate: `${look.tilt}deg` }] }}
+          faceStyle={{ alignItems: "center", gap: 4 }}
           accessibilityRole="text"
           accessibilityLabel={S.pet.a11y.need(label, word)}
         >

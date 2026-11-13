@@ -249,13 +249,13 @@ export const S = {
     wait: "Aspetta un attimo.",
     logTitle: "Ultime cure",
     logEmpty: "Nessuna cura ancora. Cominciate voi.",
-    who: { me: "Tu" },
+    // `who` = null quando sei tu (seconda persona: "Hai dato…"), altrimenti il nome dell'altra persona.
     logLine: {
-      feed: (who: string, food: string) => `${who} ha dato ${food}`,
-      cuddle: (who: string) => `${who} ha fatto le coccole`,
-      play: (who: string) => `${who} ha giocato`,
-      sleep: (who: string) => `${who} ha spento la luce`,
-      hatch: (who: string) => `${who} l'ha fatto nascere`,
+      feed: (who: string | null, food: string) => (who ? `${who} ha dato ${food}` : `Hai dato ${food}`),
+      cuddle: (who: string | null) => (who ? `${who} ha fatto le coccole` : "Hai fatto le coccole"),
+      play: (who: string | null) => (who ? `${who} ha giocato` : "Hai giocato"),
+      sleep: (who: string | null) => (who ? `${who} ha spento la luce` : "Hai spento la luce"),
+      hatch: (who: string | null) => (who ? `${who} l'ha fatto nascere` : "L'hai fatto nascere"),
     },
     toast: {
       feed: (who: string, food: string, pet: string) => `${who} ha dato ${food} a ${pet}`,
@@ -277,8 +277,7 @@ export const S = {
     playScore: (n: number) => `${n} su 3`,
     playDone: "Preso! Che corsa.",
     playCatch: "Fragola che rimbalza. Toccala.",
-    sleepOn: "Luce spenta.",
-    sleepWake: "Tocca per svegliarla",
+    sleepOn: (min: number) => `Luce spenta. Si sveglia tra ${min} min.`,
     a11y: {
       egg: "L'uovo. Tocca per toccarlo piano.",
       pet: (name: string, say: string, stage: string) => `${name}, ${stage}. ${say}`,
