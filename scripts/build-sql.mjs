@@ -17,3 +17,14 @@ const body = files
   .join("\n");
 fs.writeFileSync(path.join(root, "supabase", "all.sql"), head + body);
 console.log(`supabase/all.sql: ${files.length} migrazioni, ${(head + body).length} caratteri`);
+
+// Solo la migrazione del pet (sessione 4): per chi ha già eseguito all.sql e non deve rifare il vecchio.
+const petFile = files.find((f) => f.includes("_pet"));
+if (petFile) {
+  const petHead = `-- Fragolina · SOLO LA MIGRAZIONE DEL PET (sessione 4). Generato da scripts/build-sql.mjs: non modificarlo a mano.
+-- Incollalo nell'editor SQL di Supabase (SQL Editor → New query) e premi Run. Non tocca nulla di ciò che c'è già.
+-- Si può rilanciare quante volte vuoi. Sotto "Success. No rows returned" = fatto.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione4-pet.sql"), petHead + "\n" + fs.readFileSync(path.join(dir, petFile), "utf8"));
+  console.log("supabase/sessione4-pet.sql: solo la migrazione del pet");
+}

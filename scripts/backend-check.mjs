@@ -251,6 +251,70 @@ try {
     JSON.stringify(d3),
   );
 
+  // ---------- il pet condiviso (migrazione 5) ----------
+  const g0 = await rpc(A.c, "get_pet", { p_limit: 12 });
+  const petMissing = !!g0.error && /get_pet|PGRST202|Could not find|does not exist/i.test(String(g0.error));
+  if (petMissing) {
+    rows.push([
+      "MANCA",
+      "Pet: la migrazione del pet NON è ancora stata eseguita su questo Supabase",
+      "→ MANUAL_TODO.md, Sessione 4, passo 1 (incolla supabase/20261113000001_pet.sql). Poi rilancia questo comando.",
+    ]);
+  } else {
+    check("pet: get_pet risponde (nessun pet finché nessuno tocca l'uovo)", g0.ok === true && g0.pet === null, JSON.stringify(g0));
+    const act = (c, kind, item, amount, key, at = Date.now()) =>
+      rpc(c, "pet_act", { p_kind: kind, p_item: item, p_amount: amount, p_day: day, p_client_key: key, p_client_at: at });
+    const k = (n) => `chk-${uuid().slice(0, 8)}-${n}`;
+    check("pet: cura prima della schiusa → not_hatched", (await act(A.c, "feed", "mora", 1, k("x1"))).error === "not_hatched");
+    check("pet: il terzo (fuori dalla coppia) non può toccare l'uovo", !!(await act(C.c, "touch", null, 1, k("x2"))).error);
+
+    // tempo reale: B ascolta la riga del pet
+    let got = 0;
+    const ch = B.c
+      .channel("chk-pet-" + uuid().slice(0, 6))
+      .on("postgres_changes", { event: "*", schema: "public", table: "pets", filter: `couple_id=eq.${cid}` }, () => got++);
+    await new Promise((res) => ch.subscribe((st) => st === "SUBSCRIBED" && res()));
+    await new Promise((r) => setTimeout(r, 800));
+
+    const ka = k("a1");
+    const t1 = await act(A.c, "touch", null, 2, ka);
+    check("pet: A tocca l'uovo, non si schiude da solo", t1.ok && t1.pet.hatched_at === null, JSON.stringify(t1));
+    const t1b = await act(A.c, "touch", null, 2, ka);
+    check("pet: stessa chiave due volte = idempotente", t1b.ok && t1b.duplicate === true && t1b.pet.touches_a === 2, JSON.stringify(t1b));
+    const t2 = await act(B.c, "touch", null, 1, k("b1"));
+    check("pet: B tocca → si schiude (a due)", t2.ok && t2.pet.hatched_at !== null && t2.pet.hatched_by === B.id, JSON.stringify(t2));
+    const f1 = await act(A.c, "feed", "mora", 1, k("f1"), Date.now() - 100000);
+    check("pet: A dà una mora", f1.ok && f1.pet.last_item === "mora" && f1.pet.last_by === A.id, JSON.stringify(f1));
+    check("pet: pausa per persona (cooldown)", (await act(A.c, "feed", "pesca", 1, k("f2"), Date.now() - 90000)).error === "cooldown");
+    check("pet: l'altra persona può dare da mangiare subito", (await act(B.c, "feed", "pesca", 1, k("f3"), Date.now() - 90000)).ok === true);
+    check("pet: cibo inesistente rifiutato", (await act(A.c, "feed", "pizza", 1, k("f4"))).error === "invalid_action");
+    await act(A.c, "cuddle", null, 1, k("c1"));
+    const gp = await rpc(B.c, "get_pet", { p_limit: 12 });
+    check("pet: B legge stato, registro e 'mie ultime volte'", gp.ok && gp.pet.rev >= 5 && gp.log.length >= 4 && typeof gp.my_last.feed === "number", JSON.stringify(gp).slice(0, 200));
+    check("pet: bonus 'in due' contato", gp.pet.both_days === 1 && gp.pet.care_days === 1, JSON.stringify(gp.pet));
+    const nm = await rpc(B.c, "set_pet_name", { p_name: "  Fragolotta Reale Primissima ", p_client_at: Date.now() - 5000, p_client_key: k("n1") });
+    check("pet: nome troncato a 16", nm.ok && nm.pet.name === "Fragolotta Reale", JSON.stringify(nm));
+    const nm2 = await rpc(A.c, "set_pet_name", { p_name: "Vecchio", p_client_at: Date.now() - 60000, p_client_key: k("n2") });
+    check("pet: nome, una scrittura più vecchia non vince", nm2.ok && nm2.pet.name === "Fragolotta Reale", JSON.stringify(nm2));
+    const nm3 = await rpc(A.c, "set_pet_name", { p_name: "Bacca", p_client_at: Date.now(), p_client_key: k("n3") });
+    check("pet: nome, una più nuova vince", nm3.ok && nm3.pet.name === "Bacca");
+
+    // RLS: il terzo non vede nulla, nessuno scrive direttamente
+    check("pet RLS: il terzo non vede la riga del pet", ((await C.c.from("pets").select("*")).data ?? []).length === 0);
+    check("pet RLS: il terzo non vede il registro", ((await C.c.from("pet_actions").select("*")).data ?? []).length === 0);
+    check("pet RLS: A vede la riga del pet", ((await A.c.from("pets").select("*")).data ?? []).length === 1);
+    const hack = await A.c.from("pets").update({ food: 1000 }).eq("couple_id", cid).select();
+    check("pet RLS: nessuna scrittura diretta (0 righe cambiate o errore)", !!hack.error || (hack.data ?? []).length === 0, JSON.stringify(hack.data));
+    const hack2 = await A.c.from("pet_actions").insert({ couple_id: cid, user_id: A.id, kind: "feed", at: 1, rev: 1, client_key: "hackhackhack" });
+    check("pet RLS: nessuna scrittura diretta nel registro", !!hack2.error);
+    const anon = mk();
+    check("pet RLS: senza sessione non si legge", ((await anon.from("pets").select("*")).data ?? []).length === 0);
+
+    await new Promise((r) => setTimeout(r, 1500));
+    check("pet realtime: B ha ricevuto le modifiche della riga del pet", got >= 2, `eventi ricevuti: ${got}`);
+    await B.c.removeChannel(ch);
+  }
+
   // pulizia: entrambi escono (la coppia si cancella da sola)
   await rpc(A.c, "leave_couple");
   await rpc(B.c, "leave_couple");
@@ -260,8 +324,11 @@ try {
   check("esecuzione senza eccezioni", false, String(e.message ?? e));
 }
 
+const missing = rows.filter((r) => r[0] === "MANCA").length;
 const w = Math.max(...rows.map((r) => r[1].length));
 console.log("\nESITO  PROVA");
 for (const [s, n, d] of rows) console.log(`${s}   ${n.padEnd(w)}${d ? "   → " + d : ""}`);
-console.log(`\n${rows.length - failed}/${rows.length} prove passate`);
+const real = rows.filter((r) => r[0] !== "MANCA");
+console.log(`\n${real.length - failed}/${real.length} prove passate`);
+if (missing) console.log("ATTENZIONE: le prove del pet NON sono state fatte (migrazione mancante). Vedi la riga MANCA qui sopra.");
 process.exit(failed ? 1 : 0);

@@ -582,6 +582,38 @@ check(
   );
 }
 
+// Chi ha già eseguito le migrazioni 1-4 sul server esegue SOLO sessione4-pet.sql: deve bastare.
+{
+  const db2 = new PGlite({ extensions: { pgcrypto } });
+  await db2.exec(`
+    create role anon nologin; create role authenticated nologin;
+    create schema auth; create schema extensions;
+    create table auth.users (id uuid primary key default gen_random_uuid());
+    create function auth.uid() returns uuid language sql stable as $$
+      select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+    create publication supabase_realtime;
+    grant usage on schema public, auth to anon, authenticated;
+    grant execute on function auth.uid() to anon, authenticated;
+  `);
+  await db2.exec("create extension if not exists pgcrypto with schema extensions");
+  const dir = path.join(root, "supabase", "migrations");
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet")).sort())
+    await db2.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+  let ok = true;
+  let why = "";
+  try {
+    const solo = fs.readFileSync(path.join(root, "supabase", "sessione4-pet.sql"), "utf8");
+    await db2.exec(solo);
+    await db2.exec(solo); // rieseguibile
+    const r = await db2.query("select count(*)::int n from pg_proc where proname in ('pet_act','get_pet','set_pet_name')");
+    ok = r.rows[0].n === 3;
+  } catch (e) {
+    ok = false;
+    why = String(e.message);
+  }
+  check("sessione4-pet.sql da solo, sopra le migrazioni 1-4 già eseguite (e rieseguibile)", ok, why);
+}
+
 const w = Math.max(...rows.map((r) => r[1].length));
 console.log("\nRISULTATO   PROVA");
 for (const [s, n, d] of rows) console.log(`${s.padEnd(10)}  ${n.padEnd(w)}${d ? "   → " + d : ""}`);
