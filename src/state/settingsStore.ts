@@ -13,10 +13,13 @@ type SettingsState = {
   haptics: boolean;
   reduceMotionOverride: boolean | null;
   darkOverride: boolean;
+  /** Aggiornare la posizione anche ad app chiusa (permesso "Sempre", solo iOS). */
+  locationAlways: boolean;
   setOnboardingDone: (v: boolean) => void;
   setHaptics: (v: boolean) => void;
   setReduceMotionOverride: (v: boolean | null) => void;
   setDarkOverride: (v: boolean) => void;
+  setLocationAlways: (v: boolean) => void;
 };
 
 export const useSettings = create<SettingsState>()(
@@ -27,10 +30,12 @@ export const useSettings = create<SettingsState>()(
       haptics: true,
       reduceMotionOverride: null,
       darkOverride: false,
+      locationAlways: false,
       setOnboardingDone: (onboardingDone) => set({ onboardingDone }),
       setHaptics: (haptics) => set({ haptics }),
       setReduceMotionOverride: (reduceMotionOverride) => set({ reduceMotionOverride }),
       setDarkOverride: (darkOverride) => set({ darkOverride }),
+      setLocationAlways: (locationAlways) => set({ locationAlways }),
     }),
     {
       name: "fragolina.settings.v1",
@@ -40,6 +45,7 @@ export const useSettings = create<SettingsState>()(
         haptics: s.haptics,
         reduceMotionOverride: s.reduceMotionOverride,
         darkOverride: s.darkOverride,
+        locationAlways: s.locationAlways,
       }),
       onRehydrateStorage: () => () => {
         useSettings.setState({ hydrated: true });

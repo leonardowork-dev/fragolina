@@ -12,7 +12,7 @@ import { selectPairing, useCouple } from "@/state/coupleStore";
 import { useSettings } from "@/state/settingsStore";
 
 /**
- * Esegue i link dei widget (`fragolina://ping|mood|us|home|pet`), anche con l'app chiusa o in background.
+ * Esegue i link dei widget (`fragolina://ping|mood|us|home|pet|draw`), anche con l'app chiusa o in background.
  * - Parte solo quando store e impostazioni sono pronti e l'introduzione è finita (prima si fa l'onboarding).
  * - Un tocco = un'azione: il cancello `createLinkGate` scarta lo stesso link arrivato due volte e l'URL iniziale
  *   già gestito. Ping: manda UN pensiero con la solita coda idempotente, poi cuori + mascotte + aptica `success` + avviso.
@@ -39,7 +39,10 @@ export function useDeepLinks() {
       runDeepLink(link, {
         paired: selectPairing(st) === "paired",
         sendThought: () => useCouple.getState().sendThought(),
-        goTo: (path) => router.navigate(path === "/" ? "/(tabs)" : path === "/pet" ? "/(tabs)/pet" : "/(tabs)/us"),
+        goTo: (path) =>
+          router.navigate(
+            path === "/" ? "/(tabs)" : path === "/pet" ? "/(tabs)/pet" : path === "/draw" ? "/(tabs)/draw" : "/(tabs)/us",
+          ),
         requestMoodSheet: () => useIntents.getState().requestMoodSheet(),
         confirmPing: () => {
           const now = useCouple.getState();

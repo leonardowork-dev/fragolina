@@ -15,6 +15,7 @@ import {
   useToast,
 } from "@/design";
 import { Screen } from "@/design/layout/Screen";
+import { DistanceCard } from "@/features/distance/DistanceCard";
 import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { PairingPanel } from "@/features/pairing/PairingPanel";
 import { S } from "@/lib/strings.it";
@@ -32,6 +33,7 @@ export function UsScreen() {
   const me = useCouple((s) => s.meName);
   const partner = useCouple((s) => s.partnerName);
   const start = useCouple((s) => s.startDate);
+  const coupleId = useCouple((s) => s.coupleId);
   const haptics = useSettings((s) => s.haptics);
   const setHaptics = useSettings((s) => s.setHaptics);
   const reduce = useSettings((s) => s.reduceMotionOverride);
@@ -117,6 +119,8 @@ export function UsScreen() {
           <PairingPanel variant="us" />
         </View>
       </Sticker>
+
+      {coupleId ? <DistanceCard /> : null}
 
       <Sticker
         id="impostazioni"

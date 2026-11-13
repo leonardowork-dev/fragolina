@@ -160,3 +160,32 @@ describe("link del Pet (sessione 4)", () => {
     expect(g.accept("fragolina://pet", 6000, false)).toBe(true);
   });
 });
+
+describe("link del biglietto (sessione 5)", () => {
+  it("fragolina://draw si legge in tutte le forme e porta alla scheda Disegna", () => {
+    expect(parseDeepLink("fragolina://draw")).toBe("draw");
+    expect(parseDeepLink("fragolina://draw/")).toBe("draw");
+    expect(parseDeepLink("fragolina:///draw?x=1")).toBe("draw");
+    expect(parseDeepLink("fragolina://DRAW")).toBe("draw");
+    expect(systemPathFor("fragolina://draw")).toBe("/draw");
+  });
+  it("apre Disegna, collegati o no, e non manda nessun pensiero", () => {
+    for (const paired of [true, false]) {
+      const calls: string[] = [];
+      const out = runDeepLink("draw", {
+        paired,
+        sendThought: () => (calls.push("send"), true),
+        goTo: (p) => calls.push(`go:${p}`),
+        requestMoodSheet: () => calls.push("mood"),
+        confirmPing: () => calls.push("confirm"),
+      });
+      expect(out).toBe("to-draw");
+      expect(calls).toEqual(["go:/draw"]);
+    }
+  });
+  it("idempotente come gli altri (stesso link due volte entro 4 s = una)", () => {
+    const g = createLinkGate();
+    expect(g.accept("fragolina://draw", 1000, false)).toBe(true);
+    expect(g.accept("fragolina://draw", 2000, false)).toBe(false);
+  });
+});

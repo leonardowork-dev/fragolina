@@ -10,21 +10,25 @@ import { scheduleOnRN } from "react-native-worklets";
  * setState durante il disegno). A fine tratto si consegna una stringa SVG al React state (una volta, in onEnd).
  * I tratti già fatti si parsano una sola volta (useMemo). Uso interno: importare DrawCanvas, non questo file.
  */
-export type Stroke = { id: number; svg: string; color: string };
+export type Stroke = { id: number; svg: string; color: string; thick: boolean };
 export type DrawCanvasProps = {
   color: string;
+  /** Tratto spesso (3,4% del lato) o fine (1,7%): le stesse proporzioni del widget. */
+  thick: boolean;
   strokes: Stroke[];
-  onCommit: (svg: string, color: string) => void;
+  onCommit: (svg: string, color: string, thick: boolean) => void;
   /** 0 = foglio bianco, 1 = c'è già inchiostro (nasconde il suggerimento). */
   inked: SharedValue<number>;
   width: number;
   height: number;
 };
 
-const STROKE_W = 7;
+/** Spessori in proporzione al lato della tela: identici a quelli che il widget disegna (NoteDrawing). */
+export const strokeFor = (side: number, thick: boolean) => side * (thick ? 0.034 : 0.017);
 
 export default function DrawCanvasImpl({
   color,
+  thick,
   strokes,
   onCommit,
   inked,
@@ -35,10 +39,14 @@ export default function DrawCanvasImpl({
   const builder = useSharedValue<SkPathBuilder>(Skia.PathBuilder.Make());
   const live = useSharedValue<SkPath>(Skia.PathBuilder.Make().build());
   const liveColor = useSharedValue(color);
+  const liveThick = useSharedValue(thick);
+  const liveWidth = useSharedValue(strokeFor(width, thick));
 
   useEffect(() => {
     liveColor.set(color);
-  }, [color, liveColor]);
+    liveThick.set(thick);
+    liveWidth.set(strokeFor(width, thick));
+  }, [color, thick, width, liveColor, liveThick, liveWidth]);
 
   // Il tratto in corso si azzera quando il tratto confermato è arrivato nello stato (stesso commit: niente sfarfallio).
   useEffect(() => {
@@ -49,7 +57,12 @@ export default function DrawCanvasImpl({
 
   const parsed = useMemo(
     () =>
-      strokes.map((s) => ({ id: s.id, color: s.color, path: Skia.Path.MakeFromSVGString(s.svg) })),
+      strokes.map((s) => ({
+        id: s.id,
+        color: s.color,
+        thick: s.thick,
+        path: Skia.Path.MakeFromSVGString(s.svg),
+      })),
     [strokes],
   );
 
@@ -69,7 +82,7 @@ export default function DrawCanvasImpl({
       live.set(b.build());
     })
     .onEnd(() => {
-      scheduleOnRN(onCommit, live.get().toSVGString(), liveColor.get());
+      scheduleOnRN(onCommit, live.get().toSVGString(), liveColor.get(), liveThick.get());
     });
 
   return (
@@ -83,7 +96,7 @@ export default function DrawCanvasImpl({
                 path={s.path}
                 color={s.color}
                 style="stroke"
-                strokeWidth={STROKE_W}
+                strokeWidth={strokeFor(width, s.thick)}
                 strokeCap="round"
                 strokeJoin="round"
               />
@@ -93,7 +106,7 @@ export default function DrawCanvasImpl({
             path={live}
             color={color}
             style="stroke"
-            strokeWidth={STROKE_W}
+            strokeWidth={liveWidth}
             strokeCap="round"
             strokeJoin="round"
           />

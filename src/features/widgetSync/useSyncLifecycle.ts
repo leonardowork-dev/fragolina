@@ -46,6 +46,11 @@ export function useRealtimeEffects() {
         toast.show(petToastText(s.petIncoming, s.members, s.partnerName, s.petServer));
         haptics.light();
       }
+      if (s.noteIncomingSeq !== before.noteIncomingSeq && s.noteIncoming) {
+        // un biglietto di lei con l'app aperta: avviso ovunque tu sia, e compare da solo nella scheda Disegna
+        toast.show(S.draw.incoming(s.noteIncoming.byName || s.partnerName));
+        haptics.success();
+      }
       if (s.pairedSeq !== before.pairedSeq) toast.show(S.toast.joined(s.partnerName));
       if (s.rejectedSeq !== before.rejectedSeq) toast.show(S.link.rejected);
     });

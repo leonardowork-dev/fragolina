@@ -40,6 +40,16 @@ import {
   type QueuedOp,
   type RemoteInput,
 } from "@/lib/sync/types";
+import { type LocationState, emptyLocation } from "@/lib/geo/types";
+import { type Note, type NoteContent, type NoteKind, noteState } from "@/lib/note/rules";
+import {
+  type NoteSlice,
+  emptyNoteSlice,
+  isLocalNoteId,
+  mergeNote,
+  noteFromRow,
+  replayNote,
+} from "@/lib/note/sync";
 import { localDayKey, localDayStartMs } from "@/lib/time";
 import { uuid } from "@/lib/uuid";
 
@@ -60,6 +70,9 @@ export type PetActResult =
 /** Ultima cura fatta dall'ALTRA persona (per il toast in tempo reale). */
 export type PetIncoming = { by: string; kind: PetKind | "hatch" | "name"; item: FoodId | null; at: number };
 
+/** Un biglietto arrivato dall'altra persona in tempo reale (toast + aptica). */
+export type NoteIncoming = { byName: string; kind: NoteKind; at: number };
+
 type Ephemeral = {
   hydrated: boolean;
   backendKind: "supabase" | "mock";
@@ -76,6 +89,10 @@ type Ephemeral = {
   /** Sale quando l'altra persona cura il pet in tempo reale (toast + animazione). */
   petIncomingSeq: number;
   petIncoming: PetIncoming | null;
+  /** null = non lo so ancora; false = il server non ha la migrazione dei biglietti (MANUAL_TODO, sessione 5). */
+  noteAvailable: boolean | null;
+  noteIncomingSeq: number;
+  noteIncoming: NoteIncoming | null;
   /** Tocchi all'uovo non ancora messi in coda (si raggruppano per mezzo secondo). */
   pendingTouches: number;
   pendingTouchAt: number;
@@ -91,8 +108,20 @@ type Engine = {
 
 export type CoupleState = SyncedState &
   PetSlice &
+  NoteSlice &
   Ephemeral & {
     queue: QueuedOp[];
+    /** Posizioni (arrotondate) e interruttore "Condividi la distanza". */
+    loc: LocationState;
+    /** Token con cui il widget legge il feed (solo su questo telefono e nel container del widget). */
+    widgetToken: string | null;
+    /** Manda un biglietto (disegno o scritta). Subito visibile; parte in coda. */
+    sendNote: (kind: NoteKind, content: NoteContent) => { ok: true } | { ok: false; error: "not_paired" };
+    /** Pulisce il biglietto di adesso, per entrambi. */
+    clearNote: () => void;
+    setLocationSharing: (on: boolean) => Promise<ActionResult>;
+    /** Posizione già arrotondata. Silenziosa: se non va, riprova al prossimo aggiornamento. */
+    shareLocation: (p: { latE2: number; lonE2: number }) => Promise<ActionResult>;
     lastSyncAt: number | null;
     /** La sessione anonima è stata sostituita (app reinstallata, portachiavi perso): la coppia va ricollegata. */
     sessionLost: boolean;
@@ -223,6 +252,48 @@ export function createCoupleStore(deps: CoupleDeps) {
           });
         };
 
+        const ingestNote = (n: Note | null, live: boolean) => {
+          const cur = get();
+          const merged = mergeNote(cur.noteServer, n);
+          if (merged === cur.noteServer) return;
+          const fresh = !!n && merged === n && n.id !== cur.noteServer?.id;
+          const theirs = fresh && live && !!n && n.by === "partner" && noteState(n, now()) === "active";
+          set({
+            noteServer: merged,
+            noteAvailable: true,
+            lastSyncAt: now(),
+            ...(theirs && n
+              ? { noteIncomingSeq: cur.noteIncomingSeq + 1, noteIncoming: { byName: n.byName, kind: n.kind, at: n.createdAt } }
+              : null),
+          });
+        };
+        let boardFetch: Promise<void> | null = null;
+        /** Rilegge la lavagna (biglietto + posizioni). Silenziosa: l'app va avanti anche se fallisce. */
+        const refreshBoard = (): Promise<void> => {
+          if (boardFetch) return boardFetch;
+          boardFetch = (async () => {
+            try {
+              const b = await backend.getBoard();
+              if (b === null) return void set({ noteAvailable: false });
+              ingestNote(b.note, false);
+              set({ noteAvailable: true, loc: b.location });
+            } finally {
+              boardFetch = null;
+            }
+          })();
+          return boardFetch;
+        };
+        const ensureToken = async () => {
+          const cur = get();
+          if (cur.widgetToken || !cur.coupleId || cur.noteAvailable !== true) return;
+          try {
+            const token = await backend.rotateWidgetToken();
+            set({ widgetToken: token });
+          } catch {
+            /* riprova alla prossima sincronizzazione */
+          }
+        };
+
         const ingest = (input: RemoteInput) => {
           const before = get();
           let next: SyncedState;
@@ -231,6 +302,11 @@ export function createCoupleStore(deps: CoupleDeps) {
           else {
             const ev = input.event;
             if (ev.type === "pet") return ingestPetEvent(ev.pet);
+            if (ev.type === "note") {
+              const c = get();
+              return ingestNote(noteFromRow(ev.note, c.userId, c.members), true);
+            }
+            if (ev.type === "location") return void refreshBoard().catch(() => {});
             if (ev.type === "ping") {
               if (seenPings.has(ev.id)) return;
               seenPings.add(ev.id);
@@ -261,8 +337,14 @@ export function createCoupleStore(deps: CoupleDeps) {
               set({ lastSyncAt: now() });
               // Il pet: una chiamata a parte. Se fallisce per un motivo che non è la rete, il resto dell'app va avanti.
               if (!state.paired || !state.couple) {
-                set({ ...emptyPetSlice(), petAvailable: null });
+                set({ ...emptyPetSlice(), ...emptyNoteSlice(), noteAvailable: null, loc: emptyLocation(), petAvailable: null });
               } else {
+                if (prevCouple && prevCouple !== state.couple.id)
+                  set({ ...emptyNoteSlice(), loc: emptyLocation(), widgetToken: null });
+                await refreshBoard().catch((e: unknown) => {
+                  if (e instanceof BackendError && e.kind === "network") throw e;
+                });
+                await ensureToken();
                 const snap = await backend.getPet().catch((e: unknown) => {
                   if (e instanceof BackendError && e.kind === "network") throw e;
                   return undefined;
@@ -300,6 +382,16 @@ export function createCoupleStore(deps: CoupleDeps) {
             // La risposta del server porta il pet già aggiornato: lo prendo SUBITO, prima che l'operazione esca dalla
             // coda, così il pet non "torna indietro" (es. l'uovo che si richiude) fra la coda e la sincronizzazione.
             if (pet) ingestPetEvent(pet);
+            return;
+          }
+          if (op.kind === "note") {
+            const n = await backend.sendNote({ kind: op.noteKind, content: op.content, key: op.key, at: op.at });
+            ingestNote(n, false); // il server risponde col biglietto vero (scadenza compresa), prima che esca dalla coda
+            return;
+          }
+          if (op.kind === "noteClear") {
+            const n = await backend.clearNote(isLocalNoteId(op.id) ? null : op.id);
+            if (n) ingestNote(n, false);
             return;
           }
           if (op.kind === "mood") return backend.setMood(coupleId, op.moodId, op.key, op.at);
@@ -423,6 +515,10 @@ export function createCoupleStore(deps: CoupleDeps) {
                 userId,
                 queue: [],
                 ...emptyPetSlice(),
+                ...emptyNoteSlice(),
+                noteAvailable: null,
+                loc: emptyLocation(),
+                widgetToken: null,
                 petAvailable: null,
                 sessionLost: true,
               });
@@ -530,6 +626,12 @@ export function createCoupleStore(deps: CoupleDeps) {
           petAvailable: null as boolean | null,
           petIncomingSeq: 0,
           petIncoming: null as PetIncoming | null,
+          noteAvailable: null as boolean | null,
+          noteIncomingSeq: 0,
+          noteIncoming: null as NoteIncoming | null,
+          loc: emptyLocation(),
+          widgetToken: null as string | null,
+          ...emptyNoteSlice(),
           pendingTouches: 0,
           pendingTouchAt: 0,
           ...emptyPetSlice(),
@@ -675,6 +777,45 @@ export function createCoupleStore(deps: CoupleDeps) {
             });
             kick();
           },
+          sendNote: (kind, content) => {
+            const cur = get();
+            if (!cur.coupleId) return { ok: false, error: "not_paired" };
+            set({
+              queue: enqueue(cur.queue, { key: uuid(), kind: "note", at: now(), attempts: 0, noteKind: kind, content }),
+            });
+            kick();
+            return { ok: true };
+          },
+          clearNote: () => {
+            const cur = get();
+            const shown = replayNote(cur.noteServer, cur.queue, cur.meName);
+            if (!shown || !cur.coupleId || noteState(shown, now()) !== "active") return;
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "noteClear", at: now(), attempts: 0, id: shown.id }) });
+            kick();
+          },
+          setLocationSharing: async (on) => {
+            try {
+              await backend.setLocationSharing(on);
+              const cur = get();
+              set({ loc: { ...cur.loc, sharing: on, me: on ? cur.loc.me : null } });
+              void refreshBoard().catch(() => {});
+              return { ok: true };
+            } catch (e) {
+              return failure(e);
+            }
+          },
+          shareLocation: async (p) => {
+            try {
+              const at = now();
+              await backend.setLocation({ ...p, at });
+              const cur = get();
+              set({ loc: { ...cur.loc, me: { ...p, at } } });
+              void refreshBoard().catch(() => {});
+              return { ok: true };
+            } catch (e) {
+              return failure(e);
+            }
+          },
           applyRemote: (input) => ingest(input),
 
           createCouple: async () => {
@@ -742,6 +883,10 @@ export function createCoupleStore(deps: CoupleDeps) {
                 userId: s.userId,
                 queue: [],
                 ...emptyPetSlice(),
+                ...emptyNoteSlice(),
+                noteAvailable: null,
+                loc: emptyLocation(),
+                widgetToken: null,
                 petAvailable: null,
                 pendingTouches: 0,
                 lastSyncAt: null,
@@ -810,6 +955,9 @@ export function createCoupleStore(deps: CoupleDeps) {
             petServer: s.petServer,
             petLog: s.petLog,
             petMyLast: s.petMyLast,
+            noteServer: s.noteServer,
+            loc: s.loc,
+            widgetToken: s.widgetToken,
           }) as unknown as CoupleState,
         onRehydrateStorage: () => () => {
           useCouple.setState({ hydrated: true });

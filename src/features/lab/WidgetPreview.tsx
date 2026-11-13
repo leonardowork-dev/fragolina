@@ -3,10 +3,12 @@ import { ScrollView, Text as RNText, View } from "react-native";
 
 import { fonts, palette as P } from "@/design/tokens";
 import { civilFromDays, daysFromCivil } from "@/lib/recurrence";
-import type { WidgetSnapshot } from "@/lib/widgetPayload";
+import { distanceWidgetModel, noteWidgetModel } from "@/lib/note/widgetModel";
+import { type WidgetSnapshot, decodeSnapshot } from "@/lib/widgetPayload";
 
 import { PreviewEntry } from "./widgets/model";
 import { Confetti, Frame } from "./widgets/kit-exports";
+import * as NV from "./widgets/noteViews";
 import * as PV from "./widgets/petViews";
 import * as V from "./widgets/views";
 
@@ -27,7 +29,7 @@ const iso = (days: number) => {
 };
 
 const base: WidgetSnapshot = {
-  v: 4,
+  v: 5,
   updatedAt: NOW - 5 * MIN,
   paired: true,
   partnerName: "Nikole",
@@ -59,7 +61,37 @@ const base: WidgetSnapshot = {
   petLastBy: "partner",
   petLastKind: "feed",
   petLastItem: "mora",
+  noteId: "n1",
+  noteKind: "draw",
+  noteContent: {
+    strokes: [
+      { c: "strawberry", w: 2, p: [[500, 860], [300, 700], [240, 520], [330, 380], [500, 470], [670, 380], [760, 520], [700, 700], [500, 860]] },
+      { c: "leaf", w: 1, p: [[500, 470], [470, 380], [420, 320]] },
+    ],
+  },
+  noteBy: "partner",
+  noteByName: "Nikole",
+  noteAt: NOW - 12 * MIN,
+  noteExpiresAt: NOW + 48 * MIN,
+  shareMine: true,
+  myLatE2: 4190,
+  myLonE2: 1250,
+  myLocAt: NOW - 10 * MIN,
+  partnerLocState: "ok",
+  partnerLatE2: 4546,
+  partnerLonE2: 919,
+  partnerLocAt: NOW - 25 * MIN,
+  feedUrl: "",
+  feedKey: "",
+  feedToken: "",
 };
+
+const squiggle = (k: number) => ({
+  c: (["ink", "strawberry", "leaf", "sky", "butter"] as const)[k % 5]!,
+  w: (k % 2 === 0 ? 2 : 1) as 1 | 2,
+  p: Array.from({ length: 36 }, (_, i) => [Math.round(500 + Math.sin(i / 3 + k) * (120 + k * 9)), Math.round(500 + Math.cos(i / 2.3 + k * 1.7) * (130 + k * 8))] as [number, number]),
+});
+const note = (over: Partial<WidgetSnapshot>): WidgetSnapshot => ({ ...base, ...over });
 
 type Case = { id: string; title: string; snap: WidgetSnapshot | null };
 const CASES: Case[] = [
@@ -100,6 +132,21 @@ const CASES: Case[] = [
   { id: "pet-abbandono", title: "Pet: nessuna cura da 5 giorni, torna a dormire", snap: { ...base, petLastAt: NOW - 5 * 86400_000, petAt: NOW - 5 * 86400_000, petLastBy: "me", petLastKind: "cuddle", petLastItem: "", updatedAt: NOW - 20 * MIN } },
   { id: "pet-uovo", title: "Pet: l'uovo", snap: { ...base, petHatched: false, petStage: "egg", petName: "", petLastAt: null, petLastBy: "", petLastKind: "", petLastItem: "", petAt: null } },
   { id: "pet-nome16", title: "Pet: nome di 16 caratteri, ultima cura mia", snap: { ...base, petName: "Fragolotta Reale", partnerName: "Maria Antonietta", petLastBy: "partner", petLastKind: "play", petLastItem: "" } },
+  { id: "nota-scritta80", title: "Biglietto: scritta di 80 caratteri su fondo fragola", snap: note({ noteKind: "text", noteContent: { text: "Ti aspetto stasera sul divano con la pizza, i biscotti e quella serie che dicevi tu ok?", bg: "strawberry" }, noteId: "n2" }) },
+  { id: "nota-accenti", title: "Biglietto: accenti ed emoji, nome lungo", snap: note({ noteKind: "text", noteContent: { text: "È già tardi? Zoë ti vuole bene 🍓", bg: "blush" }, noteId: "n3", noteByName: "Maria Antonietta", partnerName: "Maria Antonietta" }) },
+  { id: "nota-tratti", title: "Biglietto: disegno con 40 tratti", snap: note({ noteId: "n4", noteContent: { strokes: Array.from({ length: 40 }, (_, k) => squiggle(k)) } }) },
+  { id: "nota-puntino", title: "Biglietto: un solo puntino", snap: note({ noteId: "n5", noteContent: { strokes: [{ c: "strawberry", w: 2, p: [[500, 500], [500, 500]] }] } }) },
+  { id: "nota-mia", title: "Biglietto: l'ho mandato io (da solo: 'da te')", snap: note({ noteBy: "me", noteByName: "Leonardo", paired: false, partnerLocState: "" }) },
+  { id: "nota-scade", title: "Biglietto: sparisce tra meno di un minuto", snap: note({ noteExpiresAt: NOW + 30_000 }) },
+  { id: "nota-scaduto", title: "Biglietto: scaduto (stato gentile)", snap: note({ noteExpiresAt: NOW - 1000 }) },
+  { id: "nota-vuoto", title: "Biglietto: nessuno (o pulito)", snap: note({ noteId: "", noteKind: "", noteContent: null, noteBy: "", noteByName: "", noteAt: null, noteExpiresAt: null }) },
+  { id: "dist-0", title: "Distanza: vicinissimi (0 km)", snap: note({ partnerLatE2: 4190, partnerLonE2: 1250 }) },
+  { id: "dist-19000", title: "Distanza: 19.000 km (agli antipodi)", snap: note({ partnerLatE2: -4190, partnerLonE2: -16750 }) },
+  { id: "dist-vecchia", title: "Distanza: posizione di lei vecchia di 5 h", snap: note({ partnerLocAt: NOW - 5 * H }) },
+  { id: "dist-nascosta", title: "Distanza: lei l'ha nascosta", snap: note({ partnerLocState: "hidden", partnerLatE2: null, partnerLonE2: null, partnerLocAt: null }) },
+  { id: "dist-miaspenta", title: "Distanza: la mia condivisione è spenta", snap: note({ shareMine: false, myLatE2: null, myLonE2: null, myLocAt: null, partnerLocState: "mine_off", partnerLatE2: null, partnerLonE2: null, partnerLocAt: null }) },
+  { id: "dist-nonancora", title: "Distanza: lei non l'ha ancora condivisa (nome lungo)", snap: note({ partnerLocState: "none", partnerLatE2: null, partnerLonE2: null, partnerLocAt: null, partnerName: "Maria Antonietta" }) },
+  { id: "dist-solo", title: "Distanza: nessuno collegato", snap: note({ paired: false, partnerLocState: "", partnerLatE2: null, partnerLonE2: null, partnerLocAt: null }) },
   { id: "dati-vecchi", title: "Dati vecchi (> 3 h): 'aggiornato X fa'", snap: { ...base, updatedAt: NOW - 5 * H } },
   { id: "dorme", title: "Fermo da > 48 h: la fragola dorme", snap: { ...base, updatedAt: NOW - 50 * H } },
   { id: "non-collegati", title: "Non collegati", snap: { ...base, paired: false, partnerName: "Nikole" } },
@@ -143,6 +190,9 @@ function CaseView({ c, report }: { c: Case; report: (m: string) => void }) {
     </Wrap>
   );
   const party = e.isParty && !sleepy;
+  const raw = c.snap ?? (decodeSnapshot("{}") as WidgetSnapshot);
+  const noteM = noteWidgetModel(raw, null, NOW);
+  const distM = distanceWidgetModel(raw, null, NOW);
   return (
     <View testID={`case-${c.id}`} style={{ padding: 16, backgroundColor: "#EFE7EA", borderRadius: 16, marginBottom: 18 }}>
       <RNText style={{ fontFamily: fonts.display, fontSize: 20, color: P.ink, marginBottom: 12 }}>{c.title}</RNText>
@@ -168,7 +218,20 @@ function CaseView({ c, report }: { c: Case; report: (m: string) => void }) {
         {sm("Pet · piccolo", <PV.PetSmall e={e} report={r} />)}
         {md("Pet · medio", <PV.PetMedium e={e} report={r} />)}
       </Row>
+      <Row>
+        {sm("Biglietto · piccolo", <NV.NoteSmall m={noteM} report={r} />)}
+        {md("Biglietto · medio", <NV.NoteMedium m={noteM} report={r} />)}
+      </Row>
+      <Row>
+        {sm("Distanza · piccolo", <NV.DistSmall d={distM} name={e.partner} report={r} />)}
+        {md("Distanza · medio", <NV.DistMedium d={distM} name={e.partner} report={r} />)}
+      </Row>
       <View style={{ backgroundColor: "#3a3340", borderRadius: 14, padding: 14, gap: 12 }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
+          <NV.NoteLock m={noteM} report={r} />
+          <NV.DistCircular d={distM} />
+          <NV.DistInline d={distM} name={e.partner} report={r} />
+        </View>
         {!sleepy ? (
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
             <PV.PetLock e={e} report={r} />

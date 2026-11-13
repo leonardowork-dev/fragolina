@@ -1,5 +1,5 @@
 // Prova a DUE SCHEDE nel browser: ogni scheda è un telefono (identità per scheda), il finto server è condiviso.
-// Uso: avvia `npm run web` (porta 8081), poi  ROUND=1 npm run e2e   → screenshot in docs/shots/session4/r<ROUND>/
+// Uso: avvia `npm run web` (porta 8081), poi  ROUND=1 npm run e2e   → screenshot in docs/shots/session5/r<ROUND>/
 // Stampa una tabella PASS/FAIL. Nessun servizio a pagamento: solo Chromium via playwright-core.
 import { chromium } from "playwright-core";
 import fs from "node:fs";
@@ -12,7 +12,7 @@ const base = process.env.PREVIEW_URL ?? "http://localhost:8081";
 const round = process.env.ROUND ?? "1";
 const W = Number(process.env.W ?? 390);
 const H = Number(process.env.H ?? 844);
-const outDir = path.join(root, "docs", "shots", "session4", `r${round}${W === 390 ? "" : "-" + W}`);
+const outDir = path.join(root, "docs", "shots", "session5", `r${round}${W === 390 ? "" : "-" + W}`);
 fs.mkdirSync(outDir, { recursive: true });
 
 function findBrowser() {
@@ -74,7 +74,8 @@ const ctx = await browser.newContext({
   deviceScaleFactor: 2,
   hasTouch: true,
   isMobile: true,
-  permissions: ["clipboard-read", "clipboard-write"],
+  permissions: ["clipboard-read", "clipboard-write", "geolocation"],
+  geolocation: { latitude: 41.9028, longitude: 12.4964 }, // Roma
 });
 const A = await ctx.newPage();
 const B = await ctx.newPage();
@@ -337,6 +338,107 @@ try {
   check("Pet: B mette a nanna, A lo vede dormire", await seen(A, /Luce spenta/, 15000));
   await shot(A, "A", "pet-nanna");
   await shot(B, "B", "pet-nanna");
+
+
+  // ---------- 6c. Biglietto sul blocco e distanza ----------
+  const exact = (p, name) => p.getByRole("button", { name, exact: true }).first();
+  for (const p of [A, B]) {
+    await p.getByRole("tab", { name: "Disegna" }).click();
+    await settle(p, 1200);
+  }
+  check("Biglietto: la scheda Disegna si chiama 'Manda sul blocco'", await seen(A, /Manda sul blocco/, 8000));
+  await shot(A, "A", "disegna-vuota");
+  // A manda una scritta
+  await btn(A, "Scritta").click();
+  await settle(A, 400);
+  await A.getByLabel("Testo del biglietto").fill("Ti penso");
+  await settle(A, 300);
+  await shot(A, "A", "disegna-scritta");
+  await exact(A, "Manda").click();
+  check("Biglietto: A manda la scritta e vede 'Sul blocco adesso' (da te)", (await seen(A, /Sul blocco adesso/, 12000)) && (await seen(A, /^Da te$/, 4000)));
+  await settle(A, 900);
+  await shot(A, "A", "biglietto-mandato");
+  check("Biglietto: B riceve l'avviso in tempo reale", await seen(B, /Leonardo ti ha lasciato un biglietto/, 12000));
+  await shot(B, "B", "biglietto-ricevuto");
+  check("Biglietto: B lo vede con 'Da Leonardo' e 'sparisce tra'", (await seen(B, /^Da Leonardo$/, 8000)) && (await seen(B, /sparisce tra/, 4000)));
+  // B lo pulisce: sparisce anche su A
+  await exact(B, "Pulisci").click();
+  await settle(B, 800);
+  check("Biglietto: B pulisce → sparisce su B subito", (await B.getByText(/Sul blocco adesso/).count()) === 0);
+  await settle(A, 1500);
+  check("Biglietto: …e sparisce su A (Pulisci vale per entrambi)", await (async () => { for (let i = 0; i < 20; i++) { if ((await A.getByText(/Sul blocco adesso/).count()) === 0) return true; await settle(A, 500); } return false; })());
+  // B disegna col mouse e manda
+  await exact(B, "Disegno").click();
+  await settle(B, 1200);
+  const hint = await B.getByText(/Foglio bianco/).first().boundingBox();
+  if (hint) {
+    await B.mouse.move(hint.x + 10, hint.y + 40);
+    await B.mouse.down();
+    await B.mouse.move(hint.x + 120, hint.y + 120, { steps: 12 });
+    await B.mouse.move(hint.x + 220, hint.y + 40, { steps: 12 });
+    await B.mouse.up();
+    await settle(B, 500);
+    await shot(B, "B", "disegno-in-corso");
+  }
+  check("Biglietto: B vede l'anteprima del widget mentre disegna", (await B.getByTestId("note-preview").getByText(/da te · adesso/).count()) > 0);
+  await exact(B, "Manda").click();
+  check("Biglietto: A riceve il DISEGNO di B con l'avviso", await seen(A, /Nikole ti ha lasciato un biglietto/, 12000));
+  check("Biglietto: A lo vede 'Da Nikole'", await seen(A, /^Da Nikole$/, 8000));
+  await settle(A, 800);
+  await shot(A, "A", "disegno-ricevuto");
+  // scadenza a 1 ora (orologio finto sulla scheda A)
+  await A.clock.install();
+  await A.clock.fastForward(61 * 60 * 1000);
+  check("Biglietto: dopo 61 minuti sparisce da solo (orologio finto)", await (async () => { for (let i = 0; i < 30; i++) { if ((await A.getByText(/Sul blocco adesso/).count()) === 0) return true; await A.clock.fastForward(21000); await settle(A, 300); } return false; })());
+  await shot(A, "A", "biglietto-scaduto");
+  await A.clock.resume(); // il tempo torna a scorrere (i tempi d'attesa della rete finta usano i timer)
+  // offline (su B: la scheda A ha l'orologio finto): il biglietto resta in coda e parte al ritorno della rete
+  await offline(B, true);
+  await exact(B, "Scritta").click();
+  await B.getByLabel("Testo del biglietto").fill("Ti scrivo senza rete");
+  await exact(B, "Manda").click();
+  const queued = await seen(B, /^in coda$/, 8000);
+  check("Biglietto offline: resta 'in coda' (card e badge)", queued);
+  await shot(B, "B", "biglietto-offline");
+  await offline(B, false);
+  check("Biglietto offline: al ritorno della rete arriva ad A", await seen(A, /Nikole ti ha lasciato un biglietto/, 30000));
+
+  // ---- distanza: Roma (A) e Milano (B), con consenso reciproco ----
+  await A.getByRole("tab", { name: "Noi" }).click();
+  await B.getByRole("tab", { name: "Noi" }).click();
+  await settle(A, 1000);
+  check("Distanza: la scheda Noi ha l'interruttore, spento di partenza", (await A.getByRole("switch", { name: "Condividi la distanza" }).count()) > 0);
+  await shot(A, "A", "distanza-spenta");
+  // sul telefono il permesso parte "non ancora deciso": simuliamo il "prompt" del browser fino alla prima richiesta
+  await A.evaluate(() => {
+    let asked = false;
+    const q = navigator.permissions.query.bind(navigator.permissions);
+    navigator.permissions.query = async (d) =>
+      d && d.name === "geolocation" ? { state: asked ? "granted" : "prompt", onchange: null, addEventListener() {}, removeEventListener() {} } : q(d);
+    const g = navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
+    navigator.geolocation.getCurrentPosition = (ok, ko, o) => {
+      asked = true;
+      g(ok, ko, o);
+    };
+  });
+  await settle(A, 300);
+  await A.getByRole("switch", { name: "Condividi la distanza" }).click();
+  check("Distanza: prima del permesso di sistema c'è la NOSTRA spiegazione", await seen(A, /Posso sapere dov'è il telefono/, 6000));
+  await shot(A, "A", "distanza-permesso");
+  await btn(A, "Va bene").click();
+  await settle(A, 2500);
+  await ctx.setGeolocation({ latitude: 45.4642, longitude: 9.19 }); // Milano
+  await B.getByRole("switch", { name: "Condividi la distanza" }).click(); // permesso già dato: parte senza spiegazione
+  await settle(B, 2500);
+  const km = /a 4\d\d km/;
+  check("Distanza: con il consenso di entrambi B vede 'a 4xx km' (Roma-Milano)", await seen(B, km, 20000));
+  check("Distanza: …e anche A", await seen(A, km, 25000));
+  await shot(A, "A", "distanza-477");
+  await shot(B, "B", "distanza-477");
+  // B spegne: A vede 'Distanza nascosta'
+  await B.getByRole("switch", { name: "Condividi la distanza" }).click();
+  check("Distanza: B spegne → A vede 'Distanza nascosta'", await seen(A, /Distanza nascosta/, 25000));
+  await shot(A, "A", "distanza-nascosta");
 
   // ---------- 7. Noi ----------
   for (const [p, w] of [

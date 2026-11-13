@@ -1,14 +1,15 @@
 /**
  * Link dei widget → azioni dell'app. Lo scheme è `fragolina://` (app.config.js). Funzioni PURE, provate in
- * tests/deepLink.test.ts. I widget usano solo questi cinque link (targets/widget/Model.swift, enum WidgetLink):
+ * tests/deepLink.test.ts. I widget usano solo questi sei link (targets/widget/Model.swift, enum WidgetLink):
  *  - fragolina://ping  → manda UN pensiero (se collegati) e mostra la conferma; se non collegati porta a "Noi"
  *  - fragolina://mood  → apre la scelta del mio umore (se non collegati porta a "Noi")
  *  - fragolina://us    → apre "Noi"
  *  - fragolina://home  → apre la Home
  *  - fragolina://pet   → apre il Pet (anche se non siete collegati: il Pet spiega cosa manca)
+ *  - fragolina://draw  → apre la scheda Disegna (il biglietto per il blocco)
  * Tutto il resto (o un link rotto) è `none`: l'app si apre normalmente senza fare nulla.
  */
-export type DeepLink = "ping" | "mood" | "us" | "home" | "pet" | "none";
+export type DeepLink = "ping" | "mood" | "us" | "home" | "pet" | "draw" | "none";
 
 const RE = /^fragolina:\/\/\/?([a-z]+)\/?(?:[?#].*)?$/i;
 
@@ -17,7 +18,7 @@ export function parseDeepLink(url: string | null | undefined): DeepLink {
   const m = RE.exec(url.trim());
   if (!m) return "none";
   const k = m[1].toLowerCase();
-  return k === "ping" || k === "mood" || k === "us" || k === "home" || k === "pet" ? k : "none";
+  return k === "ping" || k === "mood" || k === "us" || k === "home" || k === "pet" || k === "draw" ? k : "none";
 }
 
 /**
@@ -31,6 +32,8 @@ export function systemPathFor(url: string): string | null {
       return "/us";
     case "pet":
       return "/pet";
+    case "draw":
+      return "/draw";
     case "ping":
     case "mood":
     case "home":
@@ -44,13 +47,13 @@ export type LinkDeps = {
   paired: boolean;
   /** Manda il pensiero; false se non è stato possibile (non collegati). */
   sendThought: () => boolean;
-  goTo: (path: "/" | "/us" | "/pet") => void;
+  goTo: (path: "/" | "/us" | "/pet" | "/draw") => void;
   requestMoodSheet: () => void;
   /** Conferma visiva + aptica dopo un pensiero partito. */
   confirmPing: () => void;
 };
 
-export type LinkOutcome = "sent" | "mood" | "to-us" | "to-home" | "to-pet" | "ignored";
+export type LinkOutcome = "sent" | "mood" | "to-us" | "to-home" | "to-pet" | "to-draw" | "ignored";
 
 /** Esegue il link. Chiamarla UNA volta per link (l'idempotenza è in `createLinkGate`). */
 export function runDeepLink(link: DeepLink, d: LinkDeps): LinkOutcome {
@@ -81,6 +84,9 @@ export function runDeepLink(link: DeepLink, d: LinkDeps): LinkOutcome {
     case "pet":
       d.goTo("/pet");
       return "to-pet";
+    case "draw":
+      d.goTo("/draw");
+      return "to-draw";
     default:
       return "ignored";
   }

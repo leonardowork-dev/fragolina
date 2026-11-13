@@ -17,6 +17,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConfettiLayer, HeartBurstLayer, ThemeProvider, ToastProvider, useTheme } from "@/design";
 import { Grain } from "@/design/layout/Grain";
 import { SplashOverlay } from "@/design/layout/SplashOverlay";
+import "@/features/distance/backgroundTask";
+import { useLocationSync } from "@/features/distance/useLocationSync";
 import { useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useSyncLifecycle";
 import { useDeepLinks } from "@/features/widgetSync/useDeepLinks";
 import { useWidgetSync } from "@/features/widgetSync/useWidgetSync";
@@ -31,6 +33,7 @@ function Shell() {
   const hydrated = useSettings((s) => s.hydrated);
   const onboardingDone = useSettings((s) => s.onboardingDone);
   useWidgetSync();
+  useLocationSync();
   useSyncLifecycle();
   useRealtimeEffects();
   useDeepLinks();
