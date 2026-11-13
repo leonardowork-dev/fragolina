@@ -1,4 +1,6 @@
 import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
+import type { LocationState } from "@/lib/geo/types";
+import { type Note, type NoteContent, noteState } from "@/lib/note/rules";
 import { type PetState, stageOf } from "@/lib/pet/rules";
 import { S } from "@/lib/strings.it";
 
@@ -60,6 +62,30 @@ export type WidgetSnapshot = {
   /** feed | cuddle | play | sleep | hatch, o vuoto. */
   petLastKind: string;
   petLastItem: string;
+  // ---- v5 (biglietto, distanza, accesso del widget al feed) ----
+  /** Biglietto di adesso ("" = nessuno). Vettori, come sul server: il widget li ridisegna. Il widget calcola da solo la scadenza. */
+  noteId: string;
+  noteKind: string;
+  noteContent: NoteContent | null;
+  /** "me" | "partner" | "" */
+  noteBy: string;
+  noteByName: string;
+  noteAt: number | null;
+  noteExpiresAt: number | null;
+  /** Condivido la mia posizione? */
+  shareMine: boolean;
+  myLatE2: number | null;
+  myLonE2: number | null;
+  myLocAt: number | null;
+  /** ok | hidden | mine_off | none | "" (non collegati) */
+  partnerLocState: string;
+  partnerLatE2: number | null;
+  partnerLonE2: number | null;
+  partnerLocAt: number | null;
+  /** Percorso B: URL del progetto Supabase, chiave PUBBLICA e token del widget (mai la service_role). Vuoti = niente rete. */
+  feedUrl: string;
+  feedKey: string;
+  feedToken: string;
 };
 
 export const QUESTION_MAX = 60;
@@ -82,6 +108,11 @@ export type WidgetSource = {
   /** Il pet come lo vede questo telefono (con le cure in coda). Facoltativo: senza, il widget mostra l'uovo. */
   pet?: PetState | null;
   myUserId?: string | null;
+  /** Il biglietto come lo vede questo telefono (con quelli in coda). */
+  note?: Note | null;
+  loc?: LocationState | null;
+  /** Accesso del widget al feed (Percorso B). */
+  feed?: { url: string; key: string; token: string } | null;
 };
 
 const CARE_KINDS = ["feed", "cuddle", "play", "sleep", "hatch"];
@@ -114,6 +145,61 @@ export function buildSnapshot(s: WidgetSource, now: number, today: string): Widg
     questionMineDone: !!q && q.myAnswer !== null,
     questionBothDone: !!q && q.myAnswer !== null && q.partnerAnswer !== null,
     ...petFields(paired ? (s.pet ?? null) : null, paired, s.myUserId ?? null),
+    ...noteFields(s, now),
+    ...locFields(s, paired),
+    feedUrl: s.feed && s.coupleId ? s.feed.url : "",
+    feedKey: s.feed && s.coupleId ? s.feed.key : "",
+    feedToken: s.feed && s.coupleId ? s.feed.token : "",
+  };
+}
+
+function noteFields(
+  s: WidgetSource,
+  now: number,
+): Pick<
+  WidgetSnapshot,
+  "noteId" | "noteKind" | "noteContent" | "noteBy" | "noteByName" | "noteAt" | "noteExpiresAt"
+> {
+  const n = s.coupleId ? (s.note ?? null) : null;
+  // pulito o già scaduto = nessun biglietto (il widget non deve nemmeno saperlo)
+  if (!n || noteState(n, now) !== "active")
+    return { noteId: "", noteKind: "", noteContent: null, noteBy: "", noteByName: "", noteAt: null, noteExpiresAt: null };
+  return {
+    noteId: n.id,
+    noteKind: n.kind,
+    noteContent: n.content,
+    noteBy: n.by,
+    noteByName: n.byName,
+    noteAt: n.createdAt,
+    noteExpiresAt: n.expiresAt,
+  };
+}
+
+function locFields(
+  s: WidgetSource,
+  paired: boolean,
+): Pick<
+  WidgetSnapshot,
+  | "shareMine"
+  | "myLatE2"
+  | "myLonE2"
+  | "myLocAt"
+  | "partnerLocState"
+  | "partnerLatE2"
+  | "partnerLonE2"
+  | "partnerLocAt"
+> {
+  const l = s.coupleId ? (s.loc ?? null) : null;
+  const p = paired ? (l?.partner ?? null) : null;
+  return {
+    shareMine: !!l?.sharing,
+    myLatE2: l?.sharing && l.me ? l.me.latE2 : null,
+    myLonE2: l?.sharing && l.me ? l.me.lonE2 : null,
+    myLocAt: l?.sharing && l.me ? l.me.at : null,
+    partnerLocState: p ? p.state : "",
+    partnerLatE2: p?.state === "ok" ? p.latE2 : null,
+    partnerLonE2: p?.state === "ok" ? p.lonE2 : null,
+    partnerLocAt: p?.state === "ok" ? p.at : null,
   };
 }
 
@@ -192,6 +278,24 @@ const KEYS: (keyof WidgetSnapshot)[] = [
   "petLastBy",
   "petLastKind",
   "petLastItem",
+  "noteId",
+  "noteKind",
+  "noteContent",
+  "noteBy",
+  "noteByName",
+  "noteAt",
+  "noteExpiresAt",
+  "shareMine",
+  "myLatE2",
+  "myLonE2",
+  "myLocAt",
+  "partnerLocState",
+  "partnerLatE2",
+  "partnerLonE2",
+  "partnerLocAt",
+  "feedUrl",
+  "feedKey",
+  "feedToken",
 ];
 
 /** JSON con l'ordine delle chiavi fisso (diff leggibili, firma stabile). */
@@ -201,7 +305,7 @@ export function encodeSnapshot(snap: WidgetSnapshot): string {
   return JSON.stringify(o);
 }
 
-/** Legge un payload (anche vecchio, v1-v3, o incompleto) senza mai lanciare. Restituisce null se illeggibile. */
+/** Legge un payload (anche vecchio, v1-v4, o incompleto) senza mai lanciare. Restituisce null se illeggibile. */
 export function decodeSnapshot(raw: string): WidgetSnapshot | null {
   try {
     const o = JSON.parse(raw) as Record<string, unknown>;
@@ -241,6 +345,25 @@ export function decodeSnapshot(raw: string): WidgetSnapshot | null {
       petLastBy: str(o.petLastBy) ?? "",
       petLastKind: str(o.petLastKind) ?? "",
       petLastItem: str(o.petLastItem) ?? "",
+      noteId: str(o.noteId) ?? "",
+      noteKind: str(o.noteKind) ?? "",
+      noteContent:
+        o.noteContent && typeof o.noteContent === "object" ? (o.noteContent as NoteContent) : null,
+      noteBy: str(o.noteBy) ?? "",
+      noteByName: str(o.noteByName) ?? "",
+      noteAt: num(o.noteAt),
+      noteExpiresAt: num(o.noteExpiresAt),
+      shareMine: o.shareMine === true,
+      myLatE2: num(o.myLatE2),
+      myLonE2: num(o.myLonE2),
+      myLocAt: num(o.myLocAt),
+      partnerLocState: str(o.partnerLocState) ?? "",
+      partnerLatE2: num(o.partnerLatE2),
+      partnerLonE2: num(o.partnerLonE2),
+      partnerLocAt: num(o.partnerLocAt),
+      feedUrl: str(o.feedUrl) ?? "",
+      feedKey: str(o.feedKey) ?? "",
+      feedToken: str(o.feedToken) ?? "",
     };
   } catch {
     return null;

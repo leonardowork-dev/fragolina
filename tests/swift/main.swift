@@ -93,5 +93,64 @@ var dec: [Any] = []
 for item in (input["decay"] as? [[Double]]) ?? [] { dec.append(petDecay(Int(item[0]), Int(item[1]), item[2])) }
 out["decay"] = dec
 
+// 8) Biglietto: cosa mostra il widget (snapshot + feed del server + orario della voce)
+func jsonObject<T: Encodable>(_ v: T) -> Any {
+    let enc = JSONEncoder()
+    enc.outputFormatting = [.sortedKeys]
+    guard let d = try? enc.encode(v), let o = try? JSONSerialization.jsonObject(with: d) else { return NSNull() }
+    return o
+}
+func entryFrom(_ item: [String: Any]) -> FragolinaEntry? {
+    guard let raw = item["snapshot"] as? String, let snap = Snapshot.parse(raw), let nowMs = item["nowMs"] as? Double else { return nil }
+    let feed = (item["feed"] as? String).flatMap { Feed.parse($0) }
+    return FragolinaEntry(date: Date(timeIntervalSince1970: nowMs / 1000), snapshot: snap, group: nil, feed: feed, feedRevoked: (item["revoked"] as? Bool) ?? false)
+}
+var noteOut: [Any] = []
+for item in (input["note"] as? [[String: Any]]) ?? [] {
+    guard let e = entryFrom(item) else { noteOut.append(NSNull()); continue }
+    var row: [String: Any] = ["state": e.noteDisplay == nil ? "empty" : "note", "minutesLeft": e.noteMinutesLeft]
+    row["byLine"] = e.noteByLine ?? NSNull()
+    if let n = e.noteDisplay {
+        row["note"] = ["id": n.id, "kind": n.kind, "by": n.by, "byName": n.byName, "createdAt": n.createdAt, "expiresAt": n.expiresAt, "content": jsonObject(n.content)] as [String: Any]
+    } else { row["note"] = NSNull() }
+    noteOut.append(row)
+}
+out["note"] = noteOut
+
+// 9) Distanza: stato, chilometri, parole e "aggiornata X fa"
+var distOut: [Any] = []
+for item in (input["distance"] as? [[String: Any]]) ?? [] {
+    guard let e = entryFrom(item) else { distOut.append(NSNull()); continue }
+    let d = e.distance
+    var row: [String: Any] = ["state": d.state, "near": d.near, "big": d.big, "unit": d.unit, "sentence": d.sentence, "stale": d.stale]
+    row["km"] = d.km ?? NSNull()
+    row["ageText"] = d.ageText ?? NSNull()
+    distOut.append(row)
+}
+out["distance"] = distOut
+
+var geoOut: [Any] = []
+for c in (input["geo"] as? [[Int]]) ?? [] {
+    let km = haversineKm(c[0], c[1], c[2], c[3])
+    let v = distanceView(km)
+    geoOut.append(["km": km, "near": v.near, "kmInt": v.km, "big": v.big, "sentence": v.sentence])
+}
+out["geo"] = geoOut
+
+var noteTl: [Any] = []
+for item in (input["noteTimeline"] as? [[String: Any]]) ?? [] {
+    guard let nowMs = item["nowMs"] as? Double else { noteTl.append(NSNull()); continue }
+    let ds = noteTimelineDates(now: Date(timeIntervalSince1970: nowMs / 1000), expiresAtMs: item["expiresAtMs"] as? Double)
+    noteTl.append(ds.map { Int(($0.timeIntervalSince1970 * 1000).rounded()) })
+}
+out["noteTimeline"] = noteTl
+var distTl: [Any] = []
+for item in (input["distanceTimeline"] as? [[String: Any]]) ?? [] {
+    guard let nowMs = item["nowMs"] as? Double else { distTl.append(NSNull()); continue }
+    let ds = distanceTimelineDates(now: Date(timeIntervalSince1970: nowMs / 1000), partnerAtMs: item["partnerAtMs"] as? Double)
+    distTl.append(ds.map { Int(($0.timeIntervalSince1970 * 1000).rounded()) })
+}
+out["distanceTimeline"] = distTl
+
 let data = try! JSONSerialization.data(withJSONObject: out, options: [.sortedKeys])
 try! data.write(to: URL(fileURLWithPath: args[2]))

@@ -83,3 +83,81 @@ struct PetProvider: TimelineProvider {
         completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(60 * 60))))
     }
 }
+
+// MARK: - Percorso B: provider del biglietto e della distanza (scaricano il feed da Supabase)
+
+/// Base comune: carica lo snapshot (Percorso A), prova il feed (Percorso B, timeout 8 s) e prepara le voci.
+/// MAI rete in galleria/anteprima (`context.isPreview`): lì si usa il segnaposto. Policy: ricarica dopo ~15 min.
+private func loadWithFeed(now: Date, completion: @escaping (FragolinaEntry) -> Void) {
+    let base = FragolinaProvider().load(at: now)
+    FeedClient.resolve(snapshot: base.snapshot) { feed, revoked in
+        var e = base
+        e.feed = feed
+        e.feedRevoked = revoked
+        completion(e)
+    }
+}
+
+private let feedRefresh: TimeInterval = 15 * 60
+
+private func boardPlaceholder(note: Bool) -> FragolinaEntry {
+    let nowMs = Date().timeIntervalSince1970 * 1000
+    let content = NoteContent(
+        strokes: [
+            NoteStroke(c: "strawberry", w: 2, p: [[500, 860], [300, 700], [240, 520], [330, 380], [500, 470], [670, 380], [760, 520], [700, 700], [500, 860]]),
+            NoteStroke(c: "leaf", w: 1, p: [[500, 470], [470, 380], [420, 320]]),
+        ],
+        text: nil, bg: nil
+    )
+    return FragolinaEntry(
+        date: Date(),
+        snapshot: Snapshot(
+            v: 5, updatedAt: nowMs, paired: true, partnerName: "Nikole", myName: "Leonardo",
+            noteId: note ? "placeholder" : "", noteKind: "draw", noteContent: note ? content : nil, noteBy: "partner", noteByName: "Nikole",
+            noteAt: nowMs - 12 * 60 * 1000, noteExpiresAt: nowMs + 48 * 60 * 1000,
+            shareMine: true, myLatE2: 4190, myLonE2: 1250, myLocAt: nowMs, partnerLocState: "ok", partnerLatE2: 4546, partnerLonE2: 919,
+            partnerLocAt: nowMs - 25 * 60 * 1000
+        ),
+        group: nil
+    )
+}
+
+struct NoteProvider: TimelineProvider {
+    func placeholder(in context: Context) -> FragolinaEntry { boardPlaceholder(note: true) }
+
+    func getSnapshot(in context: Context, completion: @escaping (FragolinaEntry) -> Void) {
+        if context.isPreview { return completion(boardPlaceholder(note: true)) }
+        completion(FragolinaProvider().load(at: Date()))
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<FragolinaEntry>) -> Void) {
+        let now = Date()
+        loadWithFeed(now: now) { base in
+            let expires = base.noteDisplay?.expiresAt
+            let entries = noteTimelineDates(now: now, expiresAtMs: expires).map {
+                FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group, feed: base.feed, feedRevoked: base.feedRevoked)
+            }
+            completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(feedRefresh))))
+        }
+    }
+}
+
+struct DistanceProvider: TimelineProvider {
+    func placeholder(in context: Context) -> FragolinaEntry { boardPlaceholder(note: false) }
+
+    func getSnapshot(in context: Context, completion: @escaping (FragolinaEntry) -> Void) {
+        if context.isPreview { return completion(boardPlaceholder(note: false)) }
+        completion(FragolinaProvider().load(at: Date()))
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<FragolinaEntry>) -> Void) {
+        let now = Date()
+        loadWithFeed(now: now) { base in
+            let partnerAt = base.partnerLoc?.at
+            let entries = distanceTimelineDates(now: now, partnerAtMs: partnerAt).map {
+                FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group, feed: base.feed, feedRevoked: base.feedRevoked)
+            }
+            completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(feedRefresh))))
+        }
+    }
+}

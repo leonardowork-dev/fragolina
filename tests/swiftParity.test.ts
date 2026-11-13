@@ -8,6 +8,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { civilFromDays, daysFromCivil, daysInMonthYmd, daysTogether, nextRecurrence } from "@/lib/recurrence";
 import { timeAgo } from "@/lib/time";
 import { decay } from "@/lib/pet/rules";
+import { distanceView, haversineKm } from "@/lib/geo/distance";
+import { distanceTimelineMs, distanceWidgetModel, feedFromJson, noteTimelineMs, noteWidgetModel } from "@/lib/note/widgetModel";
 import { petTimelineMs, petWidgetModel } from "@/lib/pet/widgetModel";
 import { type WidgetSnapshot, decodeSnapshot } from "@/lib/widgetPayload";
 
@@ -44,7 +46,8 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
   const ago = [0, 1, 44, 45, 59, 60, 89, 90, 3599, 3600, 5399, 5400, 7200, 86399, 86400, 129599, 129600, 172800, 518400];
   const fx = (n: string) => fs.readFileSync(path.join(root, "tests/fixtures", n), "utf8");
   const snapshots: Record<string, string> = {
-    v4: fx("widget-snapshot.json"),
+    v5: fx("widget-snapshot.json"),
+    v4: fx("widget-snapshot-v4.json"),
     v3: fx("widget-snapshot-v3.json"),
     v2: fx("widget-snapshot-v2.json"),
     v1: fx("widget-snapshot-v1.json"),
@@ -107,6 +110,74 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
   for (let i = 0; i < 4000; i++) decayCases.push([Math.floor(rnd() * 1001), [45, 30, 20][i % 3]!, Math.floor((rnd() - 0.1) * 400 * H)]);
   const petTlCases = petCases.slice(0, 400).map((c) => ({ ...c, midnights: [utcMidnightAfter(c.nowMs), utcMidnightAfter(c.nowMs) + 86400_000] }));
 
+
+  // ---- biglietto e distanza (sessione 5): snapshot + feed + orario della voce, tutto casuale ----
+  const INKS = ["ink", "strawberry", "leaf", "sky", "butter"];
+  const BGS = ["butter", "blush", "sky", "leaf", "strawberry", "paper"];
+  const pick = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)]!;
+  const randContent = () =>
+    rnd() < 0.5
+      ? { text: pick(["Ti penso", "Cena alle 8?", "Zoë 🍓 ti vuole bene — àèìòù", "x".repeat(80)]), bg: pick(BGS) }
+      : { strokes: Array.from({ length: 1 + Math.floor(rnd() * 4) }, () => ({ c: pick(INKS), w: 1 + Math.floor(rnd() * 2), p: Array.from({ length: 1 + Math.floor(rnd() * 6) }, () => [Math.floor(rnd() * 1001), Math.floor(rnd() * 1001)]) })) };
+  const randLat = () => Math.floor((rnd() - 0.5) * 17000);
+  const randLon = () => Math.floor((rnd() - 0.5) * 35000);
+  const randBoardSnap = (t: number): WidgetSnapshot => {
+    const hasNote = rnd() < 0.7;
+    const at = t - Math.floor(rnd() * 80 * 60_000);
+    return {
+      ...(decodeSnapshot("{}") as WidgetSnapshot),
+      v: 5,
+      paired: rnd() < 0.85,
+      partnerName: rnd() < 0.2 ? "" : pick(["Nikole", "Zoë Àngela", "Maria Chiara Elisabetta"]),
+      noteId: hasNote ? "id-" + Math.floor(rnd() * 1e6) : "",
+      noteKind: hasNote ? pick(["draw", "text", "boh"]) : "",
+      noteContent: hasNote ? (randContent() as never) : null,
+      noteBy: hasNote ? pick(["me", "partner", ""]) : "",
+      noteByName: hasNote ? pick(["", "Nikole", "Leonardo"]) : "",
+      noteAt: hasNote ? at : null,
+      noteExpiresAt: hasNote ? at + 3_600_000 : null,
+      shareMine: rnd() < 0.8,
+      myLatE2: rnd() < 0.9 ? randLat() : null,
+      myLonE2: rnd() < 0.9 ? randLon() : null,
+      myLocAt: t - 1000,
+      partnerLocState: pick(["", "ok", "ok", "hidden", "mine_off", "none", "boh"]),
+      partnerLatE2: rnd() < 0.9 ? randLat() : null,
+      partnerLonE2: rnd() < 0.9 ? randLon() : null,
+      partnerLocAt: rnd() < 0.9 ? t - Math.floor(rnd() * 8 * H) : null,
+    };
+  };
+  const randFeedRaw = (t: number): string | null => {
+    const r = rnd();
+    if (r < 0.35) return null;
+    const at = t - Math.floor(rnd() * 80 * 60_000);
+    return JSON.stringify({
+      ok: true,
+      now: t,
+      note: rnd() < 0.7 ? { id: "feed-" + Math.floor(rnd() * 1e6), kind: pick(["draw", "text"]), content: randContent(), by: pick(["me", "partner"]), byName: pick(["", "Nikole"]), createdAt: at, expiresAt: at + 3_600_000, clearedAt: null } : null,
+      partner: rnd() < 0.8 ? { name: "Nikole", state: pick(["ok", "ok", "hidden", "mine_off", "none"]), latE2: randLat(), lonE2: randLon(), at: t - Math.floor(rnd() * 8 * H) } : null,
+    });
+  };
+  const boardCases: { snap: WidgetSnapshot; feed: string | null; revoked: boolean; nowMs: number }[] = [];
+  for (let i = 0; i < 2500; i++) {
+    const t = nowMs + Math.floor((rnd() - 0.2) * 5 * H);
+    boardCases.push({ snap: randBoardSnap(t), feed: randFeedRaw(t), revoked: rnd() < 0.05, nowMs: t });
+  }
+  // confini: scadenza esatta, 1 ms prima, 1 min prima
+  for (const dt of [-1, 0, 1, 59_999, 60_000, 60_001]) {
+    const s = randBoardSnap(nowMs);
+    boardCases.push({ snap: { ...s, noteId: "edge", noteContent: { text: "x", bg: "sky" } as never, noteKind: "text", noteAt: nowMs, noteExpiresAt: nowMs + 3_600_000 }, feed: null, revoked: false, nowMs: nowMs + 3_600_000 + dt });
+  }
+  const geoCases: number[][] = [[4190, 1250, 4190, 1250], [4190, 1250, 4191, 1250], [4190, 1250, 4193, 1250], [4190, 1250, 4546, 919], [4190, 1250, 4040, -7400], [0, 0, 0, 18000], [9000, 0, -9000, 0], [-3386, 15121, 5151, -13]];
+  for (let i = 0; i < 3000; i++) geoCases.push([randLat(), randLon(), randLat(), randLon()]);
+  const noteTlCases = Array.from({ length: 200 }, () => {
+    const t = nowMs + Math.floor(rnd() * 3 * H);
+    return { nowMs: t, expiresAtMs: rnd() < 0.2 ? null : t + Math.floor((rnd() - 0.1) * 2 * H) };
+  });
+  const distTlCases = Array.from({ length: 200 }, () => {
+    const t = nowMs + Math.floor(rnd() * 3 * H);
+    return { nowMs: t, partnerAtMs: rnd() < 0.2 ? null : t - Math.floor(rnd() * 6 * H) };
+  });
+
   beforeAll(() => {
     for (let i = 0; i < 4000; i++) {
       const s = randDay([1995, 1, 1], [2026, 11, 30]);
@@ -144,6 +215,11 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
         pet: petCases.map((c) => ({ snapshot: JSON.stringify(c.snap), nowMs: c.nowMs })),
         petTimeline: petTlCases.map((c) => ({ snapshot: JSON.stringify(c.snap), nowMs: c.nowMs, midnightsMs: c.midnights })),
         decay: decayCases,
+        note: boardCases.map((c) => ({ snapshot: JSON.stringify(c.snap), feed: c.feed, revoked: c.revoked, nowMs: c.nowMs })),
+        distance: boardCases.map((c) => ({ snapshot: JSON.stringify(c.snap), feed: c.feed, revoked: c.revoked, nowMs: c.nowMs })),
+        geo: geoCases,
+        noteTimeline: noteTlCases,
+        distanceTimeline: distTlCases,
       }),
     );
     // TZ=UTC: il "giorno di oggi" del widget (calendario locale) e quello di TypeScript sono lo stesso
@@ -227,5 +303,73 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
   it("pet: snapshot v4 e v3 letti uguali da Swift e TypeScript", () => {
     expect(out.snapshots.v4?.petName).toBe("Bacca");
     expect(out.snapshots.v3.petName).toBeUndefined();
+  });
+
+  it("biglietto: stesso stato, stesso contenuto, stesso 'da chi · quando' su 2500 casi (snapshot, feed, token revocato, scadenza)", () => {
+    const diffs: string[] = [];
+    boardCases.forEach((c, i) => {
+      const feed = c.feed ? feedFromJson(JSON.parse(c.feed), 0) : null;
+      const ts = noteWidgetModel(c.snap, feed, c.nowMs, c.revoked);
+      const sw = out.note[i];
+      const tsRow = { state: ts.state, minutesLeft: ts.minutesLeft, byLine: ts.byLine, note: ts.note ? { id: ts.note.id, kind: ts.note.kind, by: ts.note.by, byName: ts.note.byName, createdAt: ts.note.createdAt, expiresAt: ts.note.expiresAt, content: ts.note.content } : null };
+      if (!isDeepStrictEqual(tsRow, { state: sw.state, minutesLeft: sw.minutesLeft, byLine: sw.byLine, note: sw.note }))
+        diffs.push(`#${i} TS=${JSON.stringify(tsRow)} Swift=${JSON.stringify(sw)}`);
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    const states = new Set(out.note.map((n: { state: string }) => n.state));
+    expect(states.has("note") && states.has("empty")).toBe(true);
+    expect(out.note.some((n: { byLine: string | null }) => n.byLine?.startsWith("da te · "))).toBe(true);
+  });
+  it("biglietto: scade esattamente alla scadenza (1 ms prima c'è, a 0 non c'è più)", () => {
+    const base = boardCases.length - 6;
+    expect(out.note[base].state).toBe("note"); // -1 ms
+    expect(out.note[base + 1].state).toBe("empty"); // 0
+    expect(out.note[base + 2].state).toBe("empty");
+  });
+  it("distanza: stato, chilometri, parole, 'aggiornata X fa' e vecchiaia identici su 2500 casi", () => {
+    const diffs: string[] = [];
+    boardCases.forEach((c, i) => {
+      const feed = c.feed ? feedFromJson(JSON.parse(c.feed), 0) : null;
+      const ts = distanceWidgetModel(c.snap, feed, c.nowMs, c.revoked);
+      const sw = out.distance[i];
+      if (!isDeepStrictEqual(ts, { state: sw.state, km: sw.km, near: sw.near, big: sw.big, unit: sw.unit, sentence: sw.sentence, ageText: sw.ageText, stale: sw.stale }))
+        diffs.push(`#${i} TS=${JSON.stringify(ts)} Swift=${JSON.stringify(sw)}`);
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    const states = new Set(out.distance.map((d: { state: string }) => d.state));
+    for (const st of ["unpaired", "hidden", "mine_off", "none", "ok"]) expect(states.has(st), `stato ${st} mai provato`).toBe(true);
+    const ok = out.distance.filter((d: { state: string }) => d.state === "ok");
+    expect(ok.some((d: { near: boolean }) => d.near)).toBe(false); // casuali: mai vicinissimi (ci pensano i casi di confine sotto)
+    expect(ok.some((d: { big: string }) => d.big.includes("."))).toBe(true); // migliaia con il punto
+  });
+  it("haversine e testi ('a 342 km', 'vicinissimi', '19.000 km'): Swift = TypeScript su 3000 coppie di posizioni", () => {
+    const diffs: string[] = [];
+    geoCases.forEach((c, i) => {
+      const km = haversineKm({ latE2: c[0]!, lonE2: c[1]! }, { latE2: c[2]!, lonE2: c[3]! });
+      const v = distanceView(km);
+      const sw = out.geo[i];
+      if (Math.abs(km - sw.km) > 1e-6 || v.near !== sw.near || v.km !== sw.kmInt || v.big !== sw.big || v.sentence !== sw.sentence)
+        diffs.push(`${JSON.stringify(c)} TS=${km}/${v.sentence} Swift=${sw.km}/${sw.sentence}`);
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    expect(out.geo[0].sentence).toBe("vicinissimi");
+    expect(out.geo[3].sentence).toMatch(/^a 4\d\d km$/); // Roma-Milano ~ 480 km
+    expect(out.geo.some((g: { big: string }) => g.big.length >= 6)).toBe(true);
+  });
+  it("timeline del biglietto e della distanza: identiche a TypeScript (scadenza esatta, ogni 10 min / ogni ora)", () => {
+    const d1 = noteTlCases.flatMap((c, i) => (JSON.stringify(noteTimelineMs(c.nowMs, c.expiresAtMs)) === JSON.stringify(out.noteTimeline[i]) ? [] : [`#${i}`]));
+    const d2 = distTlCases.flatMap((c, i) => (JSON.stringify(distanceTimelineMs(c.nowMs, c.partnerAtMs)) === JSON.stringify(out.distanceTimeline[i]) ? [] : [`#${i}`]));
+    expect(d1.slice(0, 3)).toEqual([]);
+    expect(d2.slice(0, 3)).toEqual([]);
+    const withExp = noteTlCases.findIndex((c) => c.expiresAtMs !== null && c.expiresAtMs > c.nowMs + 3_000_000);
+    const tl = out.noteTimeline[withExp] as number[];
+    expect(tl[tl.length - 1]).toBe(noteTlCases[withExp]!.expiresAtMs! + 1000); // l'ultima voce è un attimo DOPO la scadenza
+  });
+  it("snapshot v5 letto uguale da Swift e TypeScript (biglietto, posizioni, feed)", () => {
+    const sw = out.snapshots.v5;
+    expect(sw.noteBy).toBe("partner");
+    expect(sw.noteContent.strokes.length).toBe(2);
+    expect(sw.feedToken).toMatch(/^[0-9a-f]{64}$/);
+    expect(out.snapshots.v4.noteId).toBeUndefined();
   });
 });

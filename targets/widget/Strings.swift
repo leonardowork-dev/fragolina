@@ -20,6 +20,11 @@ enum WS {
     static let petGalleryName = "Il vostro pet"
     static let petGalleryDesc = "La fragolina che curate in due: la sua faccia dice come sta."
 
+    static let noteGalleryName = "Biglietto"
+    static let noteGalleryDesc = "Il disegno o la scritta che ti lascia lei. Sparisce dopo un'ora."
+    static let distGalleryName = "Distanza tra noi"
+    static let distGalleryDesc = "Quanti chilometri ci sono fra voi due."
+
     // ---- Stati comuni ----
     static let emptyTitle = "Ancora niente"
     static let emptySub = "Apri Fragolina per collegarvi."
@@ -109,6 +114,30 @@ enum WS {
         default: return nil
         }
     }
+
+    // ---- Biglietto (stesse parole di src/lib/strings.it.ts: note, draw) ----
+    static let noteEmptyTitle = "Niente biglietti"
+    static let noteEmptyShort = "Nessun biglietto"
+    static let noteEmptySub = "Toccami per disegnare."
+    static let noteEmptyLock = "Disegna"
+    static func noteBy(_ name: String, _ ago: String) -> String { "da \(name) · \(ago)" }
+    static func noteByMe(_ ago: String) -> String { "da te · \(ago)" }
+    static func noteLeaves(_ min: Int) -> String { min <= 1 ? "sparisce tra meno di un minuto" : "sparisce tra \(min) min" }
+
+    // ---- Distanza (stesse parole di src/lib/strings.it.ts, sezione distance) ----
+    static let distTitle = "Distanza"
+    static let distNear = "vicinissimi"
+    static func distKm(_ big: String) -> String { "a \(big) km" }
+    static let distHidden = "Distanza nascosta"
+    static func distHiddenSub(_ name: String) -> String { "\(name) ha scelto di non condividerla." }
+    static let distMineOff = "La tua è spenta"
+    static let distMineOffSub = "Accendi «Condividi la distanza» da Noi."
+    static let distNone = "Non ancora condivisa"
+    static func distNoneSub(_ name: String) -> String { "Appena \(name) la condivide, la vedi qui." }
+    static let distUnpaired = "Manca una persona"
+    static let distUnpairedSub = "Collegatevi dall'app."
+    static func distUpdated(_ ago: String) -> String { "aggiornata \(ago)" }
+    static let distKmUnit = "km"
 
     // ---- "aggiornato" ----
     static func updated(_ ago: String) -> String { "aggiornato " + ago }

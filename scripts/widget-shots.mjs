@@ -23,7 +23,7 @@ if (!exe) throw new Error("Nessun browser: imposta CHROME_PATH");
 
 const settings = { state: { onboardingDone: true, haptics: true, reduceMotionOverride: true, darkOverride: false }, version: 0 };
 const browser = await chromium.launch({ executablePath: exe, args: ["--no-sandbox"], env: { ...process.env, LD_LIBRARY_PATH: process.env.CHROME_LIBS ? `${process.env.CHROME_LIBS}:${process.env.LD_LIBRARY_PATH ?? ""}` : process.env.LD_LIBRARY_PATH } });
-const ctx = await browser.newContext({ viewport: { width: 760, height: 1200 }, deviceScaleFactor: 2 });
+const ctx = await browser.newContext({ viewport: { width: 760, height: 2600 }, deviceScaleFactor: 2 });
 // In anteprima web gli archivi hanno un suffisso per scheda (src/lib/tabScope.ts): lo fissiamo.
 await ctx.addInitScript((s) => {
   sessionStorage.setItem("fragolina.mock.scope", "shots");

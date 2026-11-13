@@ -99,18 +99,48 @@ describe("font, kind e bundle", () => {
     expect(kinds).toContain("FragolinaWidget");
     expect(new Set(kinds).size).toBe(kinds.length);
     expect(kinds.sort()).toEqual(
-      ["FragolinaDays", "FragolinaLock", "FragolinaLockMood", "FragolinaMood", "FragolinaPet", "FragolinaPing", "FragolinaWidget"].sort(),
+      ["FragolinaDays", "FragolinaDistance", "FragolinaLock", "FragolinaLockMood", "FragolinaMood", "FragolinaNote", "FragolinaPet", "FragolinaPing", "FragolinaWidget"].sort(),
     );
     const bundle = all["index.swift"];
-    for (const w of ["MoodWidget", "PingWidget", "DaysWidget", "LockWidget", "LockMoodWidget", "PetWidget", "FragolinaWidget"])
+    for (const w of ["MoodWidget", "PingWidget", "DaysWidget", "LockWidget", "LockMoodWidget", "PetWidget", "NoteWidget", "DistanceWidget", "FragolinaWidget"])
       expect(bundle, w).toContain(`${w}()`);
   });
   it("i link usati nei widget sono quelli che l'app capisce", () => {
     const urls = [...all["Model.swift"].matchAll(/URL\(string: "(fragolina:\/\/\w+)"\)/g)].map((m) => m[1]).sort();
-    expect(urls).toEqual(["fragolina://home", "fragolina://mood", "fragolina://pet", "fragolina://ping", "fragolina://us"]);
+    expect(urls).toEqual(["fragolina://draw", "fragolina://home", "fragolina://mood", "fragolina://pet", "fragolina://ping", "fragolina://us"]);
   });
-  it("nessuna rete nel widget (Percorso A)", () => {
-    for (const [f, src] of Object.entries(all)) expect(src, f).not.toMatch(/URLSession|URLRequest\(|AsyncImage/);
+  it("la rete (Percorso B) vive in UN solo file: Feed.swift, con timeout ≤ 8 s e senza service_role", () => {
+    for (const [f, src] of Object.entries(all)) {
+      if (f === "Feed.swift") continue;
+      expect(src, f).not.toMatch(/URLSession|URLRequest\(|AsyncImage|dataTask/);
+    }
+    const feed = all["Feed.swift"];
+    expect(feed).toMatch(/static let timeout: TimeInterval = 8\b/);
+    expect(feed).toContain("/rest/v1/rpc/widget_feed");
+    expect(feed).not.toMatch(/service_role/);
+    expect(feed).toMatch(/waitsForConnectivity = false/);
+  });
+  it("niente rete in galleria/anteprima: i provider usano il segnaposto quando `isPreview`", () => {
+    const p = all["Provider.swift"];
+    expect((p.match(/context\.isPreview/g) ?? []).length).toBeGreaterThanOrEqual(4);
+    expect(p).toMatch(/policy: \.after\(now\.addingTimeInterval\(feedRefresh\)\)/);
+    expect(p).toMatch(/feedRefresh: TimeInterval = 15 \* 60/);
+  });
+  it("il segnaposto non si ferma mai su un'immagine mancante e il nome dei kind nuovi è stabile", () => {
+    expect(all["NoteWidget.swift"]).toContain('let kind = "FragolinaNote"');
+    expect(all["DistanceWidget.swift"]).toContain('let kind = "FragolinaDistance"');
+    expect(all["NoteWidget.swift"]).toMatch(/supportedFamilies\(\[\.systemSmall, \.systemMedium, \.accessoryRectangular\]\)/);
+    expect(all["DistanceWidget.swift"]).toMatch(/supportedFamilies\(\[\.systemSmall, \.systemMedium, \.accessoryCircular, \.accessoryInline\]\)/);
+  });
+  it("il WidgetBundle è diviso in pacchetti da massimo 5 (limite del costruttore): il pet sparito dalla galleria", () => {
+    const idx = all["index.swift"];
+    const bundles = [...idx.matchAll(/struct (\w+): WidgetBundle \{\s*var body: some Widget \{([\s\S]*?)\n    \}\n\}/g)];
+    expect(bundles.length).toBeGreaterThanOrEqual(3);
+    for (const b of bundles) {
+      const n = [...b[2].matchAll(/^\s+\w+(?:\(\))?(?:\.body)?\s*$/gm)].length;
+      expect(n, b[1]).toBeLessThanOrEqual(5);
+    }
+    expect(idx).toMatch(/@main\s+struct FragolinaWidgetBundle/);
   });
 });
 

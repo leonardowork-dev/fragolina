@@ -18,6 +18,7 @@ const fixtureRaw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapsh
 const fixture = JSON.parse(fixtureRaw) as WidgetSnapshot;
 const v2Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v2.json"), "utf8");
 const v3Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v3.json"), "utf8");
+const v4Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v4.json"), "utf8");
 const v1Raw = fs.readFileSync(path.join(root, "tests/fixtures/widget-snapshot-v1.json"), "utf8");
 
 const baseSource = {
@@ -35,6 +36,23 @@ const baseSource = {
   myMood: { moodId: "carica", at: fixture.myMoodAt! },
   question: { text: "Cena di sabato: cosa vince?", myAnswer: "a", partnerAnswer: null },
   myUserId: "ua",
+  // biglietto, posizioni e accesso al feed della fixture v5
+  note: {
+    id: "4f0c7a52-6d49-4a43-9c1b-2d7f0b9e1a11",
+    kind: "draw" as const,
+    content: fixture.noteContent!,
+    by: "partner" as const,
+    byName: "Nikole",
+    createdAt: fixture.noteAt!,
+    expiresAt: fixture.noteExpiresAt!,
+    clearedAt: null,
+  },
+  loc: {
+    sharing: true,
+    me: { latE2: 4190, lonE2: 1250, at: fixture.myLocAt! },
+    partner: { name: "Nikole", state: "ok" as const, latE2: 4546, lonE2: 919, at: fixture.partnerLocAt! },
+  },
+  feed: { url: fixture.feedUrl, key: fixture.feedKey, token: fixture.feedToken },
   // il pet della fixture v4: germoglio "Bacca", curato da lei (ub) con una mora, oggi in due
   pet: {
     ...emptyPet(),
@@ -240,7 +258,8 @@ describe("modello Swift Codable ↔ fixture", () => {
         (f.type === "Int" && Number.isInteger(v)) ||
         (f.type === "Double" && kind === "number") ||
         (f.type === "String" && kind === "string") ||
-        (f.type === "Bool" && kind === "boolean");
+        (f.type === "Bool" && kind === "boolean") ||
+        (f.type === "NoteContent" && kind === "object");
       expect(ok, `${f.name}: ${f.type} vs ${kind}`).toBe(true);
     }
   });
@@ -269,11 +288,12 @@ describe("payload v4: il pet", () => {
   });
   it("i campi del pet stanno IN FONDO e in questo ordine (mai in mezzo)", () => {
     const keys = Object.keys(fixture);
-    expect(keys.slice(-14)).toEqual([
+    const at = keys.indexOf("questionBothDone") + 1;
+    expect(keys.slice(at, at + 14)).toEqual([
       "petHatched", "petStage", "petName", "petFood", "petLove", "petEnergy", "petAt",
       "petSleepUntil", "petLastAt", "petDay", "petBoth", "petLastBy", "petLastKind", "petLastItem",
     ]);
-    expect(keys.slice(-15)[0]).toBe("questionBothDone");
+    expect(keys[at - 1]).toBe("questionBothDone");
   });
   it("non collegati: nessun pet, stadio vuoto", () => {
     const s = snap({ coupleId: null, members: [] });
@@ -296,5 +316,46 @@ describe("payload v4: il pet", () => {
   it("il valore di un tipo sbagliato nel pet vale 'vuoto' ma non butta via il resto", () => {
     const d = decodeSnapshot('{"v":4,"partnerName":"N","petFood":"tanto","petStage":3,"petHatched":"si","petName":"Bacca"}')!;
     expect(d).toMatchObject({ petFood: 0, petStage: "", petHatched: false, petName: "Bacca", partnerName: "N" });
+  });
+});
+
+describe("payload v5: biglietto, distanza, accesso del widget", () => {
+  const at = fixture.updatedAt;
+  const snap = (over: Record<string, unknown> = {}, now = at + 5000) =>
+    buildSnapshot({ ...baseSource, ...over } as typeof baseSource, now, "2026-11-12");
+  it("la fixture v4 (senza biglietto) si legge ancora: campi nuovi vuoti, campi vecchi uguali", () => {
+    const v4 = decodeSnapshot(v4Raw)!;
+    expect(v4.v).toBe(4);
+    expect(v4).toMatchObject({ noteId: "", noteContent: null, noteBy: "", shareMine: false, partnerLocState: "", feedUrl: "", feedToken: "" });
+    for (const k of Object.keys(JSON.parse(v4Raw)).filter((x) => x !== "v"))
+      expect((v4 as Record<string, unknown>)[k]).toEqual((fixture as Record<string, unknown>)[k]);
+  });
+  it("le chiavi v4 sono un prefisso delle chiavi v5 (si aggiunge solo in fondo)", () => {
+    const v4keys = Object.keys(JSON.parse(v4Raw));
+    expect(Object.keys(fixture).slice(0, v4keys.length)).toEqual(v4keys);
+  });
+  it("biglietto pulito o scaduto: il widget non lo riceve", () => {
+    const cleared = snap({ note: { ...baseSource.note, clearedAt: at } });
+    expect(cleared).toMatchObject({ noteId: "", noteKind: "", noteContent: null, noteExpiresAt: null });
+    const expired = snap({}, baseSource.note.expiresAt + 1);
+    expect(expired).toMatchObject({ noteId: "", noteContent: null });
+  });
+  it("non collegati: niente biglietto, niente posizioni, niente accesso al feed (si spegne il Percorso B)", () => {
+    const s = snap({ coupleId: null, members: [] });
+    expect(s).toMatchObject({ noteId: "", shareMine: false, myLatE2: null, partnerLocState: "", feedUrl: "", feedKey: "", feedToken: "" });
+  });
+  it("distanza: se non condivido, la mia posizione non esce; partner nascosto = nessuna coordinata", () => {
+    const off = snap({ loc: { sharing: false, me: baseSource.loc.me, partner: { ...baseSource.loc.partner, state: "mine_off" as const, latE2: null, lonE2: null, at: null } } });
+    expect(off).toMatchObject({ shareMine: false, myLatE2: null, partnerLocState: "mine_off", partnerLatE2: null, partnerLocAt: null });
+    const hidden = snap({ loc: { ...baseSource.loc, partner: { ...baseSource.loc.partner, state: "hidden" as const, latE2: 4546, lonE2: 919, at: 1 } } });
+    expect(hidden).toMatchObject({ partnerLocState: "hidden", partnerLatE2: null, partnerLonE2: null });
+  });
+  it("da solo (nessun partner) il biglietto mio passa ('me') e la posizione dell'altro è vuota", () => {
+    const s = snap({ members: [1], note: { ...baseSource.note, by: "me" as const, byName: "Leonardo" }, loc: { sharing: true, me: baseSource.loc.me, partner: null } });
+    expect(s).toMatchObject({ paired: false, noteBy: "me", noteByName: "Leonardo", partnerLocState: "" });
+  });
+  it("nessun segreto oltre alla chiave pubblica e al token: la chiave è quella passata, mai la service_role", () => {
+    expect(JSON.stringify(fixture)).not.toMatch(/service_role/);
+    expect(fixture.feedToken).toMatch(/^[0-9a-f]{64}$/);
   });
 });
