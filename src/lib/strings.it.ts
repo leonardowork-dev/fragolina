@@ -390,7 +390,7 @@ export const S = {
     pending: "in coda",
     mine: "Tocca a te",
     theirs: (n: string) => `Tocca a ${n}`,
-    theirsAgo: (n: string, ago: string) => `Tocca a ${n} · ha giocato ${ago}`,
+    theirsAgo: (n: string, ago: string) => `Tocca a ${n} · hai giocato ${ago}`,
     mineAgo: (n: string, ago: string) => `${n} ha giocato ${ago}`,
     notYet: (n: string) => `${n} non ha ancora giocato`,
     justNow: "poco fa",

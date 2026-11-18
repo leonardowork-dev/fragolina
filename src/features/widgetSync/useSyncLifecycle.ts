@@ -4,6 +4,7 @@ import { AppState, Dimensions } from "react-native";
 import { useEffectsBus, useMascot, useToast } from "@/design";
 import { haptics } from "@/lib/haptics";
 import { petToastText } from "@/features/pet/petToast";
+import { gameRejectText, gameToastText } from "@/features/play/toasts";
 import { S } from "@/lib/strings.it";
 import { syncEngine, useCouple } from "@/state/coupleStore";
 
@@ -50,6 +51,15 @@ export function useRealtimeEffects() {
         // un biglietto di lei con l'app aperta: avviso ovunque tu sia, e compare da solo nella scheda Disegna
         toast.show(S.draw.incoming(s.noteIncoming.byName || s.partnerName));
         haptics.success();
+      }
+      if (s.gameIncomingSeq !== before.gameIncomingSeq && s.gameIncoming) {
+        // l'altra persona ha mosso nei giochi: avviso ovunque tu sia (la partita si aggiorna da sola nella scheda Gioca)
+        toast.show(gameToastText(s.gameIncoming, s.partnerName));
+        haptics.light();
+      }
+      if (s.gameRejectedSeq !== before.gameRejectedSeq && s.gameRejected) {
+        toast.show(gameRejectText(s.gameRejected, s.partnerName));
+        haptics.light();
       }
       if (s.pairedSeq !== before.pairedSeq) toast.show(S.toast.joined(s.partnerName));
       if (s.rejectedSeq !== before.rejectedSeq) toast.show(S.link.rejected);

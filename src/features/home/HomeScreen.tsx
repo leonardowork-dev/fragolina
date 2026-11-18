@@ -30,6 +30,7 @@ import { haptics } from "@/lib/haptics";
 import { cap, partnerLabel } from "@/lib/names";
 import { S } from "@/lib/strings.it";
 import { daysSince, formatLongDate, localDayKey, timeAgo } from "@/lib/time";
+import { usePendingGame } from "@/features/play/usePending";
 import { selectPairing, selectPingsToday, selectQuestion, useCouple } from "@/state/coupleStore";
 import { useIntents } from "@/state/intentStore";
 
@@ -450,6 +451,37 @@ function QuestionCard() {
   );
 }
 
+/** Un piccolo invito, solo se in una partita tocca a te. Se non c'è niente in sospeso non compare (nessun rumore). */
+function GameInvite() {
+  const router = useRouter();
+  const { colors } = useTheme();
+  const game = usePendingGame();
+  if (!game) return null;
+  return (
+    <Sticker
+      id="game-invite"
+      fill={colors.butterSoft}
+      radius={20}
+      offset={4}
+      padding={12}
+      tiltMax={1.2}
+      onPress={() => {
+        useIntents.getState().requestGame(game.kind);
+        router.navigate("/(tabs)/play");
+      }}
+      accessibilityLabel={`${S.play.homeInvite(S.play.games[game.kind].name)}. ${S.play.homeInviteSub}`}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <View style={{ flex: 1 }}>
+          <Text variant="bodyStrong">{S.play.homeInvite(S.play.games[game.kind].name)}</Text>
+          <Text variant="caption">{S.play.homeInviteSub}</Text>
+        </View>
+        <Icon name="play" size={24} />
+      </View>
+    </Sticker>
+  );
+}
+
 export function HomeScreen() {
   const router = useRouter();
   const toast = useToast();
@@ -503,6 +535,7 @@ export function HomeScreen() {
         <LinkBadge />
       </View>
       {pairing === "paired" ? <ThinkHero /> : <ConnectHero />}
+      {pairing === "paired" ? <GameInvite /> : null}
       <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
         <DaysCard onPress={() => setDateSheet(true)} />
         <MoodCard />
