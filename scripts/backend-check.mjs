@@ -394,7 +394,8 @@ try {
     check("distanza RLS: il terzo non legge posizioni", ((await C.c.from("locations").select("*")).data ?? []).length === 0);
 
     await new Promise((r) => setTimeout(r, 1500));
-    check("biglietto realtime: B ha ricevuto le modifiche della tabella notes", nGot >= 2, `eventi ricevuti: ${nGot}`);
+    // il canale si apre DOPO i primi invii: resta la modifica "Pulisci" (UPDATE), che basta a provare il tempo reale
+    check("biglietto realtime: B ha ricevuto la modifica (Pulisci) della tabella notes", nGot >= 1, `eventi ricevuti: ${nGot}`);
     await B.c.removeChannel(chn);
 
     // uscire dalla coppia: il token smette di funzionare
@@ -402,6 +403,90 @@ try {
     await rpc(B.c, "leave_couple");
     check("widget: chi esce dalla coppia perde il token (invalid_token)", (await feed(tb.token)).error === "invalid_token");
     await rpc(B.c, "join_couple", { p_code: (await rpc(A.c, "get_state", { p_day: day, p_day_start: new Date().toISOString() })).couple?.join_code ?? "", p_display_name: "Nikole" });
+  }
+
+  // ---------- mini giochi (migrazione 7, sessione 6) ----------
+  const gg = await rpc(A.c, "get_games", {});
+  const gamesMissing = !!gg.error && /get_games|PGRST202|Could not find|does not exist/i.test(String(gg.error));
+  if (gamesMissing) {
+    rows.push([
+      "MANCA",
+      "Giochi: la migrazione della sessione 6 NON è ancora stata eseguita su questo Supabase",
+      "→ MANUAL_TODO.md, Sessione 6, passo 1 (incolla supabase/sessione6-giochi.sql). Poi rilancia questo comando.",
+    ]);
+  } else {
+    const kg = (x) => `chk6-${x}-${uuid().slice(0, 8)}`;
+    const startG = (c, id, kind, params = {}) => rpc(c, "start_game", { p_id: id, p_kind: kind, p_params: params });
+    const moveG = (c, id, move, key) => rpc(c, "game_move", { p_game: id, p_move: move, p_client_key: key });
+    check("giochi: get_games risponde (nessuna partita all'inizio)", gg.ok === true && gg.games.length === 0, JSON.stringify(gg).slice(0, 160));
+    let gGot = 0;
+    const chg = B.c
+      .channel("chk-games-" + uuid().slice(0, 6))
+      .on("postgres_changes", { event: "*", schema: "public", table: "games", filter: `couple_id=eq.${cid}` }, () => gGot++);
+    await new Promise((r) => chg.subscribe((st) => st === "SUBSCRIBED" && r()));
+
+    const g1 = uuid();
+    const s1 = await startG(A.c, g1, "tris");
+    check("tris: A apre la partita (muove per primo chi la apre)", s1.ok && s1.game.turn === A.id && s1.game.data.x === A.id, JSON.stringify(s1).slice(0, 200));
+    check("tris: stesso id = nessun duplicato (idempotente)", (await startG(A.c, g1, "tris")).duplicate === true);
+    check("tris: una sola partita aperta per gioco", (await startG(B.c, uuid(), "tris")).error === "game_open");
+    check("tris: B muove fuori turno → rifiutato", (await moveG(B.c, g1, { type: "place", cell: 0 }, kg("o"))).error === "not_your_turn");
+    check("tris: il terzo non può muovere nelle vostre partite", !!(await moveG(C.c, g1, { type: "place", cell: 0 }, kg("c"))).error);
+    const m1 = await moveG(A.c, g1, { type: "place", cell: 4 }, kg("m1"));
+    check("tris: A muove (X al centro), ora tocca a B", m1.ok && m1.game.data.board === "----X----" && m1.game.turn === B.id, JSON.stringify(m1).slice(0, 200));
+    const dupK = kg("dup");
+    const m2 = await moveG(B.c, g1, { type: "place", cell: 0 }, dupK);
+    check("tris: stessa chiave = la mossa non si ripete", m2.ok && (await moveG(B.c, g1, { type: "place", cell: 0 }, dupK)).duplicate === true);
+    check("tris: casella occupata rifiutata", (await moveG(A.c, g1, { type: "place", cell: 0 }, kg("t"))).error === "cell_taken");
+    let last;
+    for (const [c, cell] of [[A.c, 1], [B.c, 3], [A.c, 7]]) last = await moveG(c, g1, { type: "place", cell }, kg("w" + cell));
+    check("tris: A fa tris (1-4-7), partita chiusa con la linea vincente", last.ok && last.game.status === "done" && JSON.stringify(last.game.data.win) === "[1,4,7]", JSON.stringify(last).slice(0, 200));
+    check("tris: partita finita, nessuna mossa in più", (await moveG(B.c, g1, { type: "place", cell: 2 }, kg("z"))).error === "game_over");
+    const gs = await rpc(B.c, "get_games", {});
+    check("tris: il punteggio sale (A 1 vittoria)", gs.scores.tris?.[A.id]?.wins === 1 && gs.scores.tris?.[B.id]?.wins === 0, JSON.stringify(gs.scores));
+
+    // quiz: la risposta segreta
+    const g2 = uuid();
+    const qs = await startG(A.c, g2, "quiz", { qids: [1, 2, 3, 4, 5] });
+    check("quiz: A apre il quiz con 5 domande", qs.ok && qs.game.data.qids.length === 5, JSON.stringify(qs).slice(0, 160));
+    const subj0 = qs.game.data.subjects[0];
+    const [S0, G0] = subj0 === A.id ? [A, B] : [B, A];
+    check("quiz: risposta fuori scala rifiutata", (await moveG(S0.c, g2, { type: "answer", q: 9, idx: 1 }, kg("q9"))).error === "invalid_move");
+    const qa = await moveG(S0.c, g2, { type: "answer", q: 0, idx: 2 }, kg("qa"));
+    check("quiz: chi risponde su di sé → 'ha risposto' ma nessun valore nello stato pubblico", qa.ok && qa.game.data.answered[0].s === true && qa.game.data.reveals[0] === null && !JSON.stringify(qa).includes('"idx"'), JSON.stringify(qa).slice(0, 200));
+    check("quiz RLS: la tabella dei segreti non si legge (né dall'altro né dal terzo)", ((await G0.c.from("game_secrets").select("*")).data ?? []).length === 0 && ((await C.c.from("game_secrets").select("*")).data ?? []).length === 0);
+    const rows_ = (await G0.c.from("games").select("*").eq("id", g2)).data ?? [];
+    const mv_ = (await G0.c.from("game_moves").select("*").eq("game_id", g2)).data ?? [];
+    check("quiz RLS: né in games né in game_moves c'è il valore della risposta", JSON.stringify(rows_).indexOf('"s":2') < 0 && !mv_.some((m) => "idx" in (m.payload ?? {})), JSON.stringify(mv_).slice(0, 160));
+    const gv = await rpc(G0.c, "get_games", {});
+    check("quiz: nella fotografia di chi indovina non c'è la risposta dell'altro", !JSON.stringify(gv.mine?.[g2] ?? {}).includes('"s":2'), JSON.stringify(gv.mine?.[g2]));
+    const qg = await moveG(G0.c, g2, { type: "answer", q: 0, idx: 2 }, kg("qg"));
+    check("quiz: quando risponde anche l'altro si RIVELA (giusta, punteggio 1)", qg.ok && qg.game.data.reveals[0]?.ok === true && qg.game.data.score === 1, JSON.stringify(qg).slice(0, 220));
+    await rpc(A.c, "abandon_game", { p_game: g2, p_client_key: kg("ab") });
+
+    // disegna e indovina
+    const g3 = uuid();
+    const ds = await startG(A.c, g3, "draw", { word: "Gatto", wordId: 5 });
+    check("disegna: la parola NON è nello stato pubblico", ds.ok && ds.game.data.word === null && !JSON.stringify(ds).includes("Gatto"), JSON.stringify(ds).slice(0, 200));
+    check("disegna: l'altro non riceve la parola", !JSON.stringify(await rpc(B.c, "get_games", {})).includes("Gatto"));
+    check("disegna: disegno non valido rifiutato", (await moveG(A.c, g3, { type: "drawing", content: { strokes: [{ c: "viola", w: 1, p: [[1, 1]] }] } }, kg("dx"))).error === "invalid_content");
+    const dd = await moveG(A.c, g3, { type: "drawing", content: { strokes: [{ c: "ink", w: 1, p: [[100, 100], [400, 400]] }] } }, kg("dd"));
+    check("disegna: il disegno arriva, tocca a B indovinare", dd.ok && dd.game.data.phase === "guessing" && dd.game.turn === B.id, JSON.stringify(dd).slice(0, 160));
+    const dg1 = await moveG(B.c, g3, { type: "guess", text: "cane" }, kg("g1"));
+    check("disegna: tentativo sbagliato, la parola resta segreta", dg1.ok && dg1.game.status === "open" && dg1.game.data.word === null);
+    const dg2 = await moveG(B.c, g3, { type: "guess", text: "I GATTI!" }, kg("g2"));
+    check("disegna: «I GATTI!» vale (maiuscole, articolo, plurale) e la parola si rivela", dg2.ok && dg2.game.status === "done" && dg2.game.data.word === "Gatto", JSON.stringify(dg2).slice(0, 220));
+
+    // RLS
+    check("giochi RLS: il terzo non vede partite, mosse né punteggi", ((await C.c.from("games").select("*")).data ?? []).length === 0 && ((await C.c.from("game_moves").select("*")).data ?? []).length === 0 && ((await C.c.from("game_scores").select("*")).data ?? []).length === 0);
+    const hackG = await A.c.from("games").update({ status: "done" }).eq("couple_id", cid).select();
+    check("giochi RLS: nessuna scrittura diretta", !!hackG.error || (hackG.data ?? []).length === 0);
+    const anonG = mk();
+    check("giochi: la chiave pubblica da sola non chiama le funzioni né legge", !!(await rpc(anonG, "get_games", {})).error && ((await anonG.from("games").select("*")).data ?? []).length === 0);
+
+    await new Promise((r) => setTimeout(r, 1500));
+    check("giochi realtime: B ha ricevuto le modifiche della tabella games", gGot >= 3, `eventi ricevuti: ${gGot}`);
+    await B.c.removeChannel(chg);
   }
 
   // pulizia: entrambi escono (la coppia si cancella da sola)
