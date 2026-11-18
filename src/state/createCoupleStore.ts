@@ -40,6 +40,19 @@ import {
   type QueuedOp,
   type RemoteInput,
 } from "@/lib/sync/types";
+import { pickQuiz, pickWord } from "@/lib/games/decks";
+import type { GameError, GameKind, GameMove, GameParams, GameRow } from "@/lib/games/types";
+import {
+  type GameChange,
+  type GamesSlice,
+  describeChange,
+  emptyGamesSlice,
+  isGameOp,
+  mergeGame,
+  mergeSnapshot,
+  otherOf,
+  replayGames,
+} from "@/lib/games/sync";
 import { type LocationState, emptyLocation } from "@/lib/geo/types";
 import { type Note, type NoteContent, type NoteKind, noteState } from "@/lib/note/rules";
 import {
@@ -73,6 +86,11 @@ export type PetIncoming = { by: string; kind: PetKind | "hatch" | "name"; item: 
 /** Un biglietto arrivato dall'altra persona in tempo reale (toast + aptica). */
 export type NoteIncoming = { byName: string; kind: NoteKind; at: number };
 
+/** Una novità dei giochi portata dall'altra persona in tempo reale (toast + aptica). */
+export type GameIncoming = { kind: GameKind; change: GameChange; at: number };
+/** Una mia mossa che il server ha rifiutato (turno cambiato nel frattempo, casella presa…): messaggio gentile. */
+export type GameRejection = { kind: GameKind | null; error: GameError };
+
 type Ephemeral = {
   hydrated: boolean;
   backendKind: "supabase" | "mock";
@@ -93,6 +111,12 @@ type Ephemeral = {
   noteAvailable: boolean | null;
   noteIncomingSeq: number;
   noteIncoming: NoteIncoming | null;
+  /** null = non lo so ancora; false = il server non ha la migrazione dei giochi (MANUAL_TODO, sessione 6). */
+  gamesAvailable: boolean | null;
+  gameIncomingSeq: number;
+  gameIncoming: GameIncoming | null;
+  gameRejectedSeq: number;
+  gameRejected: GameRejection | null;
   /** Tocchi all'uovo non ancora messi in coda (si raggruppano per mezzo secondo). */
   pendingTouches: number;
   pendingTouchAt: number;
@@ -109,6 +133,7 @@ type Engine = {
 export type CoupleState = SyncedState &
   PetSlice &
   NoteSlice &
+  GamesSlice &
   Ephemeral & {
     queue: QueuedOp[];
     /** Posizioni (arrotondate) e interruttore "Condividi la distanza". */
@@ -119,6 +144,13 @@ export type CoupleState = SyncedState &
     sendNote: (kind: NoteKind, content: NoteContent) => { ok: true } | { ok: false; error: "not_paired" };
     /** Pulisce il biglietto di adesso, per entrambi. */
     clearNote: () => void;
+    /** Apre una partita (id deciso qui, quindi idempotente). Subito visibile; parte in coda. */
+    startGame: (kind: GameKind) => { ok: true; id: string } | { ok: false; error: "not_paired" | "game_open" };
+    /** Una mossa. Subito visibile; il server la valida e, se non va più bene, torna indietro con un messaggio gentile. */
+    gameMove: (gameId: string, move: GameMove) => void;
+    abandonGame: (gameId: string) => void;
+    /** Rilegge le partite dal server (silenziosa). */
+    refreshGames: () => Promise<void>;
     setLocationSharing: (on: boolean) => Promise<ActionResult>;
     /** Posizione già arrotondata. Silenziosa: se non va, riprova al prossimo aggiornamento. */
     shareLocation: (p: { latE2: number; lonE2: number }) => Promise<ActionResult>;
@@ -283,6 +315,41 @@ export function createCoupleStore(deps: CoupleDeps) {
           })();
           return boardFetch;
         };
+        const gamesSlice = (): GamesSlice => ({
+          gamesServer: get().gamesServer,
+          gameScores: get().gameScores,
+          gameDecks: get().gameDecks,
+          gameMine: get().gameMine,
+        });
+        /** Una partita nuova dal server (tempo reale o risposta a una mia mossa). */
+        const ingestGame = (g: GameRow, live: boolean) => {
+          const cur = get();
+          const { slice, changed, prev } = mergeGame(gamesSlice(), g);
+          if (!changed) return;
+          const change = live && cur.userId ? describeChange(prev, g, cur.userId) : null;
+          set({
+            ...slice,
+            gamesAvailable: true,
+            lastSyncAt: now(),
+            ...(change ? { gameIncomingSeq: cur.gameIncomingSeq + 1, gameIncoming: { kind: g.kind, change, at: now() } } : null),
+          });
+          // Punteggi, mazzi e i miei segreti non viaggiano nell'evento: si rileggono quando serve.
+          if (g.status !== "open" || g.kind === "quiz") void refreshGames().catch(() => {});
+        };
+        let gamesFetch: Promise<void> | null = null;
+        const refreshGames = (): Promise<void> => {
+          if (gamesFetch) return gamesFetch;
+          gamesFetch = (async () => {
+            try {
+              const snap = await backend.getGames();
+              if (snap === null) return void set({ gamesAvailable: false });
+              set({ ...mergeSnapshot(gamesSlice(), snap), gamesAvailable: true });
+            } finally {
+              gamesFetch = null;
+            }
+          })();
+          return gamesFetch;
+        };
         const ensureToken = async () => {
           const cur = get();
           if (cur.widgetToken || !cur.coupleId || cur.noteAvailable !== true) return;
@@ -307,6 +374,7 @@ export function createCoupleStore(deps: CoupleDeps) {
               return ingestNote(noteFromRow(ev.note, c.userId, c.members), true);
             }
             if (ev.type === "location") return void refreshBoard().catch(() => {});
+            if (ev.type === "game") return ingestGame(ev.game, true);
             if (ev.type === "ping") {
               if (seenPings.has(ev.id)) return;
               seenPings.add(ev.id);
@@ -337,13 +405,14 @@ export function createCoupleStore(deps: CoupleDeps) {
               set({ lastSyncAt: now() });
               // Il pet: una chiamata a parte. Se fallisce per un motivo che non è la rete, il resto dell'app va avanti.
               if (!state.paired || !state.couple) {
-                set({ ...emptyPetSlice(), ...emptyNoteSlice(), noteAvailable: null, loc: emptyLocation(), petAvailable: null });
+                set({ ...emptyPetSlice(), ...emptyNoteSlice(), ...emptyGamesSlice(), noteAvailable: null, gamesAvailable: null, loc: emptyLocation(), petAvailable: null });
               } else {
                 if (prevCouple && prevCouple !== state.couple.id)
-                  set({ ...emptyNoteSlice(), loc: emptyLocation(), widgetToken: null });
+                  set({ ...emptyNoteSlice(), ...emptyGamesSlice(), loc: emptyLocation(), widgetToken: null });
                 await refreshBoard().catch((e: unknown) => {
                   if (e instanceof BackendError && e.kind === "network") throw e;
                 });
+                void refreshGames().catch(() => {}); // a parte: non rallenta né fa fallire la sincronizzazione principale
                 await ensureToken();
                 const snap = await backend.getPet().catch((e: unknown) => {
                   if (e instanceof BackendError && e.kind === "network") throw e;
@@ -389,6 +458,18 @@ export function createCoupleStore(deps: CoupleDeps) {
             ingestNote(n, false); // il server risponde col biglietto vero (scadenza compresa), prima che esca dalla coda
             return;
           }
+          if (op.kind === "gameStart") {
+            ingestGame(await backend.startGame({ id: op.id, kind: op.game, params: op.params }), false);
+            return;
+          }
+          if (op.kind === "gameMove") {
+            ingestGame(await backend.gameMove({ gameId: op.gameId, move: op.move, key: op.key }), false);
+            return;
+          }
+          if (op.kind === "gameAbandon") {
+            ingestGame(await backend.abandonGame({ gameId: op.gameId, key: op.key }), false);
+            return;
+          }
           if (op.kind === "noteClear") {
             const n = await backend.clearNote(isLocalNoteId(op.id) ? null : op.id);
             if (n) ingestNote(n, false);
@@ -423,15 +504,35 @@ export function createCoupleStore(deps: CoupleDeps) {
                 const bump = new Set(r.stoppedBy ? r.remaining.slice(0, 1).map((o) => o.key) : []);
                 let s = synced();
                 for (const { op } of r.rejected) s = rollbackOp(s, op);
+                // Giochi: una mossa rifiutata esce dalla coda (la partita "torna indietro" da sola) e si avvisa con garbo.
+                const gameRej = r.rejected.filter((x) => isGameOp(x.op));
+                const lastGameRej = gameRej[gameRej.length - 1];
+                const rejKind = (op: QueuedOp): GameKind | null =>
+                  op.kind === "gameStart"
+                    ? op.game
+                    : op.kind === "gameMove" || op.kind === "gameAbandon"
+                      ? (get().gamesServer.find((g) => g.id === op.gameId)?.kind ?? null)
+                      : null;
                 set((cur) => ({
                   ...s,
                   queue: cur.queue
                     .filter((q) => !finished.has(q.key))
                     .map((q) => (bump.has(q.key) ? { ...q, attempts: q.attempts + 1 } : q)),
                   // un "troppo presto" del pet non è un errore da mostrare: la cura sparisce da sola
-                  rejectedSeq: r.rejected.some((x) => !(isPetOp(x.op) && x.error.kind === "cooldown"))
+                  rejectedSeq: r.rejected.some(
+                    (x) => !(isPetOp(x.op) && x.error.kind === "cooldown") && !isGameOp(x.op),
+                  )
                     ? cur.rejectedSeq + 1
                     : cur.rejectedSeq,
+                  ...(lastGameRej
+                    ? {
+                        gameRejectedSeq: cur.gameRejectedSeq + 1,
+                        gameRejected: {
+                          kind: rejKind(lastGameRej.op),
+                          error: (lastGameRej.error.kind === "game_rejected" ? lastGameRej.error.message : "invalid_move") as GameError,
+                        },
+                      }
+                    : null),
                 }));
                 if (r.stoppedBy === "network") {
                   goOffline();
@@ -516,7 +617,9 @@ export function createCoupleStore(deps: CoupleDeps) {
                 queue: [],
                 ...emptyPetSlice(),
                 ...emptyNoteSlice(),
+                ...emptyGamesSlice(),
                 noteAvailable: null,
+                gamesAvailable: null,
                 loc: emptyLocation(),
                 widgetToken: null,
                 petAvailable: null,
@@ -629,6 +732,12 @@ export function createCoupleStore(deps: CoupleDeps) {
           noteAvailable: null as boolean | null,
           noteIncomingSeq: 0,
           noteIncoming: null as NoteIncoming | null,
+          gamesAvailable: null as boolean | null,
+          gameIncomingSeq: 0,
+          gameIncoming: null as GameIncoming | null,
+          gameRejectedSeq: 0,
+          gameRejected: null as GameRejection | null,
+          ...emptyGamesSlice(),
           loc: emptyLocation(),
           widgetToken: null as string | null,
           ...emptyNoteSlice(),
@@ -793,6 +902,37 @@ export function createCoupleStore(deps: CoupleDeps) {
             set({ queue: enqueue(cur.queue, { key: uuid(), kind: "noteClear", at: now(), attempts: 0, id: shown.id }) });
             kick();
           },
+          startGame: (kind) => {
+            const cur = get();
+            if (!cur.coupleId || !cur.userId) return { ok: false, error: "not_paired" };
+            const view = replayGames(gamesSlice(), cur.queue, cur.userId, otherOf(cur.members, cur.userId));
+            if (view.games.some((g) => g.kind === kind && g.status === "open")) return { ok: false, error: "game_open" };
+            const id = uuid();
+            let params: GameParams = {};
+            if (kind === "quiz") {
+              const p = pickQuiz(cur.gameDecks.quiz ?? [], rng);
+              params = { qids: p.picked, reset: p.reset };
+            } else if (kind === "draw") {
+              const w = pickWord(cur.gameDecks.draw ?? [], rng);
+              params = { word: w.word, wordId: w.id, reset: w.reset };
+            }
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "gameStart", at: now(), attempts: 0, id, game: kind, params }) });
+            kick();
+            return { ok: true, id };
+          },
+          gameMove: (gameId, move) => {
+            const cur = get();
+            if (!cur.coupleId) return;
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "gameMove", at: now(), attempts: 0, gameId, move }) });
+            kick();
+          },
+          abandonGame: (gameId) => {
+            const cur = get();
+            if (!cur.coupleId) return;
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "gameAbandon", at: now(), attempts: 0, gameId }) });
+            kick();
+          },
+          refreshGames: () => refreshGames(),
           setLocationSharing: async (on) => {
             try {
               await backend.setLocationSharing(on);
@@ -884,7 +1024,9 @@ export function createCoupleStore(deps: CoupleDeps) {
                 queue: [],
                 ...emptyPetSlice(),
                 ...emptyNoteSlice(),
+                ...emptyGamesSlice(),
                 noteAvailable: null,
+                gamesAvailable: null,
                 loc: emptyLocation(),
                 widgetToken: null,
                 petAvailable: null,
@@ -956,6 +1098,10 @@ export function createCoupleStore(deps: CoupleDeps) {
             petLog: s.petLog,
             petMyLast: s.petMyLast,
             noteServer: s.noteServer,
+            gamesServer: s.gamesServer,
+            gameScores: s.gameScores,
+            gameDecks: s.gameDecks,
+            gameMine: s.gameMine,
             loc: s.loc,
             widgetToken: s.widgetToken,
           }) as unknown as CoupleState,
