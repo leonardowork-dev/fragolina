@@ -39,3 +39,14 @@ if (noteFile) {
   fs.writeFileSync(path.join(root, "supabase", "sessione5-note.sql"), noteHead + "\n" + fs.readFileSync(path.join(dir, noteFile), "utf8"));
   console.log("supabase/sessione5-note.sql: solo la migrazione dei biglietti");
 }
+
+// Solo la migrazione dei giochi (sessione 6).
+const giochiFile = files.find((f) => f.includes("_giochi"));
+if (giochiFile) {
+  const head = `-- Fragolina · SOLO LA MIGRAZIONE DEI MINI GIOCHI (sessione 6). Generato da scripts/build-sql.mjs: non modificarlo a mano.
+-- Incollalo nell'editor SQL di Supabase (SQL Editor → New query) e premi Run. Non tocca nulla di ciò che c'è già.
+-- Si può rilanciare quante volte vuoi. Sotto "Success. No rows returned" = fatto.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione6-giochi.sql"), head + "\n" + fs.readFileSync(path.join(dir, giochiFile), "utf8"));
+  console.log("supabase/sessione6-giochi.sql: solo la migrazione dei giochi");
+}

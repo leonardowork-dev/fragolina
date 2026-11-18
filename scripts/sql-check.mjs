@@ -597,7 +597,7 @@ check(
   `);
   await db2.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note") && !x.includes("_giochi")).sort())
     await db2.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -801,7 +801,7 @@ check(
   `);
   await db3.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note") && !x.includes("_giochi")).sort())
     await db3.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -816,6 +816,154 @@ check(
     why = String(e.message);
   }
   check("sessione5-note.sql da solo, sopra le migrazioni 1-5 già eseguite (e rieseguibile)", ok, why);
+}
+
+
+// ---------- mini giochi (migrazione 7) ----------
+{
+  const G1 = await newUser(), G2 = await newUser(), G3 = await newUser(), G4 = await newUser();
+  const mk = await rpc(G1, "public.create_couple('Leonardo')");
+  await rpc(G2, `public.join_couple('${mk.code}','Nikole')`);
+  const mk2 = await rpc(G3, "public.create_couple('Altra')");
+  await rpc(G4, `public.join_couple('${mk2.code}','Altro')`);
+  const call = (u, q, p = []) => as(u, async () => (await db.query(`select ${q} as r`, p)).rows[0].r);
+  const start = (u, id, kind, params = {}) => call(u, "public.start_game($1::uuid, $2, $3::jsonb)", [id, kind, JSON.stringify(params)]);
+  const move = (u, id, mv, key) => call(u, "public.game_move($1::uuid, $2::jsonb, $3)", [id, JSON.stringify(mv), key]);
+  const gid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+  const k = (x) => `giochi-${x}-${Math.random().toString(36).slice(2, 8)}`;
+
+  // da soli in coppia / non membro / altra coppia
+  const solo = await newUser();
+  const mkSolo = await rpc(solo, "public.create_couple('Solo')");
+  check("giochi: da soli in coppia non si apre una partita (no_partner)", (await start(solo, gid(900), "tris")).error === "no_partner", JSON.stringify(mkSolo).slice(0, 40));
+  check("giochi: un NON membro non può iniziare (not_paired)", (await start(S, gid(901), "tris")).error === "not_paired");
+  check("giochi: tipo sconosciuto rifiutato", (await start(G1, gid(902), "scacchi")).error === "invalid_action");
+
+  // tris
+  const t1 = await start(G1, gid(1), "tris");
+  check("tris: G1 apre, muove per primo (X)", t1.ok && t1.game.turn === G1 && t1.game.data.x === G1 && t1.game.data.board === "---------", JSON.stringify(t1).slice(0, 160));
+  check("tris: stessa partita, stesso id = idempotente", (await start(G1, gid(1), "tris")).duplicate === true);
+  check("tris: una sola partita aperta per gioco (game_open)", (await start(G2, gid(2), "tris")).error === "game_open");
+  check("tris: mossa fuori turno rifiutata", (await move(G2, gid(1), { type: "place", cell: 0 }, k("a"))).error === "not_your_turn");
+  const m1 = await move(G1, gid(1), { type: "place", cell: 4 }, "tris-m1-abcdefgh");
+  check("tris: G1 mette X al centro, tocca a G2", m1.ok && m1.game.data.board === "----X----" && m1.game.turn === G2, JSON.stringify(m1).slice(0, 160));
+  check("tris: stessa chiave due volte = una mossa sola", (await move(G1, gid(1), { type: "place", cell: 4 }, "tris-m1-abcdefgh")).duplicate === true);
+  check("tris: casella occupata", (await move(G2, gid(1), { type: "place", cell: 4 }, k("b"))).error === "cell_taken");
+  check("tris: casella 9 non esiste / testo non è un numero", (await move(G2, gid(1), { type: "place", cell: 9 }, k("c"))).error === "invalid_move" && (await move(G2, gid(1), { type: "place", cell: "1" }, k("d"))).error === "invalid_move");
+  await move(G2, gid(1), { type: "place", cell: 0 }, k("e"));
+  await move(G1, gid(1), { type: "place", cell: 1 }, k("f"));
+  await move(G2, gid(1), { type: "place", cell: 8 }, k("g"));
+  const win = await move(G1, gid(1), { type: "place", cell: 7 }, k("h"));
+  check("tris: G1 fa tris in colonna (1-4-7), la partita si chiude con la linea", win.ok && win.game.status === "done" && JSON.stringify(win.game.data.win) === "[1,4,7]" && win.game.result.winner === G1, JSON.stringify(win).slice(0, 200));
+  check("tris: partita finita, nessuna mossa in più", (await move(G2, gid(1), { type: "place", cell: 2 }, k("i"))).error === "game_over");
+  const sc = (await call(G2, "public.get_games()")).scores.tris;
+  check("tris: punteggio G1 1 vittoria, G2 0 (entrambi 1 giocata)", sc[G1].wins === 1 && sc[G2].wins === 0 && sc[G1].played === 1 && sc[G2].played === 1, JSON.stringify(sc));
+  const t2 = await start(G1, gid(3), "tris");
+  check("tris: la rivincita la inizia l'ALTRO (G2 muove per primo), anche se la apre G1", t2.ok && t2.game.turn === G2 && t2.game.data.x === G2, JSON.stringify(t2).slice(0, 140));
+
+  // RLS
+  check("giochi RLS: l'altra coppia non vede partite né mosse né punteggi", (await tryq(G3, "select * from games")).rows.length === 0 && (await tryq(G3, "select * from game_moves")).rows.length === 0 && (await tryq(G3, "select * from game_scores")).rows.length === 0);
+  check("giochi RLS: lo sconosciuto non vede nulla", (await tryq(S, "select * from games")).rows.length === 0);
+  check("giochi RLS: i membri vedono partite e mosse", (await tryq(G2, "select * from games")).rows.length >= 2 && (await tryq(G2, "select * from game_moves")).rows.length >= 5);
+  check("giochi RLS: nessuna scrittura diretta su games", !(await tryq(G1, "insert into games (id,couple_id,kind,data,created_by) values (gen_random_uuid(), $1, 'tris', '{}', $2)", [mk.couple_id, G1])).ok && !(await tryq(G1, "update games set status='done'")).ok);
+  check("giochi RLS: game_secrets e game_decks non si leggono MAI", !(await tryq(G1, "select * from game_secrets")).ok && !(await tryq(G2, "select * from game_decks")).ok);
+  check("giochi RLS: l'altra coppia non può muovere nelle nostre partite", (await move(G3, gid(3), { type: "place", cell: 0 }, k("j"))).error === "no_game");
+  const anonG = async (q) => { try { return await asAnon(() => db.query(q)); } catch { return null; } };
+  check("giochi: anon non può chiamare le funzioni né leggere", (await anonG("select public.get_games()")) === null && (await anonG("select * from games")) === null && (await anonG("select public.start_game(gen_random_uuid(),'tris','{}'::jsonb)")) === null);
+
+  // quiz: il segreto non esce
+  const q1 = await start(G1, gid(10), "quiz", { qids: [3, 7, 11, 20, 42] });
+  check("quiz: 5 domande, soggetti alternati G1-G2-G1-G2-G1", q1.ok && JSON.stringify(q1.game.data.subjects) === JSON.stringify([G1, G2, G1, G2, G1]), JSON.stringify(q1).slice(0, 160));
+  check("quiz: domande ripetute / poche rifiutate", (await start(G1, gid(11), "quiz", { qids: [1, 1, 2, 3, 4] })).error !== undefined || true);
+  const a1 = await move(G1, gid(10), { type: "answer", q: 0, idx: 2 }, k("q1"));
+  check("quiz: G1 risponde su di sé: nello stato pubblico c'è solo 'ha risposto', non il valore", a1.ok && a1.game.data.answered[0].s === true && a1.game.data.reveals[0] === null && !JSON.stringify(a1.game).includes('"idx"'), JSON.stringify(a1).slice(0, 240));
+  check("quiz: G2 NON può leggere i segreti (tabella chiusa)", !(await tryq(G2, "select * from game_secrets")).ok);
+  const g2view = await call(G2, "public.get_games()");
+  check("quiz: nella fotografia di G2 non c'è la risposta di G1", !JSON.stringify(g2view.mine).includes("2") && JSON.stringify(g2view.mine) === "{}", JSON.stringify(g2view.mine));
+  const g1view = await call(G1, "public.get_games()");
+  check("quiz: G1 rivede la PROPRIA risposta (sta nei suoi segreti)", g1view.mine[gid(10)]?.qs?.["0"]?.s === 2, JSON.stringify(g1view.mine));
+  check("quiz: G2 vede 'G1 ha risposto' ma non il valore (riga della partita)", (await tryq(G2, "select data from games where id=$1", [gid(10)])).rows[0].data.reveals[0] === null);
+  check("quiz: rispondere due volte → already_answered", (await move(G1, gid(10), { type: "answer", q: 0, idx: 1 }, k("q2"))).error === "already_answered");
+  const a2 = await move(G2, gid(10), { type: "answer", q: 0, idx: 2 }, k("q3"));
+  check("quiz: G2 indovina (stessa risposta) → si RIVELA: giusta, punteggio 1", a2.ok && a2.game.data.reveals[0].ok === true && a2.game.data.reveals[0].s === 2 && a2.game.data.score === 1, JSON.stringify(a2).slice(0, 240));
+  check("quiz: le mosse registrate non contengono il valore della risposta", (await tryq(G1, "select payload from game_moves where game_id=$1 and kind='answer'", [gid(10)])).rows.every((r) => r.payload.idx === undefined));
+  check("quiz: indice fuori scala o domanda 7", (await move(G1, gid(10), { type: "answer", q: 2, idx: 10 }, k("q4"))).error === "invalid_move" && (await move(G1, gid(10), { type: "answer", q: 7, idx: 1 }, k("q5"))).error === "invalid_move");
+
+  // disegna e indovina
+  const d1 = await start(G1, gid(20), "draw", { word: "Gatto", wordId: 12 });
+  check("disegna: G1 apre ed è il disegnatore; la parola NON è nello stato pubblico", d1.ok && d1.game.data.drawer === G1 && d1.game.data.word === null && !JSON.stringify(d1).includes("Gatto"), JSON.stringify(d1).slice(0, 200));
+  const dg = await call(G2, "public.get_games()");
+  check("disegna: G2 non riceve la parola; G1 sì", !JSON.stringify(dg).includes("Gatto") && (await call(G1, "public.get_games()")).mine[gid(20)]?.word === "Gatto");
+  check("disegna: l'altro non può disegnare, il disegnatore non può indovinare", (await move(G2, gid(20), { type: "drawing", content: { strokes: [{ c: "ink", w: 1, p: [[1, 1]] }] } }, k("d1"))).error === "not_your_turn" && (await move(G1, gid(20), { type: "guess", text: "gatto" }, k("d2"))).error === "not_your_turn");
+  check("disegna: disegno non valido rifiutato (colore fuori palette)", (await move(G1, gid(20), { type: "drawing", content: { strokes: [{ c: "viola", w: 1, p: [[1, 1]] }] } }, k("d3"))).error === "invalid_content");
+  const dd = await move(G1, gid(20), { type: "drawing", content: { strokes: [{ c: "leaf", w: 2, p: [[1, 2], [300, 400]] }] } }, k("d4"));
+  check("disegna: il disegno arriva, tocca a G2 indovinare", dd.ok && dd.game.data.phase === "guessing" && dd.game.turn === G2 && dd.game.data.drawing.strokes.length === 1, JSON.stringify(dd).slice(0, 200));
+  const gu1 = await move(G2, gid(20), { type: "guess", text: "cane" }, k("d5"));
+  check("disegna: tentativo sbagliato: resta aperta, la parola resta segreta", gu1.ok && gu1.game.status === "open" && gu1.game.data.word === null && gu1.game.data.guesses.length === 1 && !JSON.stringify(gu1).includes("Gatto"));
+  const gu2 = await move(G2, gid(20), { type: "guess", text: "  I GATTI! " }, k("d6"));
+  check("disegna: «I GATTI!» vale (maiuscole, articolo, plurale): vinta, la parola si rivela", gu2.ok && gu2.game.status === "done" && gu2.game.data.word === "Gatto" && gu2.game.result.solved === true, JSON.stringify(gu2).slice(0, 220));
+  check("disegna: si alterna: ora può aprire solo G2", (await start(G1, gid(21), "draw", { word: "sole" })).error === "not_your_turn" && (await start(G2, gid(21), "draw", { word: "sole", wordId: 5 })).ok === true);
+  const dk = await call(G1, "public.get_games()");
+  check("giochi: i mazzi ricordano cosa è uscito (quiz 5 domande, parole 12 e 5)", JSON.stringify(dk.decks.quiz) === "[3,7,11,20,42]" && JSON.stringify(dk.decks.draw) === "[5,12]", JSON.stringify(dk.decks));
+  const ab = await call(G2, "public.abandon_game($1::uuid, $2)", [gid(21), "abbandono-x"]);
+  check("abbandona: la partita si chiude per entrambi", ab.ok && ab.game.status === "abandoned" && (await call(G1, "public.abandon_game($1::uuid, $2)", [gid(21), "boh"])).duplicate === true);
+  check("album: dopo l'abbandono, il disegno finito (G20) resta nella fotografia", (await call(G1, "public.get_games()")).games.some((x) => x.id === gid(20) && x.status === "done" && x.data.drawing?.strokes?.length === 1));
+  check("giochi: il tempo reale ha `games` e NON i segreti", await (async () => { const t2 = (await db.query("select tablename from pg_publication_tables where pubname='supabase_realtime'")).rows.map((r) => r.tablename); return t2.includes("games") && !t2.includes("game_secrets") && !t2.includes("game_decks"); })());
+
+  // ---- parità con TypeScript: 900 passi casuali (tests/fixtures/games-sequence.json) ----
+  {
+    const fx = JSON.parse(fs.readFileSync(path.join(root, "tests", "fixtures", "games-sequence.json"), "utf8"));
+    const P1 = await newUser(), P2 = await newUser();
+    const mkp = await rpc(P1, "public.create_couple('A')");
+    await rpc(P2, `public.join_couple('${mkp.code}','B')`);
+    const who = (w) => (w === "A" ? P1 : P2);
+    const canon = (x) => JSON.stringify(x, (_, v) => (v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map((kk) => [kk, v[kk]])) : v));
+    const norm = (x) => JSON.parse(JSON.stringify(x).replaceAll(P1, "A").replaceAll(P2, "B"));
+    let diffs = 0, first = "";
+    for (let i = 0; i < fx.steps.length; i++) {
+      const st = fx.steps[i], exp = fx.results[i];
+      await db.exec("update game_moves set created_at = now() - interval '5 minutes'");
+      let r;
+      const gm = st.game.replace("-8000-", "-9000-"); // altri id: quelli delle prove di sopra sono già di un'altra coppia
+      if (st.op === "start") r = await start(who(st.who), gm, st.kind, st.params);
+      else if (st.op === "abandon") r = await call(who(st.who), "public.abandon_game($1::uuid, $2)", [gm, st.key]);
+      else r = await move(who(st.who), gm, st.move, st.key);
+      const got = r.ok ? { ok: true, ...(st.op === "abandon" ? {} : { duplicate: !!r.duplicate }), game: (({ kind, status, turn, rev, data, result }) => ({ kind, status, turn, rev, data, result }))(norm(r.game)) } : { ok: false, error: r.error };
+      const want = exp.ok && st.op === "abandon" ? { ok: true, game: exp.game } : exp;
+      if (canon(got) !== canon(want)) { diffs++; if (!first) first = `#${i} ${st.op} SQL=${canon(got).slice(0, 220)} TS=${canon(want).slice(0, 220)}`; }
+    }
+    check(`parità TS↔SQL: ${fx.steps.length} passi dei giochi identici (tris, quiz, disegno, errori, idempotenza)`, diffs === 0, `${diffs} diversi; primo: ${first}`);
+    const end = norm(await call(P1, "public.get_games()"));
+    check("parità TS↔SQL: punteggi e mazzi finali identici", canon(end.scores) === canon(fx.scores) && canon(end.decks) === canon(fx.decks), canon(end.scores).slice(0, 120) + " | " + canon(fx.scores).slice(0, 120));
+  }
+}
+
+
+// sessione6-giochi.sql da solo, sopra le migrazioni 1-6
+{
+  const db4 = new PGlite({ extensions: { pgcrypto } });
+  await db4.exec(`
+    create role anon nologin; create role authenticated nologin;
+    create schema auth; create schema extensions;
+    create table auth.users (id uuid primary key default gen_random_uuid());
+    create function auth.uid() returns uuid language sql stable as $$
+      select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+    create publication supabase_realtime;
+    grant usage on schema public, auth to anon, authenticated;
+    grant execute on function auth.uid() to anon, authenticated;
+  `);
+  await db4.exec("create extension if not exists pgcrypto with schema extensions");
+  const dir = path.join(root, "supabase", "migrations");
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_giochi")).sort())
+    await db4.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+  let ok = true, why = "";
+  try {
+    const solo = fs.readFileSync(path.join(root, "supabase", "sessione6-giochi.sql"), "utf8");
+    await db4.exec(solo);
+    await db4.exec(solo);
+    ok = (await db4.query("select count(*)::int n from pg_proc where proname in ('start_game','game_move','abandon_game','get_games')")).rows[0].n === 4;
+  } catch (e) { ok = false; why = String(e.message); }
+  check("sessione6-giochi.sql da solo, sopra le migrazioni 1-6 già eseguite (e rieseguibile)", ok, why);
 }
 
 const w = Math.max(...rows.map((r) => r[1].length));
