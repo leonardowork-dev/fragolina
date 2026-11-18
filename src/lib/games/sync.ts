@@ -56,7 +56,7 @@ export function replayGames(
     const ctx: Ctx = { uid: me, other, now: q.at };
     if (q.kind === "gameStart") {
       if (games.some((g) => g.id === q.id) || games.some((g) => g.kind === q.game && g.status === "open")) continue;
-      const last = [...games].filter((g) => g.kind === q.game).sort((a, b) => b.createdAt - a.createdAt)[0] ?? null;
+      const last = [...games].reverse().filter((g) => g.kind === q.game).sort((a, b) => b.createdAt - a.createdAt)[0] ?? null;
       const r = startGame(q.game, q.params, ctx, last);
       if (!r.ok) continue;
       games = [

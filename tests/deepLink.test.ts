@@ -189,3 +189,42 @@ describe("link del biglietto (sessione 5)", () => {
     expect(g.accept("fragolina://draw", 2000, false)).toBe(false);
   });
 });
+
+describe("link dei giochi (sessione 6)", () => {
+  it("fragolina://play e play/<gioco> si leggono in tutte le forme", () => {
+    expect(parseDeepLink("fragolina://play")).toBe("play");
+    expect(parseDeepLink("fragolina://play/")).toBe("play");
+    expect(parseDeepLink("fragolina:///PLAY?x=1")).toBe("play");
+    expect(parseDeepLink("fragolina://play/tris")).toBe("play-tris");
+    expect(parseDeepLink("fragolina://play/quiz/")).toBe("play-quiz");
+    expect(parseDeepLink("fragolina://play/draw?ref=w")).toBe("play-draw");
+    expect(parseDeepLink("fragolina://play/boh")).toBe("play"); // gioco sconosciuto: solo la scheda
+    expect(parseDeepLink("fragolina://ping/tris")).toBe("none"); // gli altri link non hanno sottopercorsi
+    expect(parseDeepLink("fragolina://play/tris/altro")).toBe("none");
+  });
+  it("percorso di sistema: la scheda Gioca", () => {
+    for (const u of ["play", "play/tris", "play/quiz", "play/draw"]) expect(systemPathFor(`fragolina://${u}`)).toBe("/play");
+  });
+  it("apre Gioca (e il gioco), collegati o no, senza mandare pensieri", () => {
+    for (const paired of [true, false])
+      for (const [link, kind] of [["play", null], ["play-tris", "tris"], ["play-quiz", "quiz"], ["play-draw", "draw"]] as const) {
+        const calls: string[] = [];
+        const out = runDeepLink(link, {
+          paired,
+          sendThought: () => (calls.push("send"), true),
+          goTo: (p) => calls.push(`go:${p}`),
+          openGame: (k) => calls.push(`game:${k}`),
+          requestMoodSheet: () => calls.push("mood"),
+          confirmPing: () => calls.push("confirm"),
+        });
+        expect(out).toBe("to-play");
+        expect(calls).toEqual(["go:/play", `game:${kind}`]);
+      }
+  });
+  it("idempotente come gli altri", () => {
+    const g = createLinkGate();
+    expect(g.accept("fragolina://play/tris", 1000, false)).toBe(true);
+    expect(g.accept("fragolina://play/tris", 2000, false)).toBe(false);
+    expect(g.accept("fragolina://play/quiz", 2100, false)).toBe(true);
+  });
+});

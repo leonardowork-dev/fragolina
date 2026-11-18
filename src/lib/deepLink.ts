@@ -7,17 +7,35 @@
  *  - fragolina://home  → apre la Home
  *  - fragolina://pet   → apre il Pet (anche se non siete collegati: il Pet spiega cosa manca)
  *  - fragolina://draw  → apre la scheda Disegna (il biglietto per il blocco)
+ *  - fragolina://play  → apre la scheda Gioca; `play/tris`, `play/quiz`, `play/draw` aprono anche quel gioco
  * Tutto il resto (o un link rotto) è `none`: l'app si apre normalmente senza fare nulla.
  */
-export type DeepLink = "ping" | "mood" | "us" | "home" | "pet" | "draw" | "none";
+export type DeepLink =
+  | "ping"
+  | "mood"
+  | "us"
+  | "home"
+  | "pet"
+  | "draw"
+  | "play"
+  | "play-tris"
+  | "play-quiz"
+  | "play-draw"
+  | "none";
 
-const RE = /^fragolina:\/\/\/?([a-z]+)\/?(?:[?#].*)?$/i;
+const RE = /^fragolina:\/\/\/?([a-z]+)(?:\/([a-z]+))?\/?(?:[?#].*)?$/i;
 
 export function parseDeepLink(url: string | null | undefined): DeepLink {
   if (!url) return "none";
   const m = RE.exec(url.trim());
   if (!m) return "none";
   const k = m[1].toLowerCase();
+  const sub = m[2]?.toLowerCase();
+  if (k === "play") {
+    if (!sub) return "play";
+    return sub === "tris" || sub === "quiz" || sub === "draw" ? (`play-${sub}` as DeepLink) : "play";
+  }
+  if (sub) return "none"; // gli altri link non hanno sottopercorsi
   return k === "ping" || k === "mood" || k === "us" || k === "home" || k === "pet" || k === "draw" ? k : "none";
 }
 
@@ -34,6 +52,11 @@ export function systemPathFor(url: string): string | null {
       return "/pet";
     case "draw":
       return "/draw";
+    case "play":
+    case "play-tris":
+    case "play-quiz":
+    case "play-draw":
+      return "/play";
     case "ping":
     case "mood":
     case "home":
@@ -47,13 +70,23 @@ export type LinkDeps = {
   paired: boolean;
   /** Manda il pensiero; false se non è stato possibile (non collegati). */
   sendThought: () => boolean;
-  goTo: (path: "/" | "/us" | "/pet" | "/draw") => void;
+  goTo: (path: "/" | "/us" | "/pet" | "/draw" | "/play") => void;
+  /** Chiede alla scheda Gioca di aprire subito quel gioco (`null` = solo la scheda). */
+  openGame?: (kind: "tris" | "quiz" | "draw" | null) => void;
   requestMoodSheet: () => void;
   /** Conferma visiva + aptica dopo un pensiero partito. */
   confirmPing: () => void;
 };
 
-export type LinkOutcome = "sent" | "mood" | "to-us" | "to-home" | "to-pet" | "to-draw" | "ignored";
+export type LinkOutcome =
+  | "sent"
+  | "mood"
+  | "to-us"
+  | "to-home"
+  | "to-pet"
+  | "to-draw"
+  | "to-play"
+  | "ignored";
 
 /** Esegue il link. Chiamarla UNA volta per link (l'idempotenza è in `createLinkGate`). */
 export function runDeepLink(link: DeepLink, d: LinkDeps): LinkOutcome {
@@ -87,6 +120,13 @@ export function runDeepLink(link: DeepLink, d: LinkDeps): LinkOutcome {
     case "draw":
       d.goTo("/draw");
       return "to-draw";
+    case "play":
+    case "play-tris":
+    case "play-quiz":
+    case "play-draw":
+      d.goTo("/play");
+      d.openGame?.(link === "play" ? null : (link.slice(5) as "tris" | "quiz" | "draw"));
+      return "to-play";
     default:
       return "ignored";
   }

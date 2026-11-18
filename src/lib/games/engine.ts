@@ -50,7 +50,8 @@ export function dbStart(
   if (dup) return { ok: true, duplicate: true, game: dup };
   const open = db.games.find((g) => g.kind === kind && g.status === "open");
   if (open) return { ok: false, error: "game_open", game: open };
-  const last = [...db.games].filter((g) => g.kind === kind).sort((a, b) => b.createdAt - a.createdAt)[0] ?? null;
+  // a parità di istante vale l'ultima inserita (reverse + sort stabile)
+  const last = [...db.games].reverse().filter((g) => g.kind === kind).sort((a, b) => b.createdAt - a.createdAt)[0] ?? null;
   const r = startGame(kind, params, { uid, other: otherOf(users, uid), now }, last);
   if (!r.ok) return r;
   const game: GameRow = {

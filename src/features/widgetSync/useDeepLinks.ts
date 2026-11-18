@@ -41,8 +41,17 @@ export function useDeepLinks() {
         sendThought: () => useCouple.getState().sendThought(),
         goTo: (path) =>
           router.navigate(
-            path === "/" ? "/(tabs)" : path === "/pet" ? "/(tabs)/pet" : path === "/draw" ? "/(tabs)/draw" : "/(tabs)/us",
+            path === "/"
+              ? "/(tabs)"
+              : path === "/pet"
+                ? "/(tabs)/pet"
+                : path === "/draw"
+                  ? "/(tabs)/draw"
+                  : path === "/play"
+                    ? "/(tabs)/play"
+                    : "/(tabs)/us",
           ),
+        openGame: (kind) => useIntents.getState().requestGame(kind),
         requestMoodSheet: () => useIntents.getState().requestMoodSheet(),
         confirmPing: () => {
           const now = useCouple.getState();
