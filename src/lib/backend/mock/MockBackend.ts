@@ -1,4 +1,6 @@
 import type { MoodId } from "@/features/home/moods";
+import { isGameReject } from "@/lib/games/errors";
+import type { GameKind, GameMove, GameParams, GameRow, GamesSnapshot } from "@/lib/games/types";
 import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
 import type { Board } from "@/lib/note/wire";
 import type { PetState } from "@/lib/pet/rules";
@@ -133,6 +135,7 @@ export class MockBackend implements Backend {
   }
   private ok<T extends object>(r: Res<T>): T {
     if (r.ok) return r as T;
+    if (isGameReject(r.error)) throw new BackendError("game_rejected", r.error);
     const known: BackendErrorKind[] = [
       "rate_limited",
       "invalid_code",
@@ -212,6 +215,18 @@ export class MockBackend implements Backend {
     return this.wire(() => this.ok(this.server.setPetName(this.uid, name, at, key)).pet);
   }
 
+  getGames(): Promise<GamesSnapshot | null> {
+    return this.wire(() => this.ok(this.server.getGames(this.uid)).snapshot);
+  }
+  startGame(a: { id: string; kind: GameKind; params: GameParams }): Promise<GameRow> {
+    return this.wire(() => this.ok(this.server.startGame(this.uid, a)).game);
+  }
+  gameMove(a: { gameId: string; move: GameMove; key: string }): Promise<GameRow> {
+    return this.wire(() => this.ok(this.server.gameMove(this.uid, a)).game);
+  }
+  abandonGame(a: { gameId: string; key: string }): Promise<GameRow> {
+    return this.wire(() => this.ok(this.server.abandonGame(this.uid, a)).game);
+  }
   getBoard(): Promise<Board | null> {
     return this.wire(() => this.ok(this.server.getBoard(this.uid)).board);
   }

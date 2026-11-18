@@ -902,7 +902,7 @@ check(
   check("disegna: tentativo sbagliato: resta aperta, la parola resta segreta", gu1.ok && gu1.game.status === "open" && gu1.game.data.word === null && gu1.game.data.guesses.length === 1 && !JSON.stringify(gu1).includes("Gatto"));
   const gu2 = await move(G2, gid(20), { type: "guess", text: "  I GATTI! " }, k("d6"));
   check("disegna: «I GATTI!» vale (maiuscole, articolo, plurale): vinta, la parola si rivela", gu2.ok && gu2.game.status === "done" && gu2.game.data.word === "Gatto" && gu2.game.result.solved === true, JSON.stringify(gu2).slice(0, 220));
-  check("disegna: si alterna: ora può aprire solo G2", (await start(G1, gid(21), "draw", { word: "sole" })).error === "not_your_turn" && (await start(G2, gid(21), "draw", { word: "sole", wordId: 5 })).ok === true);
+  check("disegna: chi apre disegna (anche G1 di nuovo); una sola aperta", (await start(G1, gid(21), "draw", { word: "sole", wordId: 5 })).ok === true && (await start(G2, gid(22), "draw", { word: "luna" })).error === "game_open");
   const dk = await call(G1, "public.get_games()");
   check("giochi: i mazzi ricordano cosa è uscito (quiz 5 domande, parole 12 e 5)", JSON.stringify(dk.decks.quiz) === "[3,7,11,20,42]" && JSON.stringify(dk.decks.draw) === "[5,12]", JSON.stringify(dk.decks));
   const ab = await call(G2, "public.abandon_game($1::uuid, $2)", [gid(21), "abbandono-x"]);

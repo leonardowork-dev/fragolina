@@ -1,3 +1,5 @@
+import { type GamesDb, dbAbandon, dbMove, dbSnapshot, dbStart, emptyGamesDb } from "@/lib/games/engine";
+import type { GameKind, GameMove, GameParams, GameRow, GamesSnapshot } from "@/lib/games/types";
 import { uuid } from "@/lib/uuid";
 import type { MoodId } from "@/features/home/moods";
 import { MOOD_IDS } from "@/features/home/moods";
@@ -65,6 +67,8 @@ export type MockState = {
   }[];
   locations?: Record<string, { coupleId: string; sharing: boolean; latE2: number | null; lonE2: number | null; at: number }>;
   widgetTokens?: Record<string, string>;
+  /** Giochi (sessione 6): una "base dati" per coppia (le stesse funzioni pure del telefono e della prova SQL). */
+  games?: Record<string, GamesDb>;
 };
 
 export type MockStorage = { read(): MockState; write(s: MockState): void };
@@ -86,6 +90,7 @@ export const emptyMockState = (): MockState => ({
   notes: [],
   locations: {},
   widgetTokens: {},
+  games: {},
 });
 
 export const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -432,6 +437,64 @@ export class MockServer {
       if (l.userId === uid && l.kind !== "hatch" && l.kind !== "name")
         myLast[l.kind] = Math.max(myLast[l.kind] ?? 0, l.at);
     return { ok: true, snapshot: { state: s.pets?.[cid] ?? null, log, myLast } };
+  }
+
+  // ---------- giochi (specchio di start_game / game_move / abandon_game / get_games) ----------
+  private gameCtx(s: MockState, uid: string): { cid: string; users: [string, string] } | { error: string } {
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { error: "not_paired" };
+    const users = s.members.filter((m) => m.coupleId === cid).map((m) => m.userId);
+    if (users.length < 2) return { error: "no_partner" };
+    return { cid, users: [users[0], users[1]] };
+  }
+  private gameEvent(cid: string, uid: string, game: GameRow) {
+    this.emit({ coupleId: cid, actor: uid, event: { type: "game", game } });
+  }
+
+  getGames(uid: string): Res<{ snapshot: GamesSnapshot }> {
+    const s = this.storage.read();
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { ok: false, error: "not_paired" };
+    return { ok: true, snapshot: dbSnapshot(s.games?.[cid] ?? emptyGamesDb(), uid) };
+  }
+  startGame(uid: string, a: { id: string; kind: GameKind; params: GameParams }): Res<{ game: GameRow }> {
+    const s = this.storage.read();
+    const c = this.gameCtx(s, uid);
+    if ("error" in c) return { ok: false, error: c.error };
+    if (!["tris", "quiz", "draw"].includes(a.kind) || !a.id) return { ok: false, error: "invalid_action" };
+    s.games ??= {};
+    const db = (s.games[c.cid] ??= emptyGamesDb());
+    const r = dbStart(db, c.users, uid, a.id, a.kind, a.params ?? {}, this.clock());
+    if (!r.ok) return { ok: false, error: r.error };
+    this.storage.write(s);
+    if (!r.duplicate) this.gameEvent(c.cid, uid, r.game);
+    return { ok: true, game: r.game };
+  }
+  gameMove(uid: string, a: { gameId: string; move: GameMove; key: string }): Res<{ game: GameRow }> {
+    const s = this.storage.read();
+    const c = this.gameCtx(s, uid);
+    if ("error" in c) return { ok: false, error: c.error };
+    if (!a.key || a.key.length < 8 || a.key.length > 64) return { ok: false, error: "invalid_action" };
+    s.games ??= {};
+    const db = (s.games[c.cid] ??= emptyGamesDb());
+    const r = dbMove(db, c.users, uid, a.gameId, a.move, a.key, this.clock());
+    if (!r.ok) return { ok: false, error: r.error };
+    this.storage.write(s);
+    if (!r.duplicate) this.gameEvent(c.cid, uid, r.game);
+    return { ok: true, game: r.game };
+  }
+  abandonGame(uid: string, a: { gameId: string; key: string }): Res<{ game: GameRow }> {
+    const s = this.storage.read();
+    const c = this.gameCtx(s, uid);
+    if ("error" in c) return { ok: false, error: c.error };
+    s.games ??= {};
+    const db = (s.games[c.cid] ??= emptyGamesDb());
+    const before = db.games.find((g) => g.id === a.gameId)?.status;
+    const r = dbAbandon(db, c.users, uid, a.gameId, this.clock());
+    if (!r.ok) return { ok: false, error: r.error };
+    this.storage.write(s);
+    if (before === "open") this.gameEvent(c.cid, uid, r.game);
+    return { ok: true, game: r.game };
   }
 
   // ---------- biglietti, distanza, token (specchio di send_note / clear_note / get_board / set_location…) ----------

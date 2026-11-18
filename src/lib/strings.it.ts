@@ -137,6 +137,7 @@ export const S = {
       invalid_content: "Questo biglietto è troppo grande. Semplifica un po'.",
       not_sharing: "Prima attiva la condivisione della distanza.",
       invalid_location: "Posizione non valida.",
+      game_rejected: "Questa mossa non andava più bene. Riprova.",
       unknown: "Qualcosa non ha funzionato. Riprova.",
     },
   },

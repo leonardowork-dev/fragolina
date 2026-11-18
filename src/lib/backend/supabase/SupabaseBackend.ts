@@ -2,6 +2,9 @@ import { type RealtimeChannel, type SupabaseClient, createClient } from "@supaba
 import { Platform } from "react-native";
 
 import type { MoodId } from "@/features/home/moods";
+import { isGameReject } from "@/lib/games/errors";
+import type { GameKind, GameMove, GameParams, GameRow } from "@/lib/games/types";
+import { gameFromJson, gameFromRecord, gamesSnapshotFromJson } from "@/lib/games/wire";
 import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
 import { boardFromJson, noteFromJson, noteRowFromRecord } from "@/lib/note/wire";
 import { petFromRow, petSnapshotFromJson } from "@/lib/pet/wire";
@@ -55,6 +58,7 @@ type AnyErr =
 /** Traduce gli errori di Supabase nei nostri: rete (si riprova), sessione, regole del database. */
 export function classify(err: AnyErr, status?: number): BackendError {
   const msg = String(err?.message ?? "");
+  if (isGameReject(msg)) return new BackendError("game_rejected", msg);
   if (KNOWN.includes(msg as BackendErrorKind))
     return new BackendError(msg as BackendErrorKind, msg);
   if (/rate_limited|too many/i.test(msg) || status === 429 || err?.status === 429)
@@ -328,6 +332,30 @@ export class SupabaseBackend implements Backend {
     const d = await this.rpc<{ note?: unknown }>("clear_note", { p_id: id });
     return noteFromJson(d.note);
   }
+  async getGames() {
+    try {
+      const d = await this.rpc<Record<string, unknown>>("get_games");
+      return gamesSnapshotFromJson(d);
+    } catch (e) {
+      // Migrazione dei giochi non ancora eseguita sul server: la funzione non esiste. Non è un errore dell'app.
+      if (e instanceof BackendError && /get_games|PGRST202|Could not find|does not exist/i.test(e.message)) return null;
+      throw e;
+    }
+  }
+  private gameOf(d: { game?: unknown }): GameRow {
+    const g = gameFromJson(d.game);
+    if (!g) throw new BackendError("unknown", "risposta senza partita");
+    return g;
+  }
+  async startGame(a: { id: string; kind: GameKind; params: GameParams }): Promise<GameRow> {
+    return this.gameOf(await this.rpc<{ game?: unknown }>("start_game", { p_id: a.id, p_kind: a.kind, p_params: a.params }));
+  }
+  async gameMove(a: { gameId: string; move: GameMove; key: string }): Promise<GameRow> {
+    return this.gameOf(await this.rpc<{ game?: unknown }>("game_move", { p_game: a.gameId, p_move: a.move, p_client_key: a.key }));
+  }
+  async abandonGame(a: { gameId: string; key: string }): Promise<GameRow> {
+    return this.gameOf(await this.rpc<{ game?: unknown }>("abandon_game", { p_game: a.gameId, p_client_key: a.key }));
+  }
   async setLocationSharing(on: boolean) {
     await this.rpc("set_location_sharing", { p_on: on });
   }
@@ -444,16 +472,29 @@ export class SupabaseBackend implements Backend {
         h.onEvent({ type: "location" }),
       )
       .subscribe();
+    // Altro canale a parte: i giochi (solo lo stato pubblico di `games`; i segreti non passano mai di qui).
+    let gameCh: RealtimeChannel | null = this.client.channel(
+      `games-${coupleId}-${Math.random().toString(36).slice(2, 8)}`,
+    );
+    gameCh
+      .on("postgres_changes", { event: "*", schema: s, table: "games", filter: f }, (p: P) => {
+        const game = gameFromRecord(p.new);
+        if (game) h.onEvent({ type: "game", game });
+      })
+      .subscribe();
     return () => {
       const c = ch;
       const pc = petCh;
       const bc = boardCh;
+      const gc = gameCh;
+      gameCh = null;
       ch = null;
       petCh = null;
       boardCh = null;
       if (c) void this.client.removeChannel(c);
       if (pc) void this.client.removeChannel(pc);
       if (bc) void this.client.removeChannel(bc);
+      if (gc) void this.client.removeChannel(gc);
     };
   }
 }

@@ -81,10 +81,10 @@ export function startGame(
       secrets: { qs: {} },
     };
   }
-  // draw: chi apre la partita è chi disegna (solo lui conosce la parola); si alterna.
+  // draw: chi apre la partita è chi disegna (solo lui conosce la parola). Non si impone l'alternanza: se uno dei due
+  // non apre mai, l'altro non deve restare bloccato (la scheda suggerisce solo "stavolta tocca a lei").
   const word = (params.word ?? "").trim();
   if (word.length < 2 || [...word].length > GUESS_MAX) return err("invalid_game");
-  if (last && (last.data as DrawData).drawer === ctx.uid) return err("not_your_turn");
   return {
     ok: true,
     turn: ctx.uid,

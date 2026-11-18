@@ -272,7 +272,6 @@ begin
   else
     word := btrim(coalesce(p_params->>'word', ''));
     if char_length(word) < 2 or char_length(word) > 40 then return jsonb_build_object('ok', false, 'error', 'invalid_game'); end if;
-    if last.id is not null and (last.data->>'drawer')::uuid = uid then return jsonb_build_object('ok', false, 'error', 'not_your_turn'); end if;
     d := jsonb_build_object('drawer', uid, 'guesser', other, 'phase', 'drawing', 'drawing', null, 'guesses', '[]'::jsonb, 'word', null);
     turn := uid;
   end if;

@@ -1,4 +1,5 @@
 import type { MoodId } from "@/features/home/moods";
+import type { GameKind, GameMove, GameParams, GameRow } from "@/lib/games/types";
 import type { NoteContent, NoteKind, NoteRow } from "@/lib/note/rules";
 import type { FoodId, PetKind, PetState } from "@/lib/pet/rules";
 
@@ -58,7 +59,9 @@ export type RemoteEvent =
   /** Un biglietto è nato o è stato pulito (riga della tabella notes). */
   | { type: "note"; note: NoteRow }
   /** La posizione di qualcuno è cambiata: il telefono rilegge la lavagna (get_board). */
-  | { type: "location" };
+  | { type: "location" }
+  /** Una partita è cambiata (riga di `games`: stato PUBBLICO, mai i segreti). */
+  | { type: "game"; game: GameRow };
 
 export type RemoteInput =
   | { kind: "snapshot"; state: RemoteState; day: string }
@@ -105,7 +108,11 @@ export type QueuedOp =
   | { key: string; kind: "petName"; at: number; attempts: number; name: string }
   | { key: string; kind: "note"; at: number; attempts: number; noteKind: NoteKind; content: NoteContent }
   /** `id` = biglietto da pulire (`local-<chiave>` se è ancora in coda: allora si pulisce l'ultimo). */
-  | { key: string; kind: "noteClear"; at: number; attempts: number; id: string };
+  | { key: string; kind: "noteClear"; at: number; attempts: number; id: string }
+  /** Giochi (sessione 6). `id` = id della partita (deciso dal telefono, quindi idempotente). */
+  | { key: string; kind: "gameStart"; at: number; attempts: number; id: string; game: GameKind; params: GameParams }
+  | { key: string; kind: "gameMove"; at: number; attempts: number; gameId: string; move: GameMove }
+  | { key: string; kind: "gameAbandon"; at: number; attempts: number; gameId: string };
 
 export type BackendErrorKind =
   | "network" // nessuna rete / timeout: si riprova
@@ -126,6 +133,8 @@ export type BackendErrorKind =
   | "invalid_content" // il biglietto non rispetta i limiti
   | "not_sharing"
   | "invalid_location"
+  /** Il server ha rifiutato una mossa dei giochi: il messaggio è il codice (`not_your_turn`, `cell_taken`…). */
+  | "game_rejected"
   | "unknown";
 
 export class BackendError extends Error {

@@ -235,12 +235,12 @@ describe("disegna e indovina", () => {
     expect(db.scores.draw?.[A]?.wins ?? 0).toBe(0);
     expect(db.scores.draw?.[A]?.played).toBe(1);
   });
-  it("si alterna chi disegna: dopo A tocca a B; A non può riaprire", () => {
+  it("chi apre disegna (anche due volte di fila: nessun blocco se l'altro non apre); una sola aperta", () => {
     const db = start();
     dbAbandon(db, U, A, gid(1), t++);
-    expect(dbStart(db, U, A, gid(2), "draw", { word: "sole" }, t++)).toMatchObject({ ok: false, error: "not_your_turn" });
-    expect(dbStart(db, U, B, gid(2), "draw", { word: "sole" }, t++).ok).toBe(true);
-    expect(dbStart(db, U, A, gid(3), "draw", { word: "x" }, t++)).toMatchObject({ ok: false });
+    expect(dbStart(db, U, A, gid(2), "draw", { word: "sole" }, t++).ok).toBe(true);
+    expect(dbStart(db, U, B, gid(3), "draw", { word: "luna" }, t++)).toMatchObject({ ok: false, error: "game_open" });
+    expect(dbStart(db, U, A, gid(4), "draw", { word: "x" }, t++)).toMatchObject({ ok: false });
   });
   it("abbandona: la partita si chiude, nessun punteggio", () => {
     const db = start();

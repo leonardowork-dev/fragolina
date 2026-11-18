@@ -1,4 +1,5 @@
 import type { MoodId } from "@/features/home/moods";
+import type { GameKind, GameMove, GameParams, GameRow, GamesSnapshot } from "@/lib/games/types";
 import type { Board } from "@/lib/note/wire";
 import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
 import type { FoodId, PetKind, PetState } from "@/lib/pet/rules";
@@ -72,6 +73,16 @@ export interface Backend {
   sendNote(a: { kind: NoteKind; content: NoteContent; key: string; at: number }): Promise<Note>;
   /** Pulisce per entrambi. `id = null` = l'ultimo. Restituisce il biglietto pulito (o null se non c'era). */
   clearNote(id: string | null): Promise<Note | null>;
+  /**
+   * I mini giochi (sessione 6): partite aperte + l'ultima chiusa + album, punteggi, mazzi e i MIEI segreti.
+   * `null` = il server non ha la migrazione dei giochi: l'app resta usabile e la scheda Gioca dice che manca un passo.
+   */
+  getGames(): Promise<GamesSnapshot | null>;
+  /** Idempotente per `id` (id della partita, deciso dal telefono). Un rifiuto è `BackendError("game_rejected", codice)`. */
+  startGame(a: { id: string; kind: GameKind; params: GameParams }): Promise<GameRow>;
+  /** Idempotente per `key`. Il server valida turno, casella, fase; un rifiuto è `BackendError("game_rejected", codice)`. */
+  gameMove(a: { gameId: string; move: GameMove; key: string }): Promise<GameRow>;
+  abandonGame(a: { gameId: string; key: string }): Promise<GameRow>;
   setLocationSharing(on: boolean): Promise<void>;
   /** Posizione GIÀ arrotondata (centesimi di grado). */
   setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void>;

@@ -204,6 +204,7 @@ export function applyEvent(
     case "pet":
     case "note":
     case "location":
+    case "game":
       return base; // li gestisce lo store (fette del pet e della lavagna), non lo stato condiviso base
     case "member-renamed": {
       const members = base.members.map((m) =>
@@ -240,6 +241,9 @@ export function rollbackOp(s: SyncedState, op: QueuedOp): SyncedState {
     case "petName":
     case "note":
     case "noteClear":
+    case "gameStart":
+    case "gameMove":
+    case "gameAbandon":
       return s; // il pet che si vede è "server + coda": togliere l'operazione dalla coda basta
   }
 }
