@@ -387,7 +387,7 @@ export const S = {
     },
     loading: "Preparo i giochi…",
     offline: "Senza rete: le tue mosse partono appena torna.",
-    pending: "in coda",
+    pending: "In coda: parte appena torna la rete.",
     mine: "Tocca a te",
     theirs: (n: string) => `Tocca a ${n}`,
     theirsAgo: (_n: string, ago: string) => `Hai giocato ${ago}`,

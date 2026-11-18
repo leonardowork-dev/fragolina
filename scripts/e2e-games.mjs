@@ -170,7 +170,7 @@ try {
   await B.getByLabel("riga 2, colonna 2, vuota").first().waitFor({ timeout: 10000 });
   await B.getByLabel("riga 2, colonna 2, vuota").first().click();
   await settle(B, 700);
-  check("Offline: la mossa di B si vede subito e dice 'in coda'", (await B.getByLabel("riga 2, colonna 2, fiore").count()) + (await B.getByLabel("riga 2, colonna 2, fragola").count()) > 0 && (await seen(B, /in coda/, 4000)));
+  check("Offline: la mossa di B si vede subito e dice 'in coda'", (await B.getByLabel("riga 2, colonna 2, fiore").count()) + (await B.getByLabel("riga 2, colonna 2, fragola").count()) > 0 && (await seen(B, /In coda/, 4000)));
   await shot(B, "B", "tris-offline-in-coda");
   check("Offline: A non vede ancora la mossa", (await A.getByLabel("riga 2, colonna 2, vuota").count()) > 0);
   await offline(B, false);

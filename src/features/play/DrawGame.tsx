@@ -125,7 +125,8 @@ function GuesserTurn({ source, game, d }: { source: GamesSource; game: GameRow; 
   const { width } = useWindowDimensions();
   const [text, setText] = useState("");
   const [replay, setReplay] = useState(0);
-  const size = Math.min(width - PAGE_MARGIN * 2 - 6, 480);
+  // più piccola della tela di chi disegna: il campo della risposta deve stare sotto, senza scorrere
+  const size = Math.min(width - PAGE_MARGIN * 2 - 6, 330);
   const attempts = d.guesses.length;
   const last = d.guesses[attempts - 1];
   const blocked = !!game.pending;

@@ -210,7 +210,7 @@ export function QuizGame({ source, onBack }: { source: GamesSource; onBack: () =
             })}
           </View>
 
-          {game.pending ? <Text variant="caption">{S.play.pending}</Text> : null}
+          {game.pending && source.offline ? <Text variant="caption">{S.play.pending}</Text> : null}
 
           {game.status !== "open" ? (
             <Button label={S.play.next} onPress={() => source.start("quiz")} haptic="medium" />

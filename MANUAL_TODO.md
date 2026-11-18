@@ -242,3 +242,47 @@ Se non va: scrivi a Claude **cosa vedi** (testo esatto) e **quanto tempo è pass
 - [ ] **Distanza** (quando ci sarà Nikole): "a 342 km" / "vicinissimi" / "aggiornata 3 h fa"; se uno spegne: "Distanza nascosta".
 - [ ] I widget di prima (umore, Penso a te, Giorni, Pet, blocco) funzionano ancora.
 - [ ] Il widget **Giorni insieme** (già esistente) sta bene accanto ai nuovi (stessa grafica, stessi margini).
+
+## Sessione 6 — Mini giochi a due (passo-passo, in ordine)
+
+### S6-1. Accendi i giochi sul database (una volta sola, 3 minuti)
+Servono alcune tabelle nuove su Supabase (partite, mosse, segreti, punteggi). Senza questo passo l'app funziona lo stesso, ma la scheda **Gioca** dice "Manca un passo" (la **Prova con la Fragolina** funziona comunque: è tutta sul telefono).
+1. Sul PC apri il browser e vai su **https://supabase.com/dashboard** (accedi se serve). Clicca il tuo progetto (quello di Fragolina).
+2. Nella colonna a sinistra clicca **SQL Editor** (l'icona con `>_`).
+3. Clicca **New query** (in alto a sinistra).
+4. Apri il file **`supabase\sessione6-giochi.sql`** del progetto (Esplora file → cartella `fragolina` → `supabase`; si apre con il Blocco note). Premi **Ctrl+A** (seleziona tutto) e **Ctrl+C** (copia).
+   *Se il file non lo trovi da Windows:* `\\wsl$\Ubuntu\home\leonardo\fragolina\supabase\sessione6-giochi.sql`.
+5. Torna sul sito Supabase, clicca dentro la grande casella di testo e premi **Ctrl+V** (incolla).
+6. Clicca il bottone verde **Run** (in basso a destra, oppure **Ctrl+Invio**).
+   *Se compare un avviso giallo "potential issue / destructive operations":* è normale. Clicca **Run this query**.
+7. **Devi vedere** in basso **Success. No rows returned** (verde). Se vedi un errore rosso, copia il testo e mandalo a Claude. Il file **non tocca** nulla di ciò che c'è già (umori, pensieri, pet, biglietti). Si può rilanciare quante volte vuoi. (Le migrazioni delle sessioni 4 e 5 devono essere già state incollate.)
+8. Controllo: apri il Terminale Ubuntu (Start → scrivi **Ubuntu** → Invio), scrivi `cd ~/fragolina && npm run backend:check` e premi **Invio**.
+   **Devi vedere:** tante righe **PASS** (anche quelle che iniziano con "tris", "quiz", "disegna", "giochi") e alla fine `… prove passate` **senza** la riga `MANCA`. Se c'è ancora **MANCA** ("Giochi: la migrazione della sessione 6 NON è ancora stata eseguita"), il passo 6 non è andato a buon fine. Se vedi qualche **FAIL** con `ConnectTimeoutError` è la rete: rilancia.
+   *(Il controllo crea due "telefoni finti" sul tuo progetto, gioca una partita per ogni gioco e poi cancella tutto: non resta niente.)*
+
+### S6-2. Installa la nuova app sul tuo iPhone (Sideloadly)
+1. Collega l'iPhone al PC col cavo, sbloccalo (se chiede "Registra questo computer" tocca **Registra**).
+2. Apri **Sideloadly** e trascina dentro **`Fragolina-release.ipa`** (cartella **Desktop → Fragolina-build**; il Desktop è su OneDrive: `OneDrive\Desktop\Fragolina-build`).
+3. Nella casella **Apple ID** scrivi lo **stesso Apple ID** dell'altra volta.
+4. **Advanced Options → "Remove extensions" deve restare SPENTO.**
+5. Clicca **Start**, scrivi la password (e il codice a 6 cifre se lo chiede). **Devi vedere** **Done.** È un'installazione "sopra": i tuoi dati restano. (Scade dopo 7 giorni, come sempre.)
+
+### S6-3. Provali da solo, uno per uno (Nikole non c'è ancora)
+Apri l'app → scheda **Gioca** (l'icona del dado). Se non siete collegati in due vedi **Si gioca in due** e, sotto, il riquadro giallo **PROVA · Prova con la Fragolina**: toccalo. (Se siete già in due, la prova è il link piccolo rosso in fondo: **Prova da solo con la Fragolina**.) In alto compare sempre l'avviso **PROVA: gioca la Fragolina, non Nikole. Niente va sul server.** Niente di ciò che fai in prova arriva a Nikole, non occupa il suo posto e non tocca il pet.
+- **Tris della fragola:** tocca il riquadro grande → **Inizia**. Tu sei la fragola o il fiore (c'è scritto). Tocca una casella: la pedina "si attacca" con una vibrazione leggera. La Fragolina risponde dopo un secondo e **a volte sbaglia apposta**. Se vinci: linea gialla e coriandoli. **Rivincita**: chi inizia si alterna.
+- **Quanto mi conosci?:** **Inizia** → 5 domande. Quando tocca a te rispondere "su di te" scegli un'opzione; quando devi indovinare scegli come pensi abbia risposto la Fragolina (che risponde a caso). Le carte in alto si girano quando entrambi hanno risposto. Alla fine: "4/5, vi conoscete!".
+- **Disegna e indovina:** **Inizia**. **La prima volta disegna la Fragolina** (un disegno preregistrato: sole, luna, cuore, casa, fiore, albero, stella, pesce): lo vedi ridisegnarsi tratto per tratto; scrivi cosa pensi che sia (3 tentativi; maiuscole, accenti e plurali semplici vanno bene). **La volta dopo tocca a te:** ti dà una parola, tocchi **Via! 60 secondi**, disegni col dito, **Manda il disegno**; la Fragolina prova a indovinare (a volte sbaglia). I disegni finiti restano nell'**Album**.
+- **Lascia la partita** (in fondo a ogni gioco) chiude la partita; **Ricomincia da zero** (in fondo alla schermata Gioca, in prova) azzera la prova.
+
+### S6-4. Quando arriva Nikole (sessione 9) — cosa cambia
+Appena siete in due, in **Gioca** compaiono le partite vere: la partita in cui **tocca a te** è il riquadro grande; sotto gli altri due giochi e lo sticker con i punteggi ("Leonardo 7 – Nikole 9"). Se Nikole muove mentre sei nell'app arriva un avviso in alto; in Home compare "Tocca a te a Tris della fragola" solo se c'è un turno in sospeso. Link: `fragolina://play`, `fragolina://play/tris`, `…/quiz`, `…/draw`.
+
+### S6-5. Cosa guardare sul telefono (checklist: scrivi a Claude cosa non va)
+- [ ] **Gioca:** un riquadro grande in alto, due riquadri diversi sotto, uno sticker con i punteggi. Il testo non è tagliato.
+- [ ] **Tris:** la pedina si "attacca" con una piccola vibrazione; la linea vincente si vede; i coriandoli compaiono **solo** quando vinci.
+- [ ] **Quiz:** i bottoni delle risposte sono comodi (si toccano bene col pollice); le carte si girano.
+- [ ] **Disegna e indovina:** il disegno col dito non fa scorrere la pagina; il conto alla rovescia 60 s parte con **Via!**; il disegno della Fragolina si ridisegna tratto per tratto; la tastiera non copre il campo della risposta.
+- [ ] **Meno movimento** (Impostazioni → Accessibilità → Movimento ridotto): niente rimbalzi, il disegno compare intero.
+- [ ] **Senza rete** (modalità aereo): in prova funziona lo stesso (è tutta locale).
+- [ ] Le vibrazioni: una per azione (casella, risposta, invio).
+- [ ] Biglietto, distanza, pet e widget di prima funzionano ancora.

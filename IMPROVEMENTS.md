@@ -37,3 +37,14 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - Widget: AppIntent/widget interattivi quando il telefono sarà iOS 17+ (disegno veloce dal widget).
 - Notifiche vere (APNs) se un giorno si paga l'account developer: il biglietto arriverebbe subito.
 - Prova automatica del feed dal widget con un finto server locale (il Swift di rete non gira su Linux senza FoundationNetworking: serve un test a parte).
+
+## Idee dalla sessione 6 (mini giochi)
+- **Più giochi:** Memory a coppie con le vostre foto, "Più o meno" (stima di numeri), "Cosa preferisci?" a due scelte secche, impiccato a due. La struttura (`reducer.ts` + `engine.ts` + SQL) li regge: un gioco nuovo = un ramo in `applyMove`/`_game_apply`, un `kind` nel check delle tabelle, una schermata.
+- **Mazzi tuoi:** domande del quiz e parole scritte da voi due (si aggiungono in fondo senza riordinare), con le "domande che non avete mai fatto".
+- **Quiz a tema stagionale** (Natale, estate) e una carta "domanda libera" in cui scrivi la domanda per lei.
+- **Premio più ricco:** un adesivo da collezionare ogni 5 partite finite (senza contatori di serie perse: mai colpa).
+- **Scadenza gentile delle partite ferme** (es. dopo 14 giorni "questa partita dorme: la chiudiamo?").
+- **Rivedere un disegno dell'album a schermo intero** con la riproduzione tratto per tratto, e "Mandalo sul blocco" come biglietto con un tocco.
+- **Disegni della Fragolina in più** (oggi 8) e un livello "difficile" per l'IA del Tris (minimax).
+- **Notifiche push** (se mai fosse possibile a costo zero con sideload): "tocca a te a Tris".
+- **Prova da solo con due telefoni finti:** una modalità di sviluppo con due identità sullo stesso telefono per provare tutto senza Nikole.

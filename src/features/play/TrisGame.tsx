@@ -200,7 +200,7 @@ export function TrisGame({ source, onBack }: { source: GamesSource; onBack: () =
               </View>
             ) : null}
             {thinking ? <Text variant="caption">{`${S.play.practice.name} ${S.play.practice.thinking}`}</Text> : null}
-            {game.pending ? <Text variant="caption">{S.play.pending}</Text> : null}
+            {game.pending && source.offline ? <Text variant="caption">{S.play.pending}</Text> : null}
           </View>
 
           {game.status !== "open" ? (
