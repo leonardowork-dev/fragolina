@@ -183,6 +183,42 @@ describe("giochi: store a due telefoni", () => {
     expect(done.result).toMatchObject({ solved: true, word });
   });
 
+  it("se eri offline e l'altra persona ha mosso, al ritorno l'avviso arriva dalla rilettura (una volta sola)", async () => {
+    const { A, B } = await paired();
+    A.store.getState().startGame("tris");
+    await settle();
+    const x = (game(A, "tris")!.data as TrisData).x;
+    const first = x === "ua" ? A : B;
+    const second = first === A ? B : A;
+    second.backend.setOffline(true);
+    await settle(30);
+    const before = second.store.getState().gameIncomingSeq;
+    first.store.getState().gameMove(game(first, "tris")!.id, { type: "place", cell: 4 });
+    await settle(20);
+    expect(second.store.getState().gameIncomingSeq).toBe(before); // niente evento: era offline
+    second.backend.setOffline(false);
+    await second.engine.resync();
+    await settle(20);
+    expect(second.store.getState().gameIncomingSeq).toBe(before + 1);
+    expect(second.store.getState().gameIncoming).toMatchObject({ change: { type: "your-turn" } });
+    await second.engine.resync();
+    expect(second.store.getState().gameIncomingSeq).toBe(before + 1); // già dato: non si ripete
+  });
+  it("mosse in coda mentre se ne sta spedendo un'altra partono tutte, senza aspettare il sondaggio", async () => {
+    const { A, B } = await paired();
+    A.store.getState().startGame("quiz");
+    await settle();
+    const q = game(A, "quiz")!;
+    const d = q.data as QuizData;
+    const me = A.uid;
+    const mine = d.subjects.map((s, i) => (s === me ? { i, role: "s" } : { i, role: "g" }));
+    expect(mine).toHaveLength(5);
+    for (const m of mine) A.store.getState().gameMove(q.id, { type: "answer", q: m.i, idx: 0 });
+    await settle(40);
+    expect(A.store.getState().queue).toHaveLength(0);
+    const bd = game(B, "quiz")!.data as QuizData;
+    expect(bd.answered.every((a, i) => a[d.subjects[i] === me ? "s" : "g"])).toBe(true);
+  });
   it("abbandonare chiude per entrambi e si può ricominciare", async () => {
     const { A, B } = await paired();
     A.store.getState().startGame("tris");

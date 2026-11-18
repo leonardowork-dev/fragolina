@@ -343,7 +343,21 @@ export function createCoupleStore(deps: CoupleDeps) {
             try {
               const snap = await backend.getGames();
               if (snap === null) return void set({ gamesAvailable: false });
+              const before = get();
               set({ ...mergeSnapshot(gamesSlice(), snap), gamesAvailable: true });
+              // Una novità può arrivare PRIMA di questa lettura (che la contiene già) o mentre eri offline: l'evento in
+              // tempo reale allora non la segnala più. Se le partite erano già caricate, avviso da qui (una sola volta).
+              if (before.gamesAvailable === true && before.userId) {
+                for (const g of snap.games) {
+                  const prev = before.gamesServer.find((x) => x.id === g.id) ?? null;
+                  if (!prev && g.status !== "open") continue;
+                  const change = describeChange(prev, g, before.userId);
+                  if (change) {
+                    set((c) => ({ gameIncomingSeq: c.gameIncomingSeq + 1, gameIncoming: { kind: g.kind, change, at: now() } }));
+                    break;
+                  }
+                }
+              }
             } finally {
               gamesFetch = null;
             }
@@ -540,7 +554,9 @@ export function createCoupleStore(deps: CoupleDeps) {
                 }
                 if (r.stoppedBy) return;
                 if (r.done.length || r.rejected.length) await resync().catch(() => {});
-                if (!r.rejected.length) return;
+                // finito solo se la coda è vuota: un'operazione messa in coda MENTRE si spediva (mosse veloci) non deve
+                // aspettare il prossimo sondaggio
+                if (!r.rejected.length && !get().queue.length) return;
               }
             } finally {
               flushing = null;
