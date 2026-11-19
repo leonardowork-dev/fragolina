@@ -489,6 +489,86 @@ try {
     await B.c.removeChannel(chg);
   }
 
+  // ---------- sessione 7: conto alla rovescia, domanda vera, ricordi (foto nello Storage), mese ----------
+  const ge = await rpc(A.c, "get_events", {});
+  const extraMissing = !!ge.error && /get_events|PGRST202|Could not find|does not exist/i.test(String(ge.error));
+  if (extraMissing) {
+    rows.push([
+      "MANCA",
+      "Sessione 7: la migrazione (eventi, domanda vera, ricordi, Storage) NON è ancora stata eseguita su questo Supabase",
+      "→ MANUAL_TODO.md, Sessione 7, passo 1 (incolla supabase/sessione7-extra.sql). Poi rilancia questo comando.",
+    ]);
+  } else {
+    const roma = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date());
+    const ev1 = uuid();
+    const up = await rpc(A.c, "upsert_event", { p_id: ev1, p_title: "Prova sessione 7", p_date: "2031-03-14", p_time: "18:30", p_icon: "heart", p_featured: true, p_at: Date.now() });
+    check("eventi: A crea un evento e B lo vede", up.ok && (await rpc(B.c, "get_events", {})).events?.some((e) => e.id === ev1 && e.time === "18:30"), JSON.stringify(up).slice(0, 160));
+    check("eventi: dati non validi rifiutati", (await rpc(A.c, "upsert_event", { p_id: uuid(), p_title: "", p_date: "2031-03-14", p_time: null, p_icon: "heart", p_featured: false, p_at: 1 })).error === "invalid_action");
+    check("eventi RLS: il terzo non li vede né li legge dalla tabella", ((await rpc(C.c, "get_events", {})).events ?? []).length === 0 && ((await C.c.from("countdown_events").select("*")).data ?? []).length === 0);
+    check("eventi: nessuna scrittura diretta", !!(await A.c.from("countdown_events").update({ title: "x" }).eq("id", ev1).select()).error || ((await A.c.from("countdown_events").update({ title: "x" }).eq("id", ev1).select()).data ?? []).length === 0);
+    const tk = await rpc(B.c, "rotate_widget_token", {});
+    const wf = await rpc(mk(), "widget_feed", { p_token: tk.token });
+    check("eventi: il widget (chiave pubblica + token) li riceve dal feed", wf.ok && wf.events?.some((e) => e.id === ev1), JSON.stringify(wf).slice(0, 200));
+    await rpc(A.c, "delete_event", { p_id: ev1, p_at: Date.now() + 5 });
+    check("eventi: cancellato", !(await rpc(B.c, "get_events", {})).events?.some((e) => e.id === ev1));
+
+    // domanda del giorno vera: il segreto sul server vero
+    const qchan = B.c.channel("chk7-qa-" + uuid().slice(0, 6));
+    let qaAns = 0, qaTxt = 0;
+    qchan.on("postgres_changes", { event: "*", schema: "public", table: "qa_answers" }, () => qaAns++).on("postgres_changes", { event: "*", schema: "public", table: "qa_texts" }, () => qaTxt++).subscribe();
+    await new Promise((r) => setTimeout(r, 1500));
+    const q1 = await rpc(A.c, "get_qa", { p_today_ref: "q007" });
+    const q2 = await rpc(B.c, "get_qa", { p_today_ref: "q200" });
+    check("domanda: la prima persona fissa la domanda per entrambi", q1.ok && q2.ok && q1.days[0].ref === "q007" && q2.days[0].ref === "q007", JSON.stringify([q1.days?.[0], q2.days?.[0]]));
+    check("domanda: il giorno è quello di Roma", q1.today === roma, `${q1.today} / ${roma}`);
+    const a1 = await rpc(A.c, "answer_qa", { p_day: roma, p_ref: "q007", p_text: "Segreto di A: il mare", p_client_key: "chk7-" + uuid().slice(0, 8) });
+    check("domanda: A risponde", a1.ok && a1.day.mine.text.includes("Segreto di A"), JSON.stringify(a1).slice(0, 160));
+    const bq = await rpc(B.c, "get_qa", { p_today_ref: "q007" });
+    check("segreto: B vede che A ha risposto ma NON il testo", bq.days[0].theirsAnswered === true && bq.days[0].theirs === null && !JSON.stringify(bq).includes("Segreto di A"));
+    const rawB = (await B.c.from("qa_texts").select("*")).data ?? [];
+    check("segreto: B non legge la riga di A dalla tabella (RLS)", rawB.length === 0 && !JSON.stringify(rawB).includes("Segreto"), JSON.stringify(rawB).slice(0, 120));
+    check("segreto: il terzo non legge nulla", ((await C.c.from("qa_texts").select("*")).data ?? []).length === 0 && ((await C.c.from("qa_answers").select("*")).data ?? []).length === 0);
+    check("domanda: 281 caratteri rifiutati", (await rpc(B.c, "answer_qa", { p_day: roma, p_ref: "q007", p_text: "x".repeat(281), p_client_key: "chk7-" + uuid().slice(0, 8) })).error === "invalid_content");
+    const b1 = await rpc(B.c, "answer_qa", { p_day: roma, p_ref: "q007", p_text: "Risposta di B: la montagna", p_client_key: "chk7-" + uuid().slice(0, 8) });
+    check("rivelazione: B risponde e vede subito quella di A", b1.ok && b1.day.theirs?.text.includes("Segreto di A"), JSON.stringify(b1).slice(0, 200));
+    const aq = await rpc(A.c, "get_qa", { p_today_ref: "q007" });
+    check("rivelazione: ora A vede quella di B", aq.days[0].theirs?.text.includes("montagna"));
+    check("domanda: una sola risposta al giorno", (await rpc(A.c, "answer_qa", { p_day: roma, p_ref: "q007", p_text: "Cambio", p_client_key: "chk7-" + uuid().slice(0, 8) })).duplicate === true);
+    const W = (await rpc(A.c, "get_qa", { p_today_ref: "q007" })).tomorrowTurn ? A : B;
+    const N = W === A ? B : A;
+    check("domani: chi non è di turno non può scrivere", (await rpc(N.c, "set_tomorrow_question", { p_text: "Non tocca a me" })).error === "not_your_turn");
+    check("domani: chi è di turno la scrive e l'altro la vede", (await rpc(W.c, "set_tomorrow_question", { p_text: "Qual è la cosa più bella di oggi?" })).ok === true && (await rpc(N.c, "get_qa", { p_today_ref: "q007" })).days.some((d) => d.ref === "custom"));
+    await new Promise((r) => setTimeout(r, 2500));
+    check("domanda realtime: qa_answers arriva (solo 'ha risposto'), qa_texts MAI", qaAns >= 1 && qaTxt === 0, `qa_answers=${qaAns} qa_texts=${qaTxt}`);
+    await B.c.removeChannel(qchan);
+
+    // ricordi e Storage vero (bucket privato)
+    const JPG = Buffer.from("/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=", "base64");
+    const mid = uuid();
+    const path_ = `${cid}/${mid}.jpg`;
+    const upl = await A.c.storage.from("memories").upload(path_, JPG, { contentType: "image/jpeg", upsert: false });
+    check("Storage: A carica una foto di prova nella cartella della coppia", !upl.error, upl.error?.message);
+    check("Storage: il terzo NON può caricare nella cartella della coppia", !!(await C.c.storage.from("memories").upload(`${cid}/${uuid()}.jpg`, JPG, { contentType: "image/jpeg" })).error);
+    const sgnB = await B.c.storage.from("memories").createSignedUrl(path_, 120);
+    check("Storage: B ottiene un URL firmato e scarica la foto", !sgnB.error && !!sgnB.data?.signedUrl && (await fetch(sgnB.data.signedUrl)).status === 200, sgnB.error?.message);
+    const sgnC = await C.c.storage.from("memories").createSignedUrl(path_, 120);
+    check("Storage: il terzo NON ottiene l'URL firmato", !!sgnC.error || !sgnC.data?.signedUrl);
+    const pubUrl = `${URL_}/storage/v1/object/public/memories/${path_}`;
+    check("Storage: il bucket è privato (l'indirizzo pubblico non serve la foto)", (await fetch(pubUrl)).status !== 200);
+    const am = await rpc(A.c, "add_memory", { p_id: mid, p_kind: "photo", p_source: "photo", p_caption: "Prova", p_day: roma, p_path: path_, p_w: 1, p_h: 1, p_bytes: JPG.length, p_content: null });
+    check("ricordi: A registra la foto e B la vede", am.ok && (await rpc(B.c, "get_memories", {})).memories?.some((m) => m.id === mid), JSON.stringify(am).slice(0, 160));
+    check("ricordi: il terzo non vede nulla", ((await rpc(C.c, "get_memories", {})).memories ?? []).length === 0 && ((await C.c.from("memories").select("*")).data ?? []).length === 0);
+    check("ricordi: B non può togliere il ricordo di A", (await rpc(B.c, "delete_memory", { p_id: mid })).error === "not_yours");
+    const rmB = await B.c.storage.from("memories").remove([path_]);
+    check("Storage: B non può cancellare il file di A", ((rmB.data ?? []).length === 0) || !!rmB.error);
+    const dm = await rpc(A.c, "delete_memory", { p_id: mid });
+    const rmA = await A.c.storage.from("memories").remove([path_]);
+    const still = await A.c.storage.from("memories").createSignedUrl(path_, 60);
+    check("ricordi: A cancella il ricordo e il file dallo Storage", dm.ok && !rmA.error && !!still.error, JSON.stringify([dm, rmA.error?.message, still.error?.message]).slice(0, 200));
+    const mo = await rpc(A.c, "get_month", { p_year: Number(roma.slice(0, 4)), p_month: Number(roma.slice(5, 7)) });
+    check("mese: get_month risponde con i giorni con due risposte", mo.ok && mo.qaBoth >= 1, JSON.stringify(mo).slice(0, 160));
+  }
+
   // pulizia: entrambi escono (la coppia si cancella da sola)
   await rpc(A.c, "leave_couple");
   await rpc(B.c, "leave_couple");
