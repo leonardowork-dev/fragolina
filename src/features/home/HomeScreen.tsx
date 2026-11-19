@@ -398,7 +398,7 @@ function AlbumLinks() {
           <Text variant="caption">{S.memories.sub}</Text>
         </View>
       </Sticker>
-      <Sticker id="link-mese" fill={colors.sky} radius={20} offset={4} padding={14} tiltMax={2} onPress={() => router.push("/month")} haptic="light" accessibilityLabel={S.memories.monthLink} style={{ flex: 1, marginTop: 18 }}>
+      <Sticker id="link-mese" fill={colors.leafSoft} radius={20} offset={4} padding={14} tiltMax={2} onPress={() => router.push("/month")} haptic="light" accessibilityLabel={S.memories.monthLink} style={{ flex: 1, marginTop: 18 }}>
         <View style={{ gap: 2 }}>
           <Text variant="title">{S.memories.monthLink}</Text>
           <Text variant="caption">{S.memories.monthLinkSub}</Text>

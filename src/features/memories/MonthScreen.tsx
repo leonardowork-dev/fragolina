@@ -63,7 +63,7 @@ export function MonthScreen() {
       haptic="tick"
       disabled={disabled}
       onPress={() => go(d)}
-      style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.butter, borderWidth: outline.width, borderColor: colors.outline, alignItems: "center", justifyContent: "center", opacity: disabled ? 0.35 : 1 }}
+      style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.sky, borderWidth: outline.width, borderColor: colors.outline, alignItems: "center", justifyContent: "center", opacity: disabled ? 0.35 : 1 }}
     >
       <Icon name={icon} size={24} />
     </StickerPressable>

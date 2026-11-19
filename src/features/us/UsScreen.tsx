@@ -55,8 +55,8 @@ function TogetherLinks() {
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             {rows.map((r) => (
-              <Sticker key={r.id} id={`together-${r.id}`} fill={r.fill} radius={18} offset={3} padding={0} tiltMax={1.5} onPress={() => router.push(r.to)} haptic="light" accessibilityLabel={r.label}>
-                <Text variant="bodyStrong" style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+              <Sticker key={r.id} id={`together-${r.id}`} fill={r.fill} radius={18} offset={3} padding={0} tiltMax={1.5} onPress={() => router.push(r.to)} haptic="light" accessibilityLabel={r.label} style={{ flexGrow: 1 }}>
+                <Text variant="bodyStrong" align="center" style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
                   {r.label}
                 </Text>
               </Sticker>

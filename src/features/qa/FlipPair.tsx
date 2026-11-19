@@ -50,7 +50,7 @@ export function FlipPair({
   return (
     <View accessibilityLiveRegion="polite" style={{ minHeight: 120 }}>
       <Animated.View style={[{ flexDirection: "row", gap: 12, alignItems: "stretch", paddingRight: 4, paddingBottom: 4 }, back]} pointerEvents={revealed ? "auto" : "none"} testID="qa-pair">
-        <Sticker id="qa-mine" fill={colors.leafSoft} radius={radius.lg} offset={4} padding={14} tiltMax={1} style={{ flex: 1 }}>
+        <Sticker id="qa-mine" fill={colors.leafSoft} radius={radius.lg} offset={4} padding={14} tiltMax={1} style={{ flex: 1 }} faceStyle={{ flex: 1 }}>
           <View style={{ gap: 6 }}>
             <Text variant="caption">{S.qa.yours}</Text>
             <Text variant="bodyStrong" testID="qa-mine-text">
@@ -58,7 +58,7 @@ export function FlipPair({
             </Text>
           </View>
         </Sticker>
-        <Sticker id="qa-theirs" fill={colors.skySoft} radius={radius.lg} offset={4} padding={14} tiltMax={1} style={{ flex: 1 }}>
+        <Sticker id="qa-theirs" fill={colors.skySoft} radius={radius.lg} offset={4} padding={14} tiltMax={1} style={{ flex: 1 }} faceStyle={{ flex: 1 }}>
           <View style={{ gap: 6 }}>
             <Text variant="caption">{S.qa.theirs(partnerName)}</Text>
             <Text variant="bodyStrong" testID="qa-theirs-text">

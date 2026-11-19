@@ -81,7 +81,7 @@ function Tomorrow() {
             ) : (
               <Text variant="caption">{S.qa.myTurnHint}</Text>
             )}
-            <TextField label={S.qa.tomorrowTitle} value={text} onChange={setText} maxLength={TOMORROW_MAX} placeholder={S.qa.tomorrowPlaceholder} autoCapitalize="sentences" multiline minHeight={84} />
+            <TextField label={S.qa.tomorrowField} value={text} onChange={setText} maxLength={TOMORROW_MAX} placeholder={S.qa.tomorrowPlaceholder} autoCapitalize="sentences" multiline minHeight={84} />
             <Button
               id="qa-tomorrow-save"
               label={S.qa.tomorrowSave}

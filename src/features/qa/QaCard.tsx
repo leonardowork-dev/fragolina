@@ -51,9 +51,10 @@ export function QaCard() {
               {status}
             </Text>
           </View>
-          {both ? <Text variant="caption">{S.qa.readyBody}</Text> : null}
           <View style={{ flex: 1 }} />
-          <Icon name="forward" size={22} />
+          <View style={{ width: 26, height: 26, flexShrink: 0 }}>
+            <Icon name="forward" size={26} />
+          </View>
         </View>
       </View>
     </Sticker>

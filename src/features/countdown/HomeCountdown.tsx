@@ -7,7 +7,7 @@ import { S } from "@/lib/strings.it";
 import { useCouple } from "@/state/coupleStore";
 
 import { EventIcon } from "./EventIcon";
-import { isParty, unitText, whenText } from "./format";
+import { isParty, whenText } from "./format";
 import { useCountdown } from "./useCountdown";
 
 const celebrated = new Set<string>();
@@ -41,21 +41,13 @@ export function HomeCountdown() {
       accessibilityLabel={`${S.countdown.homeTitle}. ${S.countdown.a11yEvent(picked.title, whenText(v))}. ${S.countdown.open}`}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-        <EventIcon id={picked.icon} size={52} />
+        <EventIcon id={picked.icon} size={60} />
         <View style={{ flex: 1 }}>
           <Text variant="caption">{party ? S.countdown.partyLine : S.countdown.homeTitle}</Text>
-          <Text variant="title" numberOfLines={2} testID="home-countdown-line">
+          <Text variant="title" numberOfLines={3} testID="home-countdown-line">
             {S.countdown.homeLine(whenText(v), picked.title)}
           </Text>
         </View>
-        {!party ? (
-          <View style={{ alignItems: "center", minWidth: 56 }}>
-            <Text variant="display" style={{ fontSize: 34, lineHeight: 36 }} numberOfLines={1}>
-              {v.big}
-            </Text>
-            <Text variant="caption">{unitText(v)}</Text>
-          </View>
-        ) : null}
       </View>
     </Sticker>
   );

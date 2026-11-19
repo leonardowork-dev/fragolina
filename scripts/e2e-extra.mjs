@@ -39,9 +39,19 @@ const shot = async (page, who, name) => {
   n++;
   await page.screenshot({ path: path.join(outDir, `${String(n).padStart(2, "0")}-${who}-${name}.png`) });
 };
+// la pagina scorre dentro un ScrollView: per vederla tutta si fa una foto in alto e una in fondo
+const scrollTo = (page, where) =>
+  page.evaluate((w) => {
+    const els = [...document.querySelectorAll("*")].filter((e) => e.scrollHeight > e.clientHeight + 20 && /auto|scroll/.test(getComputedStyle(e).overflowY));
+    for (const e of els) e.scrollTop = w === "end" ? e.scrollHeight : w;
+  }, where);
 const fullShot = async (page, who, name) => {
   n++;
-  await page.screenshot({ path: path.join(outDir, `${String(n).padStart(2, "0")}-${who}-${name}.png`), fullPage: true });
+  await page.screenshot({ path: path.join(outDir, `${String(n).padStart(2, "0")}-${who}-${name}.png`) });
+  await scrollTo(page, "end");
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: path.join(outDir, `${String(n).padStart(2, "0")}b-${who}-${name}-fondo.png`) });
+  await scrollTo(page, 0);
 };
 const seen = async (page, matcher, timeout = 15000) => {
   try {
@@ -264,7 +274,7 @@ try {
   const W2 = aTurn ? B : A;
   const name2 = aTurn ? "Leonardo" : "Nikole";
   check("Domani: a turno, solo uno dei due può scrivere (l'altro vede chi)", (await W1.getByText("Domani la domanda la scrivi tu.").count()) === 1 && (await W2.getByText(new RegExp(`Domani la scrive ${aTurn ? "Leonardo" : "Nikole"}`)).count()) === 1);
-  await W1.getByLabel("Domani", { exact: true }).fill("Qual è la cosa più bella che ti è successa questa settimana?");
+  await W1.getByLabel("La tua domanda", { exact: true }).fill("Qual è la cosa più bella che ti è successa questa settimana?");
   await exact(W1, "Metti per domani").click();
   await settle(W1, 1000);
   check("Domani: la domanda scritta si vede a chi l'ha scritta", await seen(W1, /Hai scritto: Qual è la cosa più bella/));
@@ -291,12 +301,12 @@ try {
   await A.getByRole("button", { name: /^Domanda del giorno/ }).first().click();
   await seen(A, /La domanda di oggi/);
   check("Archivio: le domande passate con le risposte di tutti e due", (await A.getByTestId(/archive-/).count()) >= 2);
-  await A.getByLabel("Cerca una parola").fill("mare");
+  await A.getByLabel("Cerca nell'archivio").fill("mare");
   await settle(A, 500);
   check("Archivio: cerca per parola ('mare' trova solo il giorno con 'Il mare di maggio')", (await A.getByTestId(/archive-/).count()) === 1 && (await seen(A, /Il mare di maggio/, 2000)));
-  await A.getByLabel("Cerca una parola").fill("zzzz");
+  await A.getByLabel("Cerca nell'archivio").fill("zzzz");
   check("Archivio: parola che non c'è, messaggio gentile", await seen(A, /Nessuna domanda con questa parola/, 3000));
-  await A.getByLabel("Cerca una parola").fill("");
+  await A.getByLabel("Cerca nell'archivio").fill("");
   await A.evaluate(() => document.querySelector('[data-testid^="archive-"]')?.scrollIntoView());
   await shot(A, "A", "archivio");
 
@@ -332,6 +342,7 @@ try {
   // B apre la foto: non può cancellarla (non è sua)
   await B.getByLabel(/Foto: Roma, il nostro giorno/).first().click();
   await seen(B, /Solo chi l'ha messa può cancellarla/);
+  await settle(B, 900);
   check("Foto: B può guardarla ma non cancellarla (solo chi l'ha caricata)", (await B.getByRole("button", { name: "Cancella foto" }).count()) === 0);
   await shot(B, "B", "foto-aperta");
   await B.keyboard.press("Escape");
