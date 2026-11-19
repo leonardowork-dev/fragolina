@@ -1,7 +1,7 @@
 import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
 import type { LocationState } from "@/lib/geo/types";
 import { type CountdownEvent, WIDGET_EVENTS, isValidDate, minutesOf, widgetEvents } from "@/lib/countdown/rules";
-import { isEventIcon } from "@/lib/countdown/icons";
+import { type EventIconId, isEventIcon } from "@/lib/countdown/icons";
 import { type Note, type NoteContent, noteState } from "@/lib/note/rules";
 import { type PetState, stageOf } from "@/lib/pet/rules";
 import { S } from "@/lib/strings.it";
@@ -97,7 +97,7 @@ export type WidgetSnapshot = {
 };
 
 /** Un evento come lo vede il widget (stesso JSON del feed `widget_feed.events`, senza `at` né `by`). */
-export type WidgetEvent = { id: string; title: string; date: string; time: string | null; icon: string; featured: boolean };
+export type WidgetEvent = { id: string; title: string; date: string; time: string | null; icon: EventIconId; featured: boolean };
 
 export const QUESTION_MAX = 60;
 

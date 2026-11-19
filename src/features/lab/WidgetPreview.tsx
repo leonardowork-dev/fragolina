@@ -6,6 +6,9 @@ import { civilFromDays, daysFromCivil } from "@/lib/recurrence";
 import { distanceWidgetModel, noteWidgetModel } from "@/lib/note/widgetModel";
 import { type WidgetSnapshot, decodeSnapshot } from "@/lib/widgetPayload";
 
+import { countdownDisplay } from "@/lib/countdown/widgetModel";
+import { wallClock } from "@/lib/countdown/rules";
+import * as CD from "./widgets/countdownViews";
 import { PreviewEntry } from "./widgets/model";
 import { Confetti, Frame } from "./widgets/kit-exports";
 import * as NV from "./widgets/noteViews";
@@ -93,6 +96,8 @@ const squiggle = (k: number) => ({
   p: Array.from({ length: 36 }, (_, i) => [Math.round(500 + Math.sin(i / 3 + k) * (120 + k * 9)), Math.round(500 + Math.cos(i / 2.3 + k * 1.7) * (130 + k * 8))] as [number, number]),
 });
 const note = (over: Partial<WidgetSnapshot>): WidgetSnapshot => ({ ...base, ...over });
+const cdev = (title: string, inDays: number, time: string | null, icon: WidgetSnapshot["cdEvents"][number]["icon"]) => ({ id: `ev-${title}`, title, date: iso(inDays), time, icon, featured: false });
+const cd = (events: WidgetSnapshot["cdEvents"]): WidgetSnapshot => ({ ...base, cdEvents: events });
 
 type Case = { id: string; title: string; snap: WidgetSnapshot | null };
 const CASES: Case[] = [
@@ -148,6 +153,12 @@ const CASES: Case[] = [
   { id: "dist-miaspenta", title: "Distanza: la mia condivisione è spenta", snap: note({ shareMine: false, myLatE2: null, myLonE2: null, myLocAt: null, partnerLocState: "mine_off", partnerLatE2: null, partnerLonE2: null, partnerLocAt: null }) },
   { id: "dist-nonancora", title: "Distanza: lei non l'ha ancora condivisa (nome lungo)", snap: note({ partnerLocState: "none", partnerLatE2: null, partnerLonE2: null, partnerLocAt: null, partnerName: "Maria Antonietta" }) },
   { id: "dist-solo", title: "Distanza: nessuno collegato", snap: note({ paired: false, partnerLocState: "", partnerLatE2: null, partnerLonE2: null, partnerLocAt: null }) },
+  { id: "cd-12", title: "Manca poco: tra 12 giorni, 'Ci vediamo'", snap: cd([cdev("Ci vediamo", 12, null, "heart")]) },
+  { id: "cd-ore", title: "Manca poco: l'ultimo giorno con l'ora (ore)", snap: cd([cdev("Concerto", 0, "23:30", "ticket")]) },
+  { id: "cd-oggi", title: "Manca poco: il giorno dell'evento (festa)", snap: cd([cdev("Il nostro viaggio", 0, null, "plane")]) },
+  { id: "cd-lungo", title: "Manca poco: titolo di 28 caratteri, 365 giorni", snap: cd([cdev("Il giorno più bello dell'anno", 365, "18:30", "cake")]) },
+  { id: "cd-evidenza", title: "Manca poco: in evidenza batte il più vicino", snap: cd([cdev("Vicino", 3, null, "sun"), { ...cdev("Lontano ma in evidenza", 40, null, "star"), featured: true }]) },
+  { id: "cd-vuoto", title: "Manca poco: nessun evento", snap: cd([]) },
   { id: "dati-vecchi", title: "Dati vecchi (> 3 h): 'aggiornato X fa'", snap: { ...base, updatedAt: NOW - 5 * H } },
   { id: "dorme", title: "Fermo da > 48 h: la fragola dorme", snap: { ...base, updatedAt: NOW - 50 * H } },
   { id: "non-collegati", title: "Non collegati", snap: { ...base, paired: false, partnerName: "Nikole" } },
@@ -194,6 +205,8 @@ function CaseView({ c, report }: { c: Case; report: (m: string) => void }) {
   const raw = c.snap ?? (decodeSnapshot("{}") as WidgetSnapshot);
   const noteM = noteWidgetModel(raw, null, NOW);
   const distM = distanceWidgetModel(raw, null, NOW);
+  const wc = wallClock(new Date(NOW));
+  const cdM = countdownDisplay(raw.cdEvents, TODAY, wc.nowMin);
   return (
     <View testID={`case-${c.id}`} style={{ padding: 16, backgroundColor: "#EFE7EA", borderRadius: 16, marginBottom: 18 }}>
       <RNText style={{ fontFamily: fonts.display, fontSize: 20, color: P.ink, marginBottom: 12 }}>{c.title}</RNText>
@@ -227,11 +240,17 @@ function CaseView({ c, report }: { c: Case; report: (m: string) => void }) {
         {sm("Distanza · piccolo", <NV.DistSmall d={distM} name={e.partner} report={r} />)}
         {md("Distanza · medio", <NV.DistMedium d={distM} name={e.partner} report={r} />)}
       </Row>
+      <Row>
+        {sm("Manca poco · piccolo", <CD.CdSmall c={cdM} report={r} />, cdM?.view.state === "today" || cdM?.view.state === "now")}
+        {md("Manca poco · medio", <CD.CdMedium c={cdM} report={r} />, cdM?.view.state === "today" || cdM?.view.state === "now")}
+      </Row>
       <View style={{ backgroundColor: "#3a3340", borderRadius: 14, padding: 14, gap: 12 }}>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
           <NV.NoteLock m={noteM} report={r} />
           <NV.DistCircular d={distM} />
           <NV.DistInline d={distM} name={e.partner} report={r} />
+          <CD.CdCircular c={cdM} />
+          <CD.CdInline c={cdM} report={r} />
         </View>
         {!sleepy ? (
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, alignItems: "center" }}>

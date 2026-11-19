@@ -144,14 +144,14 @@ struct CountdownMediumView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 StickerBox(fill: entry.cdParty ? P.strawberry : P.butter, radius: 22, offset: 4, rotation: 1.5) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        EventIconView(id: c.icon, size: 36)
-                        Text(c.title).font(display(20)).tracking(-0.3).foregroundStyle(P.ink)
+                    VStack(alignment: .leading, spacing: 2) {
+                        EventIconView(id: c.icon, size: 28)
+                        Text(c.title).font(display(18)).tracking(-0.3).foregroundStyle(P.ink)
                             .lineLimit(2).minimumScaleFactor(0.55)
                         Text(c.dateLine).font(bodyFont(11, .semibold)).foregroundStyle(P.ink)
                             .lineLimit(1).minimumScaleFactor(0.7)
                     }
-                    .padding(10)
+                    .padding(9)
                     .frame(width: 132, alignment: .leading)
                 }
             }
