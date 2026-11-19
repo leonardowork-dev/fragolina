@@ -2,6 +2,8 @@ import type { MoodId } from "@/features/home/moods";
 import type { GameKind, GameMove, GameParams, GameRow } from "@/lib/games/types";
 import type { NoteContent, NoteKind, NoteRow } from "@/lib/note/rules";
 import type { FoodId, PetKind, PetState } from "@/lib/pet/rules";
+import type { CountdownEvent } from "@/lib/countdown/rules";
+import type { MemoryKind, MemorySource } from "@/lib/memories/types";
 
 export type DailyAnswer = "a" | "b";
 export type Role = "a" | "b";
@@ -61,7 +63,9 @@ export type RemoteEvent =
   /** La posizione di qualcuno è cambiata: il telefono rilegge la lavagna (get_board). */
   | { type: "location" }
   /** Una partita è cambiata (riga di `games`: stato PUBBLICO, mai i segreti). */
-  | { type: "game"; game: GameRow };
+  | { type: "game"; game: GameRow }
+  /** Qualcosa è cambiato in una tabella della sessione 7: il telefono rilegge la parte giusta. */
+  | { type: "extra"; what: "events" | "qa" | "memories" };
 
 export type RemoteInput =
   | { kind: "snapshot"; state: RemoteState; day: string }
@@ -112,7 +116,40 @@ export type QueuedOp =
   /** Giochi (sessione 6). `id` = id della partita (deciso dal telefono, quindi idempotente). */
   | { key: string; kind: "gameStart"; at: number; attempts: number; id: string; game: GameKind; params: GameParams }
   | { key: string; kind: "gameMove"; at: number; attempts: number; gameId: string; move: GameMove }
-  | { key: string; kind: "gameAbandon"; at: number; attempts: number; gameId: string };
+  | { key: string; kind: "gameAbandon"; at: number; attempts: number; gameId: string }
+  /** Conto alla rovescia (sessione 7): crea/modifica un evento (last-write-wins per `event.at`) o lo cancella. */
+  | { key: string; kind: "eventUpsert"; at: number; attempts: number; event: CountdownEvent }
+  | { key: string; kind: "eventDelete"; at: number; attempts: number; id: string }
+  /** Domanda del giorno vera: la mia risposta (una al giorno) e la domanda di domani che scrivo io. */
+  | { key: string; kind: "qaAnswer"; at: number; attempts: number; day: string; ref: string; text: string }
+  | { key: string; kind: "qaTomorrow"; at: number; attempts: number; text: string }
+  /** Ricordi: un biglietto/disegno tenuto, una foto da caricare (file locale) o una cancellazione (anche dallo Storage). */
+  | {
+      key: string;
+      kind: "memoryAdd";
+      at: number;
+      attempts: number;
+      id: string;
+      memKind: Exclude<MemoryKind, "photo">;
+      source: Exclude<MemorySource, "photo">;
+      caption: string;
+      day: string;
+      content: NoteContent;
+    }
+  | {
+      key: string;
+      kind: "memoryPhoto";
+      at: number;
+      attempts: number;
+      id: string;
+      uri: string;
+      w: number;
+      h: number;
+      bytes: number;
+      caption: string;
+      day: string;
+    }
+  | { key: string; kind: "memoryDelete"; at: number; attempts: number; id: string; path: string | null };
 
 export type BackendErrorKind =
   | "network" // nessuna rete / timeout: si riprova
@@ -133,6 +170,9 @@ export type BackendErrorKind =
   | "invalid_content" // il biglietto non rispetta i limiti
   | "not_sharing"
   | "invalid_location"
+  | "not_your_turn" // la domanda di domani la scrive l'altra persona
+  | "not_yours" // un ricordo lo toglie solo chi l'ha aggiunto
+  | "no_file" // la foto non è (ancora) nello Storage
   /** Il server ha rifiutato una mossa dei giochi: il messaggio è il codice (`not_your_turn`, `cell_taken`…). */
   | "game_rejected"
   | "unknown";

@@ -56,6 +56,16 @@ module.exports = {
         },
       ],
       [
+        "expo-image-picker",
+        {
+          // Ricordi: scegli una foto dal rullino. Con il selettore di sistema iOS non chiede nemmeno il permesso, ma il testo serve comunque.
+          photosPermission:
+            "Fragolina legge solo le foto che scegli tu, per metterle nell'album dei vostri ricordi. Il resto del rullino non viene toccato.",
+          cameraPermission: false,
+          microphonePermission: false,
+        },
+      ],
+      [
         "expo-splash-screen",
         { backgroundColor: "#FF2D55", image: "./assets/splash-mark.png", imageWidth: 200 },
       ],

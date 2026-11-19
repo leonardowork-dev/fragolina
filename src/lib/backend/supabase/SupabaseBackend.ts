@@ -8,6 +8,12 @@ import { gameFromJson, gameFromRecord, gamesSnapshotFromJson } from "@/lib/games
 import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
 import { boardFromJson, noteFromJson, noteRowFromRecord } from "@/lib/note/wire";
 import { petFromRow, petSnapshotFromJson } from "@/lib/pet/wire";
+import type { CountdownEvent, EventInput } from "@/lib/countdown/rules";
+import { eventsFromJson } from "@/lib/countdown/sync";
+import { type MonthRaw, monthRawFromJson } from "@/lib/memories/month";
+import { readPhotoBytes } from "@/lib/memories/photoDevice";
+import { type Memory, type MemoryKind, type MemorySource, memoriesFromJson, memoryFromJson } from "@/lib/memories/types";
+import { type QaDay, type QaSnapshot, qaDayFromJson, qaSnapshotFromJson } from "@/lib/qa/rules";
 import {
   BackendError,
   type BackendErrorKind,
@@ -50,7 +56,15 @@ const KNOWN: BackendErrorKind[] = [
   "invalid_content",
   "not_sharing",
   "invalid_location",
+  "not_your_turn",
+  "not_yours",
+  "no_file",
 ];
+
+/** La funzione non esiste sul server: la migrazione non è ancora stata eseguita. Non è un errore dell'app. */
+const isMissing = (e: unknown, fn: string) =>
+  e instanceof BackendError && new RegExp(`${fn}|PGRST202|Could not find|does not exist`, "i").test(e.message);
+const BUCKET = "memories";
 
 type AnyErr =
   { message?: string; code?: string; status?: number; name?: string } | null | undefined;
@@ -356,6 +370,139 @@ export class SupabaseBackend implements Backend {
   async abandonGame(a: { gameId: string; key: string }): Promise<GameRow> {
     return this.gameOf(await this.rpc<{ game?: unknown }>("abandon_game", { p_game: a.gameId, p_client_key: a.key }));
   }
+  // ---------- sessione 7 ----------
+  async getEvents(): Promise<CountdownEvent[] | null> {
+    try {
+      return eventsFromJson((await this.rpc<{ events?: unknown }>("get_events")).events);
+    } catch (e) {
+      if (isMissing(e, "get_events")) return null;
+      throw e;
+    }
+  }
+  async upsertEvent(a: { id: string; input: EventInput; at: number }): Promise<CountdownEvent[]> {
+    const d = await this.rpc<{ events?: unknown }>("upsert_event", {
+      p_id: a.id,
+      p_title: a.input.title,
+      p_date: a.input.date,
+      p_time: a.input.time,
+      p_icon: a.input.icon,
+      p_featured: a.input.featured,
+      p_at: Math.round(a.at),
+    });
+    return eventsFromJson(d.events);
+  }
+  async deleteEvent(a: { id: string; at: number }): Promise<CountdownEvent[]> {
+    return eventsFromJson((await this.rpc<{ events?: unknown }>("delete_event", { p_id: a.id, p_at: Math.round(a.at) })).events);
+  }
+  async getQa(todayRef: string): Promise<QaSnapshot | null> {
+    try {
+      return qaSnapshotFromJson(await this.rpc<Record<string, unknown>>("get_qa", { p_today_ref: todayRef }));
+    } catch (e) {
+      if (isMissing(e, "get_qa")) return null;
+      throw e;
+    }
+  }
+  private qaDayOf(d: { day?: unknown }): QaDay {
+    const x = qaDayFromJson(d.day);
+    if (!x) throw new BackendError("unknown", "risposta senza giorno");
+    return x;
+  }
+  async answerQa(a: { day: string; ref: string; text: string; key: string }): Promise<QaDay> {
+    return this.qaDayOf(await this.rpc<{ day?: unknown }>("answer_qa", { p_day: a.day, p_ref: a.ref, p_text: a.text, p_client_key: a.key }));
+  }
+  async setTomorrowQuestion(text: string): Promise<QaDay> {
+    return this.qaDayOf(await this.rpc<{ day?: unknown }>("set_tomorrow_question", { p_text: text }));
+  }
+  async getMemories(): Promise<Memory[] | null> {
+    try {
+      return memoriesFromJson((await this.rpc<{ memories?: unknown }>("get_memories")).memories);
+    } catch (e) {
+      if (isMissing(e, "get_memories")) return null;
+      throw e;
+    }
+  }
+  async addMemory(a: {
+    id: string;
+    kind: MemoryKind;
+    source: MemorySource;
+    caption: string;
+    day: string;
+    path: string | null;
+    w: number | null;
+    h: number | null;
+    bytes: number | null;
+    content: Memory["content"];
+  }): Promise<Memory> {
+    const d = await this.rpc<{ memory?: unknown }>("add_memory", {
+      p_id: a.id,
+      p_kind: a.kind,
+      p_source: a.source,
+      p_caption: a.caption,
+      p_day: a.day,
+      p_path: a.path,
+      p_w: a.w,
+      p_h: a.h,
+      p_bytes: a.bytes,
+      p_content: a.content,
+    });
+    const m = memoryFromJson(d.memory);
+    if (!m) throw new BackendError("unknown", "risposta senza ricordo");
+    return m;
+  }
+  async deleteMemory(id: string): Promise<string | null> {
+    const d = await this.rpc<{ path?: string | null }>("delete_memory", { p_id: id });
+    return typeof d.path === "string" ? d.path : null;
+  }
+  async uploadMemoryPhoto(a: { path: string; uri: string }): Promise<void> {
+    let bytes: ArrayBuffer;
+    try {
+      bytes = await readPhotoBytes(a.uri);
+    } catch {
+      throw new BackendError("invalid_action", "file locale non leggibile");
+    }
+    let res;
+    try {
+      res = await this.client.storage.from(BUCKET).upload(a.path, bytes, { contentType: "image/jpeg", upsert: false });
+    } catch (e) {
+      throw classify({ message: String(e) });
+    }
+    if (!res.error) return;
+    const msg = String(res.error.message ?? "");
+    // già caricata (un ritentativo dopo un errore di rete): va bene
+    if (/already exists|duplicate|resource already/i.test(msg) || (res.error as { statusCode?: string }).statusCode === "409") return;
+    throw classify(res.error, (res.error as { statusCode?: number }).statusCode ? Number((res.error as { statusCode?: number }).statusCode) : undefined);
+  }
+  async removeMemoryFile(path: string): Promise<void> {
+    let res;
+    try {
+      res = await this.client.storage.from(BUCKET).remove([path]);
+    } catch (e) {
+      throw classify({ message: String(e) });
+    }
+    if (res.error) throw classify(res.error);
+  }
+  async signMemoryUrls(paths: string[]): Promise<Record<string, string>> {
+    if (!paths.length) return {};
+    let res;
+    try {
+      res = await this.client.storage.from(BUCKET).createSignedUrls(paths, 600);
+    } catch (e) {
+      throw classify({ message: String(e) });
+    }
+    if (res.error) throw classify(res.error);
+    const out: Record<string, string> = {};
+    for (const r of res.data ?? []) if (r.path && r.signedUrl) out[r.path] = r.signedUrl;
+    return out;
+  }
+  async getMonth(year: number, month: number): Promise<MonthRaw | null> {
+    try {
+      return monthRawFromJson(await this.rpc<Record<string, unknown>>("get_month", { p_year: year, p_month: month }));
+    } catch (e) {
+      if (isMissing(e, "get_month")) return null;
+      throw e;
+    }
+  }
+
   async setLocationSharing(on: boolean) {
     await this.rpc("set_location_sharing", { p_on: on });
   }
@@ -482,7 +629,20 @@ export class SupabaseBackend implements Backend {
         if (game) h.onEvent({ type: "game", game });
       })
       .subscribe();
+    // Altro canale a parte (sessione 7): eventi, domanda (solo "ha risposto", mai il testo), ricordi. Il telefono rilegge.
+    let extraCh: RealtimeChannel | null = this.client.channel(
+      `extra-${coupleId}-${Math.random().toString(36).slice(2, 8)}`,
+    );
+    extraCh
+      .on("postgres_changes", { event: "*", schema: s, table: "countdown_events", filter: f }, () => h.onEvent({ type: "extra", what: "events" }))
+      .on("postgres_changes", { event: "*", schema: s, table: "qa_answers", filter: f }, () => h.onEvent({ type: "extra", what: "qa" }))
+      .on("postgres_changes", { event: "*", schema: s, table: "qa_days", filter: f }, () => h.onEvent({ type: "extra", what: "qa" }))
+      .on("postgres_changes", { event: "*", schema: s, table: "memories", filter: f }, () => h.onEvent({ type: "extra", what: "memories" }))
+      .subscribe();
     return () => {
+      const xc = extraCh;
+      extraCh = null;
+      if (xc) void this.client.removeChannel(xc);
       const c = ch;
       const pc = petCh;
       const bc = boardCh;

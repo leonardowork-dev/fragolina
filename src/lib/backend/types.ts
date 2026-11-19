@@ -3,6 +3,10 @@ import type { GameKind, GameMove, GameParams, GameRow, GamesSnapshot } from "@/l
 import type { Board } from "@/lib/note/wire";
 import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
 import type { FoodId, PetKind, PetState } from "@/lib/pet/rules";
+import type { CountdownEvent, EventInput } from "@/lib/countdown/rules";
+import type { Memory, MemoryKind, MemorySource } from "@/lib/memories/types";
+import type { MonthRaw } from "@/lib/memories/month";
+import type { QaDay, QaSnapshot } from "@/lib/qa/rules";
 import type { PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
 
@@ -83,6 +87,46 @@ export interface Backend {
   /** Idempotente per `key`. Il server valida turno, casella, fase; un rifiuto è `BackendError("game_rejected", codice)`. */
   gameMove(a: { gameId: string; move: GameMove; key: string }): Promise<GameRow>;
   abandonGame(a: { gameId: string; key: string }): Promise<GameRow>;
+  /**
+   * Conto alla rovescia (sessione 7). `null` = il server non ha la migrazione (sessione 7): l'app resta usabile e la scheda dice che manca un passo.
+   * Tutte le chiamate restituiscono l'elenco intero come lo vede il server (last-write-wins per `at`).
+   */
+  getEvents(): Promise<CountdownEvent[] | null>;
+  upsertEvent(a: { id: string; input: EventInput; at: number }): Promise<CountdownEvent[]>;
+  deleteEvent(a: { id: string; at: number }): Promise<CountdownEvent[]>;
+  /**
+   * Domanda del giorno vera. `todayRef` = la domanda che questo telefono ha scelto per oggi: vale solo se nessuno ha ancora
+   * aperto il giorno. La risposta dell'altro arriva SOLO se hai risposto anche tu (regola applicata dal server).
+   */
+  getQa(todayRef: string): Promise<QaSnapshot | null>;
+  /** Una risposta al giorno (non si cambia). Restituisce il giorno com'è ora sul server. */
+  answerQa(a: { day: string; ref: string; text: string; key: string }): Promise<QaDay>;
+  /** Scrivi tu la domanda di domani (a turni): `BackendError("not_your_turn")` se non tocca a te. */
+  setTomorrowQuestion(text: string): Promise<QaDay>;
+  /** Ricordi (foto e biglietti tenuti). `null` = migrazione mancante. */
+  getMemories(): Promise<Memory[] | null>;
+  /** Idempotente per `id`. Per le foto il file deve essere già nello Storage (`uploadMemoryPhoto`). */
+  addMemory(a: {
+    id: string;
+    kind: MemoryKind;
+    source: MemorySource;
+    caption: string;
+    day: string;
+    path: string | null;
+    w: number | null;
+    h: number | null;
+    bytes: number | null;
+    content: Memory["content"];
+  }): Promise<Memory>;
+  /** Solo chi l'ha aggiunto. Restituisce il percorso del file da togliere dallo Storage (null se non è una foto). */
+  deleteMemory(id: string): Promise<string | null>;
+  /** Carica il file (già ridotto) nello Storage, nella cartella della coppia. Idempotente: se c'è già, va bene. */
+  uploadMemoryPhoto(a: { path: string; uri: string }): Promise<void>;
+  removeMemoryFile(path: string): Promise<void>;
+  /** URL firmati a scadenza breve (10 minuti) per vedere le foto: mai pubblici. */
+  signMemoryUrls(paths: string[]): Promise<Record<string, string>>;
+  /** "Il nostro mese": umori, pensieri, partite. */
+  getMonth(year: number, month: number): Promise<MonthRaw | null>;
   setLocationSharing(on: boolean): Promise<void>;
   /** Posizione GIÀ arrotondata (centesimi di grado). */
   setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void>;

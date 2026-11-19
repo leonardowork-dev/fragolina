@@ -2,6 +2,11 @@ import type { MoodId } from "@/features/home/moods";
 import { isGameReject } from "@/lib/games/errors";
 import type { GameKind, GameMove, GameParams, GameRow, GamesSnapshot } from "@/lib/games/types";
 import type { Note, NoteContent, NoteKind } from "@/lib/note/rules";
+import type { CountdownEvent, EventInput } from "@/lib/countdown/rules";
+import type { MonthRaw } from "@/lib/memories/month";
+import { readPhotoBytes } from "@/lib/memories/photoDevice";
+import type { Memory, MemoryKind, MemorySource } from "@/lib/memories/types";
+import type { QaDay, QaSnapshot } from "@/lib/qa/rules";
 import type { Board } from "@/lib/note/wire";
 import type { PetState } from "@/lib/pet/rules";
 import type { PetSnapshot } from "@/lib/pet/sync";
@@ -153,6 +158,9 @@ export class MockBackend implements Backend {
       "invalid_content",
       "not_sharing",
       "invalid_location",
+      "not_your_turn",
+      "not_yours",
+      "no_file",
     ];
     throw new BackendError(
       known.includes(r.error as BackendErrorKind) ? (r.error as BackendErrorKind) : "unknown",
@@ -235,6 +243,63 @@ export class MockBackend implements Backend {
   }
   clearNote(id: string | null): Promise<Note | null> {
     return this.wire(() => this.ok(this.server.clearNote(this.uid, id)).note);
+  }
+  // ---------- sessione 7 ----------
+  getEvents(): Promise<CountdownEvent[] | null> {
+    return this.wire(() => this.ok(this.server.extra.getEvents(this.uid)).events);
+  }
+  upsertEvent(a: { id: string; input: EventInput; at: number }): Promise<CountdownEvent[]> {
+    return this.wire(() => this.ok(this.server.extra.upsertEvent(this.uid, a)).events);
+  }
+  deleteEvent(a: { id: string; at: number }): Promise<CountdownEvent[]> {
+    return this.wire(() => this.ok(this.server.extra.deleteEvent(this.uid, a)).events);
+  }
+  getQa(todayRef: string): Promise<QaSnapshot | null> {
+    return this.wire(() => this.ok(this.server.extra.getQa(this.uid, todayRef)).qa);
+  }
+  answerQa(a: { day: string; ref: string; text: string; key: string }): Promise<QaDay> {
+    return this.wire(() => this.ok(this.server.extra.answerQa(this.uid, a)).day);
+  }
+  setTomorrowQuestion(text: string): Promise<QaDay> {
+    return this.wire(() => this.ok(this.server.extra.setTomorrowQuestion(this.uid, text)).day);
+  }
+  getMemories(): Promise<Memory[] | null> {
+    return this.wire(() => this.ok(this.server.extra.getMemories(this.uid)).memories);
+  }
+  addMemory(a: {
+    id: string;
+    kind: MemoryKind;
+    source: MemorySource;
+    caption: string;
+    day: string;
+    path: string | null;
+    w: number | null;
+    h: number | null;
+    bytes: number | null;
+    content: Memory["content"];
+  }): Promise<Memory> {
+    return this.wire(() => this.ok(this.server.extra.addMemory(this.uid, a)).memory);
+  }
+  deleteMemory(id: string): Promise<string | null> {
+    return this.wire(() => this.ok(this.server.extra.deleteMemory(this.uid, id)).path);
+  }
+  async uploadMemoryPhoto(a: { path: string; uri: string }): Promise<void> {
+    // il "file" finto vive come indirizzo `data:` (nel browser l'anteprima lo mostra com'è)
+    let data = a.uri;
+    if (!a.uri.startsWith("data:")) {
+      const buf = await readPhotoBytes(a.uri);
+      data = `data:image/jpeg;base64,${btoa(String.fromCharCode(...new Uint8Array(buf)))}`;
+    }
+    return this.wire(() => void this.ok(this.server.extra.uploadFile(this.uid, a.path, data)));
+  }
+  removeMemoryFile(path: string): Promise<void> {
+    return this.wire(() => void this.ok(this.server.extra.removeFile(this.uid, path)));
+  }
+  signMemoryUrls(paths: string[]): Promise<Record<string, string>> {
+    return this.wire(() => this.ok(this.server.extra.signFiles(this.uid, paths)).urls);
+  }
+  getMonth(year: number, month: number): Promise<MonthRaw | null> {
+    return this.wire(() => this.ok(this.server.extra.getMonth(this.uid, year, month)).month);
   }
   setLocationSharing(on: boolean): Promise<void> {
     return this.wire(() => void this.ok(this.server.setLocationSharing(this.uid, on)));

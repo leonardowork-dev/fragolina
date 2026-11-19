@@ -85,3 +85,43 @@ export function timeAgo(ms: number, now: number = Date.now()): string {
   const d = Math.round(h / 24);
   return d === 1 ? "ieri" : `${d} giorni fa`;
 }
+
+// ---------- Giorno "della coppia": Europe/Rome per entrambi ----------
+// Calcolato a mano (ora legale UE: dall'ultima domenica di marzo alle 01:00 UTC all'ultima di ottobre alle 01:00 UTC), senza
+// `Intl`: sul telefono e nel browser dà lo stesso risultato e non dipende dal fuso del dispositivo. Lo specchio SQL è `_rome_day()`.
+function lastSundayUtc(y: number, month0: number): number {
+  const last = new Date(Date.UTC(y, month0 + 1, 0));
+  return last.getUTCDate() - last.getUTCDay();
+}
+
+/** Scarto di Roma rispetto a UTC in minuti (60 inverno, 120 estate). */
+export function romeOffsetMin(utcMs: number): number {
+  const y = new Date(utcMs).getUTCFullYear();
+  const start = Date.UTC(y, 2, lastSundayUtc(y, 2), 1, 0, 0);
+  const end = Date.UTC(y, 9, lastSundayUtc(y, 9), 1, 0, 0);
+  return utcMs >= start && utcMs < end ? 120 : 60;
+}
+
+/** Giorno di calendario a Roma (AAAA-MM-GG) nell'istante `utcMs`. */
+export function romeDayKey(utcMs: number = Date.now()): string {
+  const d = new Date(utcMs + romeOffsetMin(utcMs) * 60_000);
+  return toIso(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
+}
+
+/** Il giorno dopo (AAAA-MM-GG). */
+export function addDaysIso(iso: string, n: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const t = new Date(Date.UTC(y || 1970, (m || 1) - 1, (d || 1) + n));
+  return toIso(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
+}
+
+/** Giorni dal 1970-01-01 a una data di calendario (AAAA-MM-GG). */
+export function epochDay(iso: string): number {
+  const [y, m, d] = iso.split("-").map(Number);
+  return Math.floor(Date.UTC(y || 1970, (m || 1) - 1, d || 1) / 86_400_000);
+}
+
+/** Differenza in giorni (b - a), anche negativa. */
+export function diffDaysIso(aIso: string, bIso: string): number {
+  return epochDay(bIso) - epochDay(aIso);
+}

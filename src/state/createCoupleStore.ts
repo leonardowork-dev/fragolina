@@ -63,7 +63,15 @@ import {
   noteFromRow,
   replayNote,
 } from "@/lib/note/sync";
-import { localDayKey, localDayStartMs } from "@/lib/time";
+import { type CountdownEvent, type EventInput, cleanTitle, validateEvent as validateEventInput } from "@/lib/countdown/rules";
+import { type EventsSlice, emptyEventsSlice } from "@/lib/countdown/sync";
+import { discardPhoto } from "@/lib/memories/photoDevice";
+import { type MemoriesSlice, emptyMemoriesSlice, replayMemories } from "@/lib/memories/sync";
+import { type Memory, cleanCaption } from "@/lib/memories/types";
+import { type MonthRaw } from "@/lib/memories/month";
+import { type QaDay, type QaSnapshot, cleanAnswer, cleanQuestion, questionRefForDay } from "@/lib/qa/rules";
+import { type QaSlice, emptyQaSlice, mergeQaDay } from "@/lib/qa/sync";
+import { localDayKey, localDayStartMs, romeDayKey } from "@/lib/time";
 import { uuid } from "@/lib/uuid";
 
 /**
@@ -91,6 +99,12 @@ export type GameIncoming = { kind: GameKind; change: GameChange; at: number };
 /** Una mia mossa che il server ha rifiutato (turno cambiato nel frattempo, casella presa…): messaggio gentile. */
 export type GameRejection = { kind: GameKind | null; error: GameError };
 
+/** Una novità portata dall'altra persona (sessione 7). */
+export type ExtraIncoming =
+  | { what: "qa-answered" | "qa-ready" }
+  | { what: "event"; title: string }
+  | { what: "memory"; kind: Memory["kind"] };
+
 type Ephemeral = {
   hydrated: boolean;
   backendKind: "supabase" | "mock";
@@ -117,6 +131,14 @@ type Ephemeral = {
   gameIncoming: GameIncoming | null;
   gameRejectedSeq: number;
   gameRejected: GameRejection | null;
+  /** null = non lo so ancora; false = il server non ha la migrazione della sessione 7 (eventi, domanda vera, ricordi). */
+  extraAvailable: boolean | null;
+  /** Dopo la prima lettura: da qui in poi un evento/ricordo nuovo dell'altro persona è una "novità" da annunciare (non lo stato iniziale). */
+  eventsAvailableSeen: boolean;
+  memoriesSeen: boolean;
+  /** Novità dell'altra persona in tempo reale (toast): domanda risposta/rivelata, evento nuovo, foto nuova. */
+  extraIncomingSeq: number;
+  extraIncoming: ExtraIncoming | null;
   /** Tocchi all'uovo non ancora messi in coda (si raggruppano per mezzo secondo). */
   pendingTouches: number;
   pendingTouchAt: number;
@@ -131,6 +153,9 @@ type Engine = {
 };
 
 export type CoupleState = SyncedState &
+  EventsSlice &
+  QaSlice &
+  MemoriesSlice &
   PetSlice &
   NoteSlice &
   GamesSlice &
@@ -151,6 +176,24 @@ export type CoupleState = SyncedState &
     abandonGame: (gameId: string) => void;
     /** Rilegge le partite dal server (silenziosa). */
     refreshGames: () => Promise<void>;
+    /** Conto alla rovescia: crea (id null) o modifica un evento. Subito visibile; parte in coda. */
+    saveEvent: (id: string | null, input: EventInput) => { ok: true; id: string } | { ok: false; error: "not_paired" | "title" | "date" | "time" | "icon" };
+    removeEvent: (id: string) => void;
+    /** La mia risposta alla domanda di oggi (una al giorno). */
+    qaAnswer: (text: string) => { ok: true } | { ok: false; error: "not_paired" | "empty" | "done" };
+    /** La domanda di domani, scritta da me (solo se tocca a me: il server lo controlla). */
+    qaTomorrow: (text: string) => { ok: true } | { ok: false; error: "not_paired" | "short" };
+    /** Aggiunge una foto già ridotta (file locale). Si vede subito; il caricamento parte in coda. */
+    addPhoto: (p: { uri: string; w: number; h: number; bytes: number }, caption: string, day: string) => { ok: true; id: string } | { ok: false; error: "not_paired" };
+    /** Tiene un biglietto o un disegno nei ricordi. `id` = id del biglietto/della partita (tenerlo due volte non lo duplica). */
+    keepMemory: (a: { id: string; kind: "draw" | "text"; source: "note" | "game"; caption: string; content: NonNullable<Memory["content"]>; day?: string }) => { ok: true } | { ok: false; error: "not_paired" };
+    deleteMemory: (id: string) => void;
+    /** Rilegge eventi, domanda e ricordi dal server (silenziosa). */
+    refreshExtra: () => Promise<void>;
+    /** URL firmati (10 minuti) per le foto. */
+    signMemoryUrls: (paths: string[]) => Promise<Record<string, string>>;
+    /** "Il nostro mese" (non si salva: si legge quando apri la pagina). `null` = migrazione mancante. */
+    fetchMonth: (year: number, month: number) => Promise<MonthRaw | null>;
     setLocationSharing: (on: boolean) => Promise<ActionResult>;
     /** Posizione già arrotondata. Silenziosa: se non va, riprova al prossimo aggiornamento. */
     shareLocation: (p: { latE2: number; lonE2: number }) => Promise<ActionResult>;
@@ -190,6 +233,9 @@ export type CoupleDeps = {
   now?: () => number;
   rng?: () => number;
 };
+
+/** Fette della sessione 7 (eventi, domanda vera, ricordi): vuote quando si cambia o si lascia la coppia. */
+const emptyExtraSlice = () => ({ ...emptyEventsSlice(), ...emptyQaSlice(), ...emptyMemoriesSlice(), extraAvailable: null as boolean | null });
 
 const initialSynced = (day: string): SyncedState => ({
   userId: null,
@@ -364,6 +410,77 @@ export function createCoupleStore(deps: CoupleDeps) {
           })();
           return gamesFetch;
         };
+        // ---------- sessione 7: eventi, domanda vera, ricordi ----------
+        const romeToday = () => romeDayKey(now());
+        const bumpExtra = (inc: ExtraIncoming) => set((c) => ({ extraIncomingSeq: c.extraIncomingSeq + 1, extraIncoming: inc }));
+        const ingestEvents = (list: CountdownEvent[], live: boolean) => {
+          const cur = get();
+          if (live && cur.eventsAvailableSeen) {
+            const fresh = list.find((e) => !cur.eventsServer.some((x) => x.id === e.id) && e.by && e.by !== cur.userId);
+            if (fresh) bumpExtra({ what: "event", title: fresh.title });
+          }
+          set({ eventsServer: list, extraAvailable: true, eventsAvailableSeen: true, lastSyncAt: now() });
+        };
+        const ingestQa = (snap: QaSnapshot, live: boolean) => {
+          const cur = get();
+          if (live) {
+            const day = romeToday();
+            const before = cur.qaServer?.days.find((d) => d.day === day);
+            const after = snap.days.find((d) => d.day === day);
+            if (after && (!before || !before.theirs) && after.theirs && before?.mine) bumpExtra({ what: "qa-ready" });
+            else if (after && before && !before.theirsAnswered && after.theirsAnswered && !after.mine) bumpExtra({ what: "qa-answered" });
+          }
+          set({ qaServer: snap, extraAvailable: true });
+        };
+        const ingestQaDay = (d: QaDay) => set({ qaServer: mergeQaDay(get().qaServer, d, romeToday()), extraAvailable: true });
+        const ingestMemories = (list: Memory[], live: boolean) => {
+          const cur = get();
+          if (live && cur.memoriesSeen) {
+            const fresh = list.find((m) => !cur.memoriesServer.some((x) => x.id === m.id) && m.by !== cur.userId);
+            if (fresh) bumpExtra({ what: "memory", kind: fresh.kind });
+          }
+          set({ memoriesServer: list, extraAvailable: true, memoriesSeen: true, lastSyncAt: now() });
+        };
+        const ingestMemory = (m: Memory) => {
+          const cur = get();
+          set({ memoriesServer: [m, ...cur.memoriesServer.filter((x) => x.id !== m.id)], extraAvailable: true });
+        };
+        let extraFetch: Promise<void> | null = null;
+        let extraWhat = new Set<"events" | "qa" | "memories">();
+        /** Rilegge le parti richieste. Silenziosa: se la migrazione manca, `extraAvailable` diventa false e l'app va avanti. */
+        const refreshExtraParts = (parts: ("events" | "qa" | "memories")[], live = false): Promise<void> => {
+          parts.forEach((p) => extraWhat.add(p));
+          if (extraFetch) return extraFetch;
+          extraFetch = (async () => {
+            try {
+              while (extraWhat.size) {
+                const todo = [...extraWhat];
+                extraWhat = new Set();
+                const cur = get();
+                if (!cur.coupleId) return;
+                if (todo.includes("events")) {
+                  const ev = await backend.getEvents();
+                  if (ev === null) return void set({ extraAvailable: false });
+                  ingestEvents(ev, live);
+                }
+                if (todo.includes("qa")) {
+                  const q = await backend.getQa(questionRefForDay(cur.coupleId, romeToday()));
+                  if (q === null) return void set({ extraAvailable: false });
+                  ingestQa(q, live);
+                }
+                if (todo.includes("memories")) {
+                  const m = await backend.getMemories();
+                  if (m === null) return void set({ extraAvailable: false });
+                  ingestMemories(m, live);
+                }
+              }
+            } finally {
+              extraFetch = null;
+            }
+          })();
+          return extraFetch;
+        };
+        const refreshExtra = () => refreshExtraParts(["events", "qa", "memories"]);
         const ensureToken = async () => {
           const cur = get();
           if (cur.widgetToken || !cur.coupleId || cur.noteAvailable !== true) return;
@@ -389,6 +506,7 @@ export function createCoupleStore(deps: CoupleDeps) {
             }
             if (ev.type === "location") return void refreshBoard().catch(() => {});
             if (ev.type === "game") return ingestGame(ev.game, true);
+            if (ev.type === "extra") return void refreshExtraParts([ev.what], true).catch(() => {});
             if (ev.type === "ping") {
               if (seenPings.has(ev.id)) return;
               seenPings.add(ev.id);
@@ -419,13 +537,16 @@ export function createCoupleStore(deps: CoupleDeps) {
               set({ lastSyncAt: now() });
               // Il pet: una chiamata a parte. Se fallisce per un motivo che non è la rete, il resto dell'app va avanti.
               if (!state.paired || !state.couple) {
-                set({ ...emptyPetSlice(), ...emptyNoteSlice(), ...emptyGamesSlice(), noteAvailable: null, gamesAvailable: null, loc: emptyLocation(), petAvailable: null });
+                set({ ...emptyPetSlice(), ...emptyNoteSlice(), ...emptyGamesSlice(),
+                ...emptyExtraSlice(), noteAvailable: null, gamesAvailable: null, loc: emptyLocation(), petAvailable: null });
               } else {
                 if (prevCouple && prevCouple !== state.couple.id)
-                  set({ ...emptyNoteSlice(), ...emptyGamesSlice(), loc: emptyLocation(), widgetToken: null });
+                  set({ ...emptyNoteSlice(), ...emptyGamesSlice(),
+                ...emptyExtraSlice(), loc: emptyLocation(), widgetToken: null });
                 await refreshBoard().catch((e: unknown) => {
                   if (e instanceof BackendError && e.kind === "network") throw e;
                 });
+                void refreshExtra().catch(() => {});
                 void refreshGames().catch(() => {}); // a parte: non rallenta né fa fallire la sincronizzazione principale
                 await ensureToken();
                 const snap = await backend.getPet().catch((e: unknown) => {
@@ -482,6 +603,39 @@ export function createCoupleStore(deps: CoupleDeps) {
           }
           if (op.kind === "gameAbandon") {
             ingestGame(await backend.abandonGame({ gameId: op.gameId, key: op.key }), false);
+            return;
+          }
+          if (op.kind === "eventUpsert") {
+            const e = op.event;
+            ingestEvents(await backend.upsertEvent({ id: e.id, input: { title: e.title, date: e.date, time: e.time, icon: e.icon, featured: e.featured }, at: e.at }), false);
+            return;
+          }
+          if (op.kind === "eventDelete") {
+            ingestEvents(await backend.deleteEvent({ id: op.id, at: op.at }), false);
+            return;
+          }
+          if (op.kind === "qaAnswer") {
+            ingestQaDay(await backend.answerQa({ day: op.day, ref: op.ref, text: op.text, key: op.key }));
+            return;
+          }
+          if (op.kind === "qaTomorrow") {
+            ingestQaDay(await backend.setTomorrowQuestion(op.text));
+            return;
+          }
+          if (op.kind === "memoryAdd") {
+            ingestMemory(await backend.addMemory({ id: op.id, kind: op.memKind, source: op.source, caption: op.caption, day: op.day, path: null, w: null, h: null, bytes: null, content: op.content }));
+            return;
+          }
+          if (op.kind === "memoryPhoto") {
+            const path = `${coupleId}/${op.id}.jpg`;
+            await backend.uploadMemoryPhoto({ path, uri: op.uri });
+            ingestMemory(await backend.addMemory({ id: op.id, kind: "photo", source: "photo", caption: op.caption, day: op.day, path, w: op.w, h: op.h, bytes: op.bytes, content: null }));
+            void discardPhoto(op.uri);
+            return;
+          }
+          if (op.kind === "memoryDelete") {
+            const path = (await backend.deleteMemory(op.id)) ?? op.path;
+            if (path) await backend.removeMemoryFile(path);
             return;
           }
           if (op.kind === "noteClear") {
@@ -634,6 +788,7 @@ export function createCoupleStore(deps: CoupleDeps) {
                 ...emptyPetSlice(),
                 ...emptyNoteSlice(),
                 ...emptyGamesSlice(),
+                ...emptyExtraSlice(),
                 noteAvailable: null,
                 gamesAvailable: null,
                 loc: emptyLocation(),
@@ -753,7 +908,12 @@ export function createCoupleStore(deps: CoupleDeps) {
           gameIncoming: null as GameIncoming | null,
           gameRejectedSeq: 0,
           gameRejected: null as GameRejection | null,
+          extraIncomingSeq: 0,
+          extraIncoming: null as ExtraIncoming | null,
+          eventsAvailableSeen: false,
+          memoriesSeen: false,
           ...emptyGamesSlice(),
+                ...emptyExtraSlice(),
           loc: emptyLocation(),
           widgetToken: null as string | null,
           ...emptyNoteSlice(),
@@ -949,6 +1109,80 @@ export function createCoupleStore(deps: CoupleDeps) {
             kick();
           },
           refreshGames: () => refreshGames(),
+          saveEvent: (id, input) => {
+            const cur = get();
+            if (!cur.coupleId) return { ok: false, error: "not_paired" };
+            const title = cleanTitle(input.title);
+            if (!title) return { ok: false, error: "title" };
+            const bad = validateEventInput({ ...input, title });
+            if (bad) return { ok: false, error: bad };
+            const evId = id ?? uuid();
+            const at = Math.max(now(), (cur.eventsServer.find((e) => e.id === evId)?.at ?? 0) + 1);
+            const event: CountdownEvent = { id: evId, title, date: input.date, time: input.time, icon: input.icon, featured: input.featured, at };
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "eventUpsert", at, attempts: 0, event }) });
+            kick();
+            return { ok: true, id: evId };
+          },
+          removeEvent: (id) => {
+            const cur = get();
+            if (!cur.coupleId) return;
+            const at = Math.max(now(), (cur.eventsServer.find((e) => e.id === id)?.at ?? 0) + 1);
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "eventDelete", at, attempts: 0, id }) });
+            kick();
+          },
+          qaAnswer: (text) => {
+            const cur = get();
+            if (!cur.coupleId) return { ok: false, error: "not_paired" };
+            const t = cleanAnswer(text);
+            if (!t) return { ok: false, error: "empty" };
+            const day = romeToday();
+            const mine = cur.qaServer?.days.find((d) => d.day === day)?.mine;
+            if (mine || cur.queue.some((q) => q.kind === "qaAnswer" && q.day === day)) return { ok: false, error: "done" };
+            const ref = cur.qaServer?.days.find((d) => d.day === day)?.ref ?? questionRefForDay(cur.coupleId, day);
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "qaAnswer", at: now(), attempts: 0, day, ref, text: t }) });
+            kick();
+            return { ok: true };
+          },
+          qaTomorrow: (text) => {
+            const cur = get();
+            if (!cur.coupleId) return { ok: false, error: "not_paired" };
+            const t = cleanQuestion(text);
+            if (t.length < 3) return { ok: false, error: "short" };
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "qaTomorrow", at: now(), attempts: 0, text: t }) });
+            kick();
+            return { ok: true };
+          },
+          addPhoto: (p, caption, day) => {
+            const cur = get();
+            if (!cur.coupleId) return { ok: false, error: "not_paired" };
+            const id = uuid();
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "memoryPhoto", at: now(), attempts: 0, id, uri: p.uri, w: p.w, h: p.h, bytes: p.bytes, caption: cleanCaption(caption), day }) });
+            kick();
+            return { ok: true, id };
+          },
+          keepMemory: (a) => {
+            const cur = get();
+            if (!cur.coupleId) return { ok: false, error: "not_paired" };
+            set({
+              queue: enqueue(cur.queue, { key: uuid(), kind: "memoryAdd", at: now(), attempts: 0, id: a.id, memKind: a.kind, source: a.source, caption: cleanCaption(a.caption), day: a.day ?? romeToday(), content: a.content }),
+            });
+            kick();
+            return { ok: true };
+          },
+          deleteMemory: (id) => {
+            const cur = get();
+            if (!cur.coupleId) return;
+            const known = replayMemories(cur.memoriesServer, cur.queue, cur.userId ?? "", now()).find((m) => m.id === id);
+            if (!known) return;
+            const queuedPhoto = cur.queue.find((q) => q.kind === "memoryPhoto" && q.id === id);
+            if (queuedPhoto && queuedPhoto.kind === "memoryPhoto") void discardPhoto(queuedPhoto.uri);
+            const path = known.kind === "photo" ? `${cur.coupleId}/${id}.jpg` : null;
+            set({ queue: enqueue(cur.queue, { key: uuid(), kind: "memoryDelete", at: now(), attempts: 0, id, path }) });
+            kick();
+          },
+          refreshExtra: () => refreshExtra(),
+          signMemoryUrls: (paths) => backend.signMemoryUrls(paths),
+          fetchMonth: async (year, month) => backend.getMonth(year, month),
           setLocationSharing: async (on) => {
             try {
               await backend.setLocationSharing(on);
@@ -1041,6 +1275,7 @@ export function createCoupleStore(deps: CoupleDeps) {
                 ...emptyPetSlice(),
                 ...emptyNoteSlice(),
                 ...emptyGamesSlice(),
+                ...emptyExtraSlice(),
                 noteAvailable: null,
                 gamesAvailable: null,
                 loc: emptyLocation(),
@@ -1114,6 +1349,9 @@ export function createCoupleStore(deps: CoupleDeps) {
             petLog: s.petLog,
             petMyLast: s.petMyLast,
             noteServer: s.noteServer,
+            eventsServer: s.eventsServer,
+            qaServer: s.qaServer,
+            memoriesServer: s.memoriesServer,
             gamesServer: s.gamesServer,
             gameScores: s.gameScores,
             gameDecks: s.gameDecks,

@@ -17,6 +17,18 @@ export function enqueue(queue: QueuedOp[], op: QueuedOp): QueuedOp[] {
   if (op.kind === "petName") next = next.filter((q) => q.kind !== "petName"); // last-write-wins: resta l'ultimo
   // un biglietto nuovo sostituisce quello ancora in coda (e le pulizie che lo riguardavano)
   if (op.kind === "note") next = next.filter((q) => q.kind !== "note" && q.kind !== "noteClear");
+  // eventi: l'ultima modifica dello stesso evento sostituisce le precedenti; una cancellazione le assorbe
+  const cur = op;
+  if (cur.kind === "eventUpsert") next = next.filter((q) => !(q.kind === "eventUpsert" && q.event.id === cur.event.id));
+  if (cur.kind === "eventDelete") next = next.filter((q) => !((q.kind === "eventUpsert" && q.event.id === cur.id) || (q.kind === "eventDelete" && q.id === cur.id)));
+  // domanda di domani: resta l'ultima scritta
+  if (op.kind === "qaTomorrow") next = next.filter((q) => q.kind !== "qaTomorrow");
+  // un ricordo ancora in coda e subito cancellato non è mai esistito: spariscono tutti e due (la cancellazione serve solo se c'è già sul server)
+  if (cur.kind === "memoryDelete") {
+    const wasQueued = next.some((q) => (q.kind === "memoryAdd" || q.kind === "memoryPhoto") && q.id === cur.id);
+    next = next.filter((q) => !((q.kind === "memoryAdd" || q.kind === "memoryPhoto") && q.id === cur.id) && !(q.kind === "memoryDelete" && q.id === cur.id));
+    if (wasQueued && cur.path === null) return next;
+  }
   if (op.kind === "mood" || op.kind === "startDate" || op.kind === "name") {
     const prior = next.filter((q) => q.kind === op.kind);
     next = next.filter((q) => q.kind !== op.kind);
@@ -27,6 +39,9 @@ export function enqueue(queue: QueuedOp[], op: QueuedOp): QueuedOp[] {
   }
   if (op.kind === "answer") {
     if (next.some((q) => q.kind === "answer" && q.day === op.day)) return next;
+  }
+  if (op.kind === "qaAnswer") {
+    if (next.some((q) => q.kind === "qaAnswer" && q.day === op.day)) return next; // una risposta al giorno: resta la prima
   }
   next = [...next, op];
   if (op.kind === "ping") {

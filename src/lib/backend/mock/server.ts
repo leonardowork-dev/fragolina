@@ -21,6 +21,7 @@ import type { LocationState, PartnerLocState } from "@/lib/geo/types";
 import type { Board } from "@/lib/note/wire";
 import type { PetLogEntry, PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
+import { type ExtraState, MockExtra, emptyExtra } from "./extra";
 
 /**
  * "Server" finto: stesse regole del SQL in supabase/migrations (codici, limiti, RLS, last-write-wins, rivelazione
@@ -69,6 +70,8 @@ export type MockState = {
   widgetTokens?: Record<string, string>;
   /** Giochi (sessione 6): una "base dati" per coppia (le stesse funzioni pure del telefono e della prova SQL). */
   games?: Record<string, GamesDb>;
+  /** Sessione 7: conto alla rovescia, domanda vera, ricordi, foto (Storage finto). Opzionale: i file salvati prima non lo hanno. */
+  extra?: ExtraState;
 };
 
 export type MockStorage = { read(): MockState; write(s: MockState): void };
@@ -91,6 +94,7 @@ export const emptyMockState = (): MockState => ({
   locations: {},
   widgetTokens: {},
   games: {},
+  extra: emptyExtra(),
 });
 
 export const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -105,7 +109,18 @@ export class MockServer {
     private readonly emit: (c: ServerChange) => void,
     private readonly clock: () => number = Date.now,
     private readonly rng: () => number = Math.random,
-  ) {}
+  ) {
+    this.extra = new MockExtra(
+      () => this.storage.read(),
+      (st) => this.storage.write(st),
+      this.emit,
+      () => this.clock(),
+      (st, uid) => this.coupleOf(st, uid),
+    );
+  }
+
+  /** Conto alla rovescia, domanda vera, ricordi, mese (sessione 7). */
+  readonly extra: MockExtra;
 
   private genCode(s: MockState): string {
     for (;;) {
@@ -229,6 +244,13 @@ export class MockServer {
       if (s.pets) delete s.pets[cid];
       if (s.petLog) s.petLog = s.petLog.filter((x) => x.coupleId !== cid);
       if (s.notes) s.notes = s.notes.filter((x) => x.coupleId !== cid);
+      if (s.extra) {
+        s.extra.events = s.extra.events.filter((x) => x.coupleId !== cid);
+        s.extra.qaDays = s.extra.qaDays.filter((x) => x.coupleId !== cid);
+        s.extra.qaAnswers = s.extra.qaAnswers.filter((x) => x.coupleId !== cid);
+        s.extra.memories = s.extra.memories.filter((x) => x.coupleId !== cid);
+        for (const p of Object.keys(s.extra.files)) if (p.startsWith(`${cid}/`)) delete s.extra.files[p];
+      }
     } else this.freshCode(s, cid);
     // chi esce perde posizione e token (come il trigger tg_member_cleanup)
     if (s.locations) delete s.locations[uid];
