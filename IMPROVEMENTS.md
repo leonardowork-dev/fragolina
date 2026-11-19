@@ -48,3 +48,13 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - **Disegni della Fragolina in più** (oggi 8) e un livello "difficile" per l'IA del Tris (minimax).
 - **Notifiche push** (se mai fosse possibile a costo zero con sideload): "tocca a te a Tris".
 - **Prova da solo con due telefoni finti:** una modalità di sviluppo con due identità sullo stesso telefono per provare tutto senza Nikole.
+
+## Idee dalla sessione 7
+- Foto: più foto insieme, ritaglio, filtri-adesivo, commenti brevi sotto una foto, "preferiti".
+- Ricordi: esportare l'album in un PDF o in un video di fine anno (tutto sul telefono); promemoria gentile "tra una settimana è il vostro anniversario".
+- Manca poco: ripetizione annuale (compleanni), più eventi nel widget medio (due righe), eventi "da lontano" con la distanza.
+- Domanda del giorno: risposte con una foto o un disegno; categorie scelte da voi; "domanda della settimana" più profonda; archivio per categoria; esportare il libro delle risposte.
+- Il nostro mese: confronto con il mese scorso, "momento dell'umore" con un nome, un adesivo-premio a fine mese.
+- Notifiche (serve un account a pagamento: fuori budget): "Nikole ha risposto".
+- Cancellazioni in tempo reale (oggi si vedono al prossimo sondaggio).
+- Widget: "Un anno fa oggi" come widget grande (rimandato: Leonardo vuole solo i widget di tipo giorni/distanza/biglietto/conto alla rovescia).

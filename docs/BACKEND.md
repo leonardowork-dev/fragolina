@@ -66,3 +66,21 @@ File da incollare: `supabase/sessione5-note.sql` (solo questa migrazione; rieseg
 **Posizione:** si scambiano solo interi `latE2/lonE2` (gradi × 100 ≈ 1 km); il telefono arrotonda prima di inviare (`roundE2`) e il server rifiuta valori fuori scala. Si salva solo l'ultima posizione; spegnendo la condivisione il server cancella anche quella. La distanza (haversine) la calcola chi guarda.
 
 **Tempo reale:** publication aggiornata con `notes` e `locations` (canale a parte `board-…`: se la migrazione manca non fa cadere il resto).
+
+
+## Sessione 7: eventi, domanda del giorno, ricordi, Storage (migrazione `20261119000001_extra7.sql`)
+File da incollare: `supabase/sessione7-extra.sql` (rieseguibile; crea anche il bucket privato `memories` e le sue regole).
+
+**Tabelle:** `countdown_events` (eventi, last-write-wins per `at`), `qa_days` (la domanda di ogni giorno di Roma, fissata dal primo che la apre), `qa_answers` ("ha risposto": chi e quando, nel realtime), `qa_texts` (il TESTO: **segreto**, RLS + funzioni, **non** nel realtime), `memories` (foto e biglietti/disegni tenuti). Nessuna scrittura diretta: solo le funzioni `upsert_event`, `delete_event`, `answer_qa`, `set_tomorrow_question`, `add_memory`, `delete_memory`; letture con `get_events`, `get_qa`, `get_memories`, `get_month`.
+
+**Il segreto della domanda (parole semplici):** l'altra persona vede il tuo testo solo dopo aver risposto lei allo stesso giorno. È garantito in due modi: la regola della tabella (`qa_texts_select`: o è la tua riga, o hai già risposto tu a quel giorno) e `get_qa`, che manda il testo dell'altro solo a chi ha risposto. Nel tempo reale passa soltanto `qa_answers` ("Nikole ha risposto"); quando risponde il secondo, il primo rilegge e il testo gli arriva da `get_qa`. Chi non è in coppia non vede nulla.
+
+**Storage:** bucket `memories` privato (solo JPEG, max 1 MB). Percorso `<id coppia>/<id ricordo>.jpg`. Regole su `storage.objects`: `memories_read`/`memories_write` = solo i due membri, solo nella cartella della propria coppia; `memories_remove` = solo chi ha caricato il file. Si vedono le foto con URL firmati a scadenza breve (10 minuti); l'indirizzo pubblico non le serve. `add_memory` rifiuta percorsi di un'altra coppia o file che non esistono. Il file va tolto dallo Storage dal telefono dopo `delete_memory` (cancellare la riga di `storage.objects` da SQL non cancellerebbe il file).
+
+**`widget_feed`** ora restituisce anche `events` (≤ 5, in-evidenza per primo): stessa porta (chiave pubblica + token a 256 bit), niente altro è uscito (le risposte della domanda non sono nel feed: provato).
+
+**Giorno:** `_rome_day()` = Europe/Rome per entrambi. **Errori nuovi:** `not_your_turn` (domani scrive l'altro), `not_yours` (un ricordo lo toglie chi l'ha aggiunto), `no_file` (la foto non è ancora nello Storage).
+
+**Migrazione delle risposte a/b** (`daily_answers` → `qa_answers`/`qa_texts` con `choice`): nessuna risposta persa, segreto invariato; la vecchia tabella resta.
+
+**Spazio (piano gratuito):** 1 GB di Storage ≈ 2600 foto da 400 KB (≈ 2100 al tetto di 500 KB); le foto non occupano il database (500 MB).

@@ -286,3 +286,47 @@ Appena siete in due, in **Gioca** compaiono le partite vere: la partita in cui *
 - [ ] **Senza rete** (modalità aereo): in prova funziona lo stesso (è tutta locale).
 - [ ] Le vibrazioni: una per azione (casella, risposta, invio).
 - [ ] Biglietto, distanza, pet e widget di prima funzionano ancora.
+
+## Sessione 7 — Manca poco, domanda del giorno vera, Ricordi (passo-passo, in ordine)
+
+### S7-1. Accendi le novità sul database (una volta sola, 3 minuti)
+Servono tabelle nuove su Supabase (eventi, domanda del giorno, ricordi) **e un contenitore privato per le foto**. Il file fa tutto da solo, compreso il contenitore: **non devi cliccare nient'altro nel pannello**. Senza questo passo l'app funziona lo stesso, ma Noi dice **"Manca un passo"** e le nuove schede (Manca poco, domanda, Ricordi, Il nostro mese) restano vuote.
+1. Sul PC apri **https://supabase.com/dashboard** (accedi se serve) e clicca il tuo progetto di Fragolina.
+2. Colonna a sinistra → **SQL Editor** (icona `>_`) → **New query**.
+3. Apri il file **`supabase\sessione7-extra.sql`** (Esplora file → cartella `fragolina` → `supabase`; si apre con il Blocco note; da Windows anche `\\wsl$\Ubuntu\home\leonardo\fragolina\supabase\sessione7-extra.sql`). **Ctrl+A**, **Ctrl+C**.
+4. Torna su Supabase, clicca dentro la casella grande, **Ctrl+V**.
+5. Bottone verde **Run** (o Ctrl+Invio). Se compare un avviso giallo ("destructive operations"): è normale, **Run this query**.
+6. **Devi vedere "Success. No rows returned"**. Se vedi un errore rosso, copia il testo e mandalo a Claude. Il file **non cancella nulla**: le risposte alla domanda del giorno già date vengono copiate nel nuovo formato (restano segrete finché l'altro non risponde). Si può rilanciare quante volte vuoi. (Le migrazioni delle sessioni 4, 5 e 6 devono essere già state incollate.)
+7. Controllo: Terminale Ubuntu → `cd ~/fragolina && npm run backend:check` → Invio. **Devi vedere** tante **PASS** (anche "eventi", "domanda", "segreto", "Storage", "ricordi") e alla fine `… prove passate` **senza** la riga `MANCA`.
+   *(Il controllo carica una piccola immagine di prova nel contenitore vero e la cancella.)*
+   *Se **un'unica riga di Storage** fallisce:* nel pannello Supabase → **Storage** controlla che esista il contenitore **memories** (deve essere **Private**). Se non c'è, **New bucket** → nome `memories` → lascia spento "Public bucket" → **Save**, poi rilancia il file SQL del passo 3 (aggiunge le regole) e il controllo.
+
+### S7-2. Installa la nuova app sul tuo iPhone (Sideloadly)
+1. Collega l'iPhone al PC, sbloccalo.
+2. **Sideloadly** → trascina **`Fragolina-release.ipa`** (Desktop → **Fragolina-build**, cioè `OneDrive\Desktop\Fragolina-build`).
+3. **Apple ID**: lo stesso dell'altra volta. **Advanced Options → "Remove extensions" resta SPENTO.**
+4. **Start**, password (e codice a 6 cifre se lo chiede). **Devi vedere Done.** È un'installazione "sopra": i dati restano.
+5. **Permesso Foto:** la prima volta che tocchi **Aggiungi foto** iOS mostra il selettore di sistema (non chiede nulla per leggere tutto il rullino: legge solo la foto che scegli). Il testo del permesso, se lo chiede, è in italiano.
+
+### S7-3. Il nuovo widget "Manca poco"
+Home dell'iPhone → tieni premuto su uno spazio vuoto → **+** → cerca **Fragolina** → **Manca poco** → scegli piccolo o medio → **Aggiungi widget**. Schermata di blocco: tieni premuto sul blocco → **Personalizza** → **Aggiungi widget** → **Manca poco** (cerchio o riga). Se non lo vedi in galleria: riavvia l'iPhone (iOS tiene in cache l'elenco) e riprova.
+Il widget mostra l'evento "in evidenza" (o il più vicino): il numero dei giorni scatta da solo a mezzanotte, nell'ultimo giorno passa alle **ore** e il giorno dell'evento c'è la festa. Cambia anche se l'evento lo crea Nikole (lo scarica da solo).
+
+### S7-4. Come provare tutto DA SOLO (Nikole non c'è ancora)
+- **Manca poco:** scheda **Noi → Insieme → Manca poco** → **Nuovo evento**: titolo ("Ci vediamo"), data, ora (facoltativa), un simbolo, interruttore **In evidenza**. In Home compare l'adesivo celeste "tra 7 giorni: Ci vediamo". Metti un evento **per oggi** per vedere la festa (coriandoli) e controlla il widget.
+- **Domanda del giorno:** in Home tocca la carta **Domanda del giorno** → scrivi una risposta (max 280 caratteri) → **Rispondi**. Da solo vedi "Hai risposto" (la carta con le due risposte si gira quando risponde anche l'altra persona). **"Domani"**: a giorni alterni tocca a te scrivere la domanda del giorno dopo.
+- **Ricordi:** **Noi → Insieme → Ricordi** → **Aggiungi foto** → scegli → didascalia e giorno → **Metti nell'album**. Una foto con la data di un anno fa compare in Home come **"Un anno fa oggi"**. Tocca la foto per vederla grande; **Cancella foto** (con conferma) la toglie anche dal server. Dalla scheda **Disegna** (biglietto sul blocco) e dall'**Album** dei disegni di Gioca c'è **Tieni nei ricordi**.
+- **Il nostro mese:** **Noi → Insieme → Il nostro mese** (o l'adesivo verde in Home): i tuoi umori, i pensieri, le partite, i giorni con due risposte.
+- **Senza rete:** modalità aereo → crea un evento o aggiungi una foto: si vede subito e dice **in coda**; parte da sola quando torna la rete.
+
+### S7-5. Cosa guardare sul telefono (checklist: scrivi a Claude cosa non va)
+- [ ] **Home:** sotto "Il tuo umore" ci sono la domanda, (se c'è un evento) **Manca poco**, (solo se c'è qualcosa) **Un anno fa oggi**, poi i due adesivi **Ricordi** e **Il nostro mese**. Niente testo tagliato.
+- [ ] **Manca poco:** l'evento grande in giallo, gli altri sotto con colori diversi; il giorno dell'evento coriandoli **una volta**.
+- [ ] **Widget Manca poco** (piccolo, medio, cerchio e riga sul blocco): numero grande, titolo, data; il numero cambia a mezzanotte.
+- [ ] **Domanda:** la tastiera non copre la casella; il contatore va da 0 a 280.
+- [ ] **Foto:** il selettore di iOS si apre; la foto compare nell'album e non pesa più di ~500 KB; la scheda si scorre con il dito dentro la foto grande.
+- [ ] **Meno movimento:** la carta delle risposte non si gira ma compare in dissolvenza.
+- [ ] Biglietto, distanza, pet, giochi e widget di prima funzionano ancora.
+
+### S7-6. Quando arriva Nikole (sessione 9)
+Ognuno vede gli eventi dell'altra persona e le foto in tempo reale. La domanda del giorno è **la stessa per entrambi** (giorno = ora di Roma per tutti e due); la risposta dell'altra resta **segreta finché non rispondi anche tu**; "Domani" si alterna (un giorno scrive Leonardo, il giorno dopo Nikole).

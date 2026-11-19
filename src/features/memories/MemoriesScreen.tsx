@@ -32,7 +32,7 @@ function Viewer({ memory, onClose }: { memory: Memory | null; onClose: () => voi
   const paths = memory?.path ? [memory.path] : [];
   const { urls, failed } = useSignedUrls(paths);
   const mine = !!memory && memory.by === me;
-  const w = Math.min(width - 40, 420);
+  const w = Math.min(width - 48, 420);
   const ratio = memory?.w && memory?.h ? memory.w / memory.h : 4 / 3;
   const h = Math.max(160, Math.min(w / ratio, 460));
   return (
