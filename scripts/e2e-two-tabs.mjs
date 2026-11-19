@@ -224,33 +224,35 @@ try {
   check("A: vede la data cambiata da B (≥ 365 giorni)", await seen(A, /^36[56]$/, 12000));
   await shot(A, "A", "giorni-insieme-365");
 
-  // ---------- 6. Domanda del giorno ----------
-  await A.mouse.wheel(0, 700);
-  await B.mouse.wheel(0, 700);
+  // ---------- 6. Domanda del giorno (versione vera dalla sessione 7: risposta libera, segreta, poi rivelata) ----------
+  for (const p of [A, B]) {
+    await p.getByRole("button", { name: /^Domanda del giorno/ }).first().click();
+    await seen(p, /La domanda di oggi/);
+  }
   await settle(A, 700);
   await shot(A, "A", "domanda-da-rispondere");
-  await B.getByTestId("answer-b").click();
+  await B.getByTestId("qa-input").fill("Risposta di B");
+  await btn(B, "Rispondi").click();
   await settle(B, 900);
   await shot(B, "B", "domanda-risposto-attesa");
   await settle(A, 1500);
-  check(
-    "A: NON vede la risposta di B prima di rispondere",
-    (await A.getByText(/ha risposto/).count()) === 0,
-  );
-  await A.getByTestId("answer-a").click();
-  check(
-    "A: dopo aver risposto compare la carta da scoprire",
-    await seen(A, /Tocca per scoprire/, 10000),
-  );
+  check("A: NON vede la risposta di B prima di rispondere", (await A.getByText(/Risposta di B/).count()) === 0);
+  await A.getByTestId("qa-input").fill("Risposta di A");
+  await btn(A, "Rispondi").click();
+  check("A: dopo aver risposto compare la carta da girare", await seen(A, /Ora le leggete insieme/, 10000));
   await settle(A, 900);
   await shot(A, "A", "domanda-carta-da-girare");
-  await btn(A, /Scopri la risposta di/).click();
+  await btn(A, "Gira").click();
   await settle(A, 1100);
   await shot(A, "A", "domanda-carta-girata");
-  check("A: la risposta di B è rivelata", await seen(A, /ha scelto/, 6000));
-  check("B: riceve la carta di A in tempo reale", await seen(B, /Tocca per scoprire/, 12000));
+  check("A: la risposta di B è rivelata", await seen(A, /Risposta di B/, 6000));
+  check("B: riceve la carta di A in tempo reale", await seen(B, /Ora le leggete insieme/, 12000));
   await settle(B, 700);
   await shot(B, "B", "domanda-carta-da-girare");
+  for (const p of [A, B]) {
+    await p.getByRole("button", { name: "Indietro", exact: true }).click();
+    await settle(p, 600);
+  }
 
   // ---------- 6b. Pet condiviso ----------
   for (const p of [A, B]) {
