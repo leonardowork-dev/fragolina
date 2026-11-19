@@ -19,6 +19,7 @@ const dataUriBytes = (u: string) => {
 
 async function sizeOf(uri: string): Promise<number> {
   if (uri.startsWith("data:")) return dataUriBytes(uri);
+  if (isWeb) return (await (await fetch(uri)).blob()).size;
   const { File } = await import("expo-file-system");
   return new File(uri).size ?? 0;
 }
@@ -59,14 +60,25 @@ export async function pickPhoto(): Promise<PickResult> {
     const a = res.canceled ? null : res.assets[0];
     if (!a) return { ok: false, reason: "cancelled" };
     return { ok: true, photo: await shrink(a.uri, a.width, a.height) };
-  } catch {
+  } catch (e) {
+    console.warn("[Fragolina] foto non letta:", e);
     return { ok: false, reason: "failed" };
   }
 }
 
 /** Copia il file in una cartella che il sistema non svuota (solo sul telefono; nel browser l'indirizzo `data:` resta com'è). */
 export async function persistPhoto(uri: string, id: string): Promise<string> {
-  if (isWeb || uri.startsWith("data:")) return uri;
+  if (uri.startsWith("data:")) return uri;
+  if (isWeb) {
+    // un indirizzo blob: sparisce a ogni ricarica; nel browser (solo prove) si tiene come `data:`
+    const blob = await (await fetch(uri)).blob();
+    return await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result));
+      r.onerror = () => reject(new Error("lettura foto"));
+      r.readAsDataURL(blob);
+    });
+  }
   const { Directory, File, Paths } = await import("expo-file-system");
   const dir = new Directory(Paths.document, "memories-pending");
   if (!dir.exists) dir.create({ intermediates: true, idempotent: true });

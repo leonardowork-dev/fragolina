@@ -1,4 +1,5 @@
 import React from "react";
+import { View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { palette } from "@/design/tokens";
@@ -18,10 +19,12 @@ const FILL: Record<IconFill, string> = {
 /** Simbolo del conto alla rovescia: gli stessi tracciati del widget (src/lib/countdown/icons.json), tratto inchiostro tondo. */
 export function EventIcon({ id, size = 40 }: { id: EventIconId; size?: number }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      {ICON_SHAPES[id].map((s, i) => (
-        <Path key={i} d={s.d} fill={FILL[s.fill]} stroke={palette.ink} strokeWidth={5.5} strokeLinejoin="round" strokeLinecap="round" />
-      ))}
-    </Svg>
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size} viewBox="0 0 100 100">
+        {ICON_SHAPES[id].map((s, i) => (
+          <Path key={i} d={s.d} fill={FILL[s.fill]} stroke={palette.ink} strokeWidth={5.5} strokeLinejoin="round" strokeLinecap="round" />
+        ))}
+      </Svg>
+    </View>
   );
 }

@@ -13,6 +13,8 @@ export function createDefaultMock(web: boolean): MockBackend {
       userId: b.userId,
       // Solo per le prove (e2e): leggere ciò che il telefono riceve e provare una mossa fuori turno.
       getGames: () => b.getGames(),
+      getQa: (ref: string) => b.getQa(ref),
+      getMemories: () => b.getMemories(),
       gameMove: (a: Parameters<MockBackend["gameMove"]>[0]) =>
         b.gameMove(a).then(
           (g) => ({ ok: true as const, game: g }),

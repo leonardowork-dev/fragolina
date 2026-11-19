@@ -4,6 +4,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -152,58 +153,68 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
           pointerEvents="box-none"
           style={{ flex: 1, justifyContent: "flex-end" }}
         >
-          <GestureDetector gesture={pan}>
-            <Animated.View
-              accessibilityViewIsModal
-              onLayout={(e) => heightSv.set(e.nativeEvent.layout.height)}
-              style={[
-                {
-                  backgroundColor: colors.surface,
-                  borderTopLeftRadius: 28,
-                  borderTopRightRadius: 28,
-                  borderWidth: outline.width,
-                  borderBottomWidth: 0,
-                  borderColor: colors.outline,
-                  paddingTop: 10,
-                  paddingHorizontal: 20,
-                  paddingBottom: insets.bottom + 24,
-                  maxHeight: winH * 0.92,
-                },
-                panelStyle,
-              ]}
+          <Animated.View
+            accessibilityViewIsModal
+            onLayout={(e) => heightSv.set(e.nativeEvent.layout.height)}
+            style={[
+              {
+                backgroundColor: colors.surface,
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                borderWidth: outline.width,
+                borderBottomWidth: 0,
+                borderColor: colors.outline,
+                paddingTop: 10,
+                paddingHorizontal: 20,
+                paddingBottom: insets.bottom + 24,
+                maxHeight: winH * 0.92,
+              },
+              panelStyle,
+            ]}
+          >
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                left: -outline.width,
+                right: -outline.width,
+                top: "100%",
+                height: 240,
+                backgroundColor: colors.surface,
+                borderLeftWidth: outline.width,
+                borderRightWidth: outline.width,
+                borderColor: colors.outline,
+              }}
+            />
+            {/* Si trascina per chiudere dalla maniglia e dal titolo; il contenuto sotto scorre se è più alto dello schermo. */}
+            <GestureDetector gesture={pan}>
+              <View collapsable={false}>
+                <View
+                  style={{
+                    alignSelf: "center",
+                    width: 48,
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: colors.ink,
+                    marginBottom: 14,
+                  }}
+                />
+                {title ? (
+                  <Text variant="display" accessibilityRole="header" style={{ marginBottom: 6 }}>
+                    {title}
+                  </Text>
+                ) : null}
+              </View>
+            </GestureDetector>
+            <ScrollView
+              style={{ flexShrink: 1 }}
+              bounces={false}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              <View
-                pointerEvents="none"
-                style={{
-                  position: "absolute",
-                  left: -outline.width,
-                  right: -outline.width,
-                  top: "100%",
-                  height: 240,
-                  backgroundColor: colors.surface,
-                  borderLeftWidth: outline.width,
-                  borderRightWidth: outline.width,
-                  borderColor: colors.outline,
-                }}
-              />
-              <View
-                style={{
-                  alignSelf: "center",
-                  width: 48,
-                  height: 6,
-                  borderRadius: 3,
-                  backgroundColor: colors.ink,
-                  marginBottom: 14,
-                }}
-              />
-              {title ? (
-                <Text variant="display" accessibilityRole="header" style={{ marginBottom: 6 }}>
-                  {title}
-                </Text>
-              ) : null}
               {children}
-            </Animated.View>
-          </GestureDetector>
+            </ScrollView>
+          </Animated.View>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </Modal>

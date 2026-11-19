@@ -86,7 +86,7 @@ export function CountdownScreen() {
   const toast = useToast();
   const { picked, upcoming, past, today, viewOf } = useCountdown();
   const available = useCouple((s) => s.extraAvailable);
-  const link = useCouple((s) => s.link);
+  const pending = useCouple((s) => s.queue.some((q) => q.kind === "eventUpsert" || q.kind === "eventDelete"));
   const paired = useCouple((s) => !!s.coupleId);
   const refresh = useCouple((s) => s.refreshExtra);
   const [sheet, setSheet] = useState<{ event: CountdownEvent | null } | null>(null);
@@ -149,9 +149,7 @@ export function CountdownScreen() {
         <EventRow key={e.id} e={e} index={i} onPress={() => setSheet({ event: e })} />
       ))}
       {paired ? <Button id="new-event" label={S.countdown.add} icon="plus" onPress={() => setSheet({ event: null })} haptic="light" /> : null}
-      {link === "offline" && useCouple.getState().queue.some((q) => q.kind === "eventUpsert" || q.kind === "eventDelete") ? (
-        <Text variant="caption">{S.countdown.queued}</Text>
-      ) : null}
+      {pending ? <Text variant="caption">{S.countdown.queued}</Text> : null}
       {past.length ? (
         <View style={{ gap: 10, marginTop: 8 }}>
           <Text variant="title" accessibilityRole="header">
