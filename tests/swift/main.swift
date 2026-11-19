@@ -152,5 +152,35 @@ for item in (input["distanceTimeline"] as? [[String: Any]]) ?? [] {
 }
 out["distanceTimeline"] = distTl
 
+// 10) Conto alla rovescia: cosa mostra il widget (snapshot + feed) e le date della timeline
+var cdOut: [Any] = []
+for item in (input["countdown"] as? [[String: Any]]) ?? [] {
+    guard let e = entryFrom(item) else { cdOut.append(NSNull()); continue }
+    guard let c = e.countdown else { cdOut.append(["state": "empty"]); continue }
+    cdOut.append([
+        "state": "event", "id": c.event.id ?? "", "title": c.title, "icon": c.icon, "dateLine": c.dateLine,
+        "view": ["state": c.view.state.rawValue, "daysUntil": c.view.daysUntil, "big": c.view.big, "unit": c.view.unit],
+    ] as [String: Any])
+}
+out["countdown"] = cdOut
+
+var cdView: [Any] = []
+for item in (input["countdownView"] as? [[String: Any]]) ?? [] {
+    guard let today = parseCivil(item["today"] as? String), let nowMin = item["nowMin"] as? Int else { cdView.append(NSNull()); continue }
+    let v = countdownView(date: item["date"] as? String, time: item["time"] as? String, today: today, nowMin: nowMin)
+    cdView.append(["state": v.state.rawValue, "daysUntil": v.daysUntil, "big": v.big, "unit": v.unit])
+}
+out["countdownView"] = cdView
+
+var cdTl: [Any] = []
+var utc = Calendar(identifier: .gregorian)
+utc.timeZone = TimeZone(identifier: "UTC")!
+for item in (input["countdownTimeline"] as? [[String: Any]]) ?? [] {
+    guard let nowMs = item["nowMs"] as? Double else { cdTl.append(NSNull()); continue }
+    let ds = countdownTimelineDates(now: Date(timeIntervalSince1970: nowMs / 1000), eventDate: item["date"] as? String, eventTime: item["time"] as? String, calendar: utc)
+    cdTl.append(ds.map { Int(($0.timeIntervalSince1970 * 1000).rounded()) })
+}
+out["countdownTimeline"] = cdTl
+
 let data = try! JSONSerialization.data(withJSONObject: out, options: [.sortedKeys])
 try! data.write(to: URL(fileURLWithPath: args[2]))

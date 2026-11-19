@@ -1,12 +1,13 @@
 /**
  * Link dei widget → azioni dell'app. Lo scheme è `fragolina://` (app.config.js). Funzioni PURE, provate in
- * tests/deepLink.test.ts. I widget usano solo questi sei link (targets/widget/Model.swift, enum WidgetLink):
+ * tests/deepLink.test.ts. I widget usano solo questi sette link (targets/widget/Model.swift, enum WidgetLink):
  *  - fragolina://ping  → manda UN pensiero (se collegati) e mostra la conferma; se non collegati porta a "Noi"
  *  - fragolina://mood  → apre la scelta del mio umore (se non collegati porta a "Noi")
  *  - fragolina://us    → apre "Noi"
  *  - fragolina://home  → apre la Home
  *  - fragolina://pet   → apre il Pet (anche se non siete collegati: il Pet spiega cosa manca)
  *  - fragolina://draw  → apre la scheda Disegna (il biglietto per il blocco)
+ *  - fragolina://countdown → apre la lista di "Manca poco" (conto alla rovescia)
  *  - fragolina://play  → apre la scheda Gioca; `play/tris`, `play/quiz`, `play/draw` aprono anche quel gioco
  * Tutto il resto (o un link rotto) è `none`: l'app si apre normalmente senza fare nulla.
  */
@@ -17,6 +18,7 @@ export type DeepLink =
   | "home"
   | "pet"
   | "draw"
+  | "countdown"
   | "play"
   | "play-tris"
   | "play-quiz"
@@ -36,7 +38,7 @@ export function parseDeepLink(url: string | null | undefined): DeepLink {
     return sub === "tris" || sub === "quiz" || sub === "draw" ? (`play-${sub}` as DeepLink) : "play";
   }
   if (sub) return "none"; // gli altri link non hanno sottopercorsi
-  return k === "ping" || k === "mood" || k === "us" || k === "home" || k === "pet" || k === "draw" ? k : "none";
+  return k === "ping" || k === "mood" || k === "us" || k === "home" || k === "pet" || k === "draw" || k === "countdown" ? k : "none";
 }
 
 /**
@@ -52,6 +54,8 @@ export function systemPathFor(url: string): string | null {
       return "/pet";
     case "draw":
       return "/draw";
+    case "countdown":
+      return "/countdown";
     case "play":
     case "play-tris":
     case "play-quiz":
@@ -70,7 +74,7 @@ export type LinkDeps = {
   paired: boolean;
   /** Manda il pensiero; false se non è stato possibile (non collegati). */
   sendThought: () => boolean;
-  goTo: (path: "/" | "/us" | "/pet" | "/draw" | "/play") => void;
+  goTo: (path: "/" | "/us" | "/pet" | "/draw" | "/play" | "/countdown") => void;
   /** Chiede alla scheda Gioca di aprire subito quel gioco (`null` = solo la scheda). */
   openGame?: (kind: "tris" | "quiz" | "draw" | null) => void;
   requestMoodSheet: () => void;
@@ -85,6 +89,7 @@ export type LinkOutcome =
   | "to-home"
   | "to-pet"
   | "to-draw"
+  | "to-countdown"
   | "to-play"
   | "ignored";
 
@@ -120,6 +125,9 @@ export function runDeepLink(link: DeepLink, d: LinkDeps): LinkOutcome {
     case "draw":
       d.goTo("/draw");
       return "to-draw";
+    case "countdown":
+      d.goTo("/countdown");
+      return "to-countdown";
     case "play":
     case "play-tris":
     case "play-quiz":

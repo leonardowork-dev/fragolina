@@ -161,3 +161,41 @@ struct DistanceProvider: TimelineProvider {
         }
     }
 }
+
+
+// MARK: - Conto alla rovescia (Percorso A: snapshot; Percorso B: il feed porta anche gli eventi creati dall'altra persona)
+
+private func countdownPlaceholder() -> FragolinaEntry {
+    let nowMs = Date().timeIntervalSince1970 * 1000
+    let soon = Calendar.current.date(byAdding: .day, value: 12, to: Date()) ?? Date()
+    return FragolinaEntry(
+        date: Date(),
+        snapshot: Snapshot(
+            v: 6, updatedAt: nowMs, paired: true, partnerName: "Nikole", myName: "Leonardo",
+            cdEvents: [CountdownEvent(id: "placeholder", title: "Ci vediamo", date: civilToday(soon).iso, time: nil, icon: "heart", featured: true)]
+        ),
+        group: nil
+    )
+}
+
+struct CountdownProvider: TimelineProvider {
+    func placeholder(in context: Context) -> FragolinaEntry { countdownPlaceholder() }
+
+    func getSnapshot(in context: Context, completion: @escaping (FragolinaEntry) -> Void) {
+        if context.isPreview { return completion(countdownPlaceholder()) }
+        completion(FragolinaProvider().load(at: Date()))
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<FragolinaEntry>) -> Void) {
+        let now = Date()
+        loadWithFeed(now: now) { base in
+            // le voci si ricalcolano per l'evento che sarà in primo piano adesso; a mezzanotte e all'ora dell'evento si rifà tutto
+            let first = base.countdown
+            let dates = countdownTimelineDates(now: now, eventDate: first?.event.date, eventTime: first?.event.time)
+            let entries = dates.map {
+                FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group, feed: base.feed, feedRevoked: base.feedRevoked)
+            }
+            completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(feedRefresh))))
+        }
+    }
+}

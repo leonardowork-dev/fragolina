@@ -1,5 +1,7 @@
 import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
 import type { LocationState } from "@/lib/geo/types";
+import { type CountdownEvent, WIDGET_EVENTS, isValidDate, minutesOf, widgetEvents } from "@/lib/countdown/rules";
+import { isEventIcon } from "@/lib/countdown/icons";
 import { type Note, type NoteContent, noteState } from "@/lib/note/rules";
 import { type PetState, stageOf } from "@/lib/pet/rules";
 import { S } from "@/lib/strings.it";
@@ -86,7 +88,16 @@ export type WidgetSnapshot = {
   feedUrl: string;
   feedKey: string;
   feedToken: string;
+  // ---- v6 (conto alla rovescia) ----
+  /**
+   * I prossimi eventi di "Manca poco" (al massimo 5, l'in-evidenza per primo). Il widget sceglie da solo quale mostrare e
+   * calcola da solo i giorni dalla data (come "Giorni insieme"): così scatta a mezzanotte anche con l'app chiusa.
+   */
+  cdEvents: WidgetEvent[];
 };
+
+/** Un evento come lo vede il widget (stesso JSON del feed `widget_feed.events`, senza `at` né `by`). */
+export type WidgetEvent = { id: string; title: string; date: string; time: string | null; icon: string; featured: boolean };
 
 export const QUESTION_MAX = 60;
 
@@ -113,6 +124,8 @@ export type WidgetSource = {
   loc?: LocationState | null;
   /** Accesso del widget al feed (Percorso B). */
   feed?: { url: string; key: string; token: string } | null;
+  /** Gli eventi del conto alla rovescia come li vede questo telefono (con quelli in coda). */
+  events?: readonly CountdownEvent[] | null;
 };
 
 const CARE_KINDS = ["feed", "cuddle", "play", "sleep", "hatch"];
@@ -150,7 +163,31 @@ export function buildSnapshot(s: WidgetSource, now: number, today: string): Widg
     feedUrl: s.feed && s.coupleId ? s.feed.url : "",
     feedKey: s.feed && s.coupleId ? s.feed.key : "",
     feedToken: s.feed && s.coupleId ? s.feed.token : "",
+    cdEvents: paired ? widgetEvents(s.events ?? [], today).map(toWidgetEvent) : [],
   };
+}
+
+const toWidgetEvent = (e: CountdownEvent): WidgetEvent => ({
+  id: e.id,
+  title: e.title,
+  date: e.date,
+  time: e.time,
+  icon: e.icon,
+  featured: e.featured,
+});
+
+function decodeEvents(v: unknown): WidgetEvent[] {
+  if (!Array.isArray(v)) return [];
+  const out: WidgetEvent[] = [];
+  for (const x of v) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    if (typeof o.id !== "string" || typeof o.title !== "string" || typeof o.date !== "string" || !isValidDate(o.date)) continue;
+    const time = typeof o.time === "string" && minutesOf(o.time) !== null ? o.time : null;
+    out.push({ id: o.id, title: o.title, date: o.date, time, icon: isEventIcon(o.icon) ? o.icon : "star", featured: o.featured === true });
+    if (out.length >= WIDGET_EVENTS) break;
+  }
+  return out;
 }
 
 function noteFields(
@@ -296,6 +333,7 @@ const KEYS: (keyof WidgetSnapshot)[] = [
   "feedUrl",
   "feedKey",
   "feedToken",
+  "cdEvents",
 ];
 
 /** JSON con l'ordine delle chiavi fisso (diff leggibili, firma stabile). */
@@ -364,6 +402,7 @@ export function decodeSnapshot(raw: string): WidgetSnapshot | null {
       feedUrl: str(o.feedUrl) ?? "",
       feedKey: str(o.feedKey) ?? "",
       feedToken: str(o.feedToken) ?? "",
+      cdEvents: decodeEvents(o.cdEvents),
     };
   } catch {
     return null;

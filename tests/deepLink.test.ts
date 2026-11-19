@@ -162,6 +162,16 @@ describe("link del Pet (sessione 4)", () => {
 });
 
 describe("link del biglietto (sessione 5)", () => {
+  it("fragolina://countdown porta alla lista di Manca poco", () => {
+    expect(parseDeepLink("fragolina://countdown")).toBe("countdown");
+    expect(parseDeepLink("fragolina://countdown/")).toBe("countdown");
+    expect(parseDeepLink("fragolina://countdown/x")).toBe("none");
+    expect(systemPathFor("fragolina://countdown")).toBe("/countdown");
+    const calls: string[] = [];
+    const out = runDeepLink("countdown", { paired: true, sendThought: () => true, goTo: (p) => calls.push(p), requestMoodSheet: () => {}, confirmPing: () => {} });
+    expect(out).toBe("to-countdown");
+    expect(calls).toEqual(["/countdown"]);
+  });
   it("fragolina://draw si legge in tutte le forme e porta alla scheda Disegna", () => {
     expect(parseDeepLink("fragolina://draw")).toBe("draw");
     expect(parseDeepLink("fragolina://draw/")).toBe("draw");

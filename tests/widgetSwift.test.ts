@@ -63,7 +63,7 @@ describe("compatibilità iOS 16.4 (revisione statica)", () => {
     }
   });
   it("tutti i simboli SF usati esistono da iOS 15/16", () => {
-    const ok = new Set(["heart.fill", "clock", "moon.zzz.fill", "fork.knife", "moon.fill"]);
+    const ok = new Set(["heart.fill", "clock", "moon.zzz.fill", "fork.knife", "moon.fill", "heart"]);
     for (const [f, src] of Object.entries(all))
       for (const m of src.matchAll(/(?:systemName|systemImage): "([^"]+)"/g)) expect(ok.has(m[1]), `${f}: ${m[1]}`).toBe(true);
   });
@@ -99,7 +99,7 @@ describe("font, kind e bundle", () => {
     expect(kinds).toContain("FragolinaWidget");
     expect(new Set(kinds).size).toBe(kinds.length);
     expect(kinds.sort()).toEqual(
-      ["FragolinaDays", "FragolinaDistance", "FragolinaLock", "FragolinaLockMood", "FragolinaMood", "FragolinaNote", "FragolinaPet", "FragolinaPing", "FragolinaWidget"].sort(),
+      ["FragolinaCountdown", "FragolinaDays", "FragolinaDistance", "FragolinaLock", "FragolinaLockMood", "FragolinaMood", "FragolinaNote", "FragolinaPet", "FragolinaPing", "FragolinaWidget"].sort(),
     );
     const bundle = all["index.swift"];
     for (const w of ["MoodWidget", "PingWidget", "DaysWidget", "LockWidget", "LockMoodWidget", "PetWidget", "NoteWidget", "DistanceWidget", "FragolinaWidget"])
@@ -107,7 +107,7 @@ describe("font, kind e bundle", () => {
   });
   it("i link usati nei widget sono quelli che l'app capisce", () => {
     const urls = [...all["Model.swift"].matchAll(/URL\(string: "(fragolina:\/\/\w+)"\)/g)].map((m) => m[1]).sort();
-    expect(urls).toEqual(["fragolina://draw", "fragolina://home", "fragolina://mood", "fragolina://pet", "fragolina://ping", "fragolina://us"]);
+    expect(urls).toEqual(["fragolina://countdown", "fragolina://draw", "fragolina://home", "fragolina://mood", "fragolina://pet", "fragolina://ping", "fragolina://us"]);
   });
   it("la rete (Percorso B) vive in UN solo file: Feed.swift, con timeout ≤ 8 s e senza service_role", () => {
     for (const [f, src] of Object.entries(all)) {
@@ -179,5 +179,31 @@ describe("widget del pet (sessione 4)", () => {
     const f = all["PetFaces.swift"];
     for (const st of ["seed", "sprout", "berry", "big", "egg"]) expect(f, st).toContain(`"${st}"`);
     for (const mood of ["happy", "love", "sleepy", "asleep", "hungry", "waiting"]) expect(f, mood).toContain(`"${mood}"`);
+  });
+});
+
+describe("conto alla rovescia (sessione 7)", () => {
+  it("EventIcons.swift è aggiornato rispetto a src/lib/countdown/icons.json (npm run icons:gen)", async () => {
+    const { buildSwift } = await import("../scripts/gen-event-icons.mjs");
+    expect(read("EventIcons.swift")).toBe(buildSwift());
+  });
+  it("ogni simbolo dell'app esiste nel widget e usa solo i comandi M L C Z", async () => {
+    const { EVENT_ICONS, ICON_SHAPES } = await import("@/lib/countdown/icons");
+    for (const id of EVENT_ICONS) {
+      expect(ICON_SHAPES[id]?.length, id).toBeGreaterThan(0);
+      for (const sh of ICON_SHAPES[id]) expect(sh.d, id).toMatch(/^[MLCZ0-9 .\-]+$/);
+      expect(read("EventIcons.swift")).toContain(`"${id}": [`);
+    }
+  });
+  it("il bundle: nessun pacchetto supera i 5 widget (limite del WidgetBundleBuilder)", () => {
+    const idx = read("index.swift");
+    for (const m of idx.matchAll(/struct (\w+): WidgetBundle \{\s*var body: some Widget \{([\s\S]*?)\n    \}\n\}/g)) {
+      const n = [...m[2].matchAll(/^\s+\w+Widget\(\)\s*$/gm)].length;
+      expect(n, m[1]).toBeLessThanOrEqual(5);
+    }
+    expect(idx).toContain("CountdownWidget()");
+  });
+  it("la rete resta solo in Feed.swift (il conto alla rovescia usa il feed, non apre connessioni)", () => {
+    for (const [f, src] of Object.entries(all)) if (f !== "Feed.swift") expect(src, f).not.toMatch(/URLSession/);
   });
 });

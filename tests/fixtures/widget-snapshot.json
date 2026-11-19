@@ -1,5 +1,5 @@
 {
-  "v": 5,
+  "v": 6,
   "updatedAt": 1794571200000,
   "paired": true,
   "partnerName": "Nikole",
@@ -111,5 +111,23 @@
   "partnerLocAt": 1794569400000,
   "feedUrl": "https://example.supabase.co",
   "feedKey": "sb_publishable_example",
-  "feedToken": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  "feedToken": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "cdEvents": [
+    {
+      "id": "6c1f0f0e-3b7a-4d5a-9a5e-7d2f7b1c0a11",
+      "title": "Ci vediamo",
+      "date": "2026-12-20",
+      "time": "18:30",
+      "icon": "heart",
+      "featured": true
+    },
+    {
+      "id": "0b9d9a52-1a43-4a1f-8d58-2f6f4c0e7b22",
+      "title": "Concerto",
+      "date": "2027-02-05",
+      "time": null,
+      "icon": "ticket",
+      "featured": false
+    }
+  ]
 }

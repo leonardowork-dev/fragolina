@@ -19,9 +19,19 @@ struct NoteContent: Codable, Equatable {
     var bg: String?
 }
 
+/// Un evento del conto alla rovescia ("Manca poco"). Stesso JSON dello snapshot (`cdEvents`) e del feed (`events`).
+struct CountdownEvent: Codable, Equatable {
+    var id: String?
+    var title: String?
+    var date: String?       // AAAA-MM-GG
+    var time: String?       // HH:MM oppure nil (tutto il giorno)
+    var icon: String?
+    var featured: Bool?
+}
+
 /// Tutti i campi sono opzionali e si leggono uno per uno: un payload v1, v2, v3 o incompleto si legge comunque,
 /// mai un crash; un campo del tipo sbagliato vale `nil` ma non butta via gli altri.
-/// NOTA: i campi si AGGIUNGONO in fondo (v2 = prima parte, v3 = seconda, v4 = il pet, v5 = biglietto, distanza e accesso al feed). tests/widgetPayload.test.ts controlla
+/// NOTA: i campi si AGGIUNGONO in fondo (v2 = prima parte, v3 = seconda, v4 = il pet, v5 = biglietto, distanza e accesso al feed, v6 = conto alla rovescia). tests/widgetPayload.test.ts controlla
 /// che nomi, tipi e ordine coincidano con la fixture.
 struct Snapshot: Codable {
     var v: Int?
@@ -74,6 +84,7 @@ struct Snapshot: Codable {
     var feedUrl: String?        // Percorso B: URL Supabase + chiave PUBBLICA + token del widget (mai la chiave segreta di amministrazione)
     var feedKey: String?
     var feedToken: String?
+    var cdEvents: [CountdownEvent]? // v6: i prossimi eventi di "Manca poco" (il widget sceglie e calcola da solo)
 }
 
 extension Snapshot {
@@ -86,6 +97,7 @@ extension Snapshot {
         case noteId, noteKind, noteContent, noteBy, noteByName, noteAt, noteExpiresAt
         case shareMine, myLatE2, myLonE2, myLocAt, partnerLocState, partnerLatE2, partnerLonE2, partnerLocAt
         case feedUrl, feedKey, feedToken
+        case cdEvents
     }
 
     init(from decoder: Decoder) throws {
@@ -143,7 +155,8 @@ extension Snapshot {
             partnerLocAt: get(Double.self, .partnerLocAt),
             feedUrl: get(String.self, .feedUrl),
             feedKey: get(String.self, .feedKey),
-            feedToken: get(String.self, .feedToken)
+            feedToken: get(String.self, .feedToken),
+            cdEvents: get([CountdownEvent].self, .cdEvents)
         )
     }
 
@@ -569,6 +582,7 @@ enum WidgetLink {
     static let home = URL(string: "fragolina://home")!
     static let pet = URL(string: "fragolina://pet")!
     static let draw = URL(string: "fragolina://draw")!
+    static let countdown = URL(string: "fragolina://countdown")!
 }
 
 // MARK: - Biglietto e distanza (sessione 5). Specchio di src/lib/note/widgetModel.ts e src/lib/geo/distance.ts
@@ -598,6 +612,7 @@ struct Feed: Codable, Equatable {
     var now: Double?
     var note: FeedNote?
     var partner: FeedPartner?
+    var events: [CountdownEvent]?
     var fetchedAt: Double?
 
     /// `nil` se non è una risposta `ok:true` leggibile.
@@ -759,4 +774,130 @@ func distanceTimelineDates(now: Date, partnerAtMs: Double?) -> [Date] {
         if d > now && d <= now.addingTimeInterval(24 * 3600) { out.append(d) }
     }
     return out.sorted()
+}
+
+
+// MARK: - Conto alla rovescia (sessione 7). Specchio di src/lib/countdown/rules.ts
+
+enum CountdownRules {
+    /// Dopo l'ora dell'evento resta la festa per un'ora, poi passa.
+    static let partyGraceMin = 60
+}
+
+enum CdState: String {
+    case days, hours, minutes, today, now, passed
+}
+
+struct CountdownView: Equatable {
+    var state: CdState
+    var daysUntil: Int
+    var big: String     // "12", "5", "40" oppure ""
+    var unit: String    // "giorni", "giorno", "ore", "ora", "min", "oggi", "ora!" oppure ""
+}
+
+/// "18:30" → 1110. `nil` se non è un'ora valida.
+func minutesOfTime(_ t: String?) -> Int? {
+    guard let t, t.count == 5 else { return nil }
+    let parts = t.split(separator: ":", omittingEmptySubsequences: false)
+    guard parts.count == 2, parts[0].count == 2, parts[1].count == 2, let h = Int(parts[0]), let m = Int(parts[1]),
+          h >= 0, h <= 23, m >= 0, m <= 59 else { return nil }
+    return h * 60 + m
+}
+
+/// Cosa mostrare ADESSO (`today` = giorno locale, `nowMin` = minuti dalla mezzanotte locale). Stessa regola di TypeScript:
+/// giorni fino al giorno prima; nell'ultimo giorno, se c'è l'ora, ore (poi minuti nell'ultima ora); l'ora esatta e per
+/// un'ora dopo è "ora!"; senza ora il giorno stesso è "oggi" (festa). Poi passa.
+func countdownView(date: String?, time: String?, today: Civil, nowMin: Int) -> CountdownView {
+    guard let d = parseCivil(date) else { return CountdownView(state: .passed, daysUntil: -1, big: "", unit: "") }
+    let daysUntil = daysFromCivil(d) - daysFromCivil(today)
+    if daysUntil < 0 { return CountdownView(state: .passed, daysUntil: daysUntil, big: "", unit: "") }
+    if daysUntil > 0 {
+        return CountdownView(state: .days, daysUntil: daysUntil, big: String(daysUntil), unit: daysUntil == 1 ? "giorno" : "giorni")
+    }
+    guard let at = minutesOfTime(time) else { return CountdownView(state: .today, daysUntil: 0, big: "", unit: "oggi") }
+    let left = at - nowMin
+    if left > 60 {
+        let h = (left + 59) / 60
+        return CountdownView(state: .hours, daysUntil: 0, big: String(h), unit: h == 1 ? "ora" : "ore")
+    }
+    if left > 0 { return CountdownView(state: .minutes, daysUntil: 0, big: String(left), unit: "min") }
+    if left > -CountdownRules.partyGraceMin { return CountdownView(state: .now, daysUntil: 0, big: "", unit: "ora!") }
+    return CountdownView(state: .passed, daysUntil: 0, big: "", unit: "")
+}
+
+private func cdBefore(_ a: CountdownEvent, _ b: CountdownEvent) -> Bool {
+    let ad = a.date ?? "", bd = b.date ?? ""
+    if ad != bd { return ad < bd }
+    let at = a.time ?? "", bt = b.time ?? ""
+    if at != bt { return at < bt }
+    return (a.id ?? "") < (b.id ?? "")
+}
+
+/// L'evento da mettere in primo piano: quello "in evidenza" se non è passato, altrimenti il più vicino.
+func pickCountdown(_ events: [CountdownEvent], today: Civil, nowMin: Int) -> CountdownEvent? {
+    let live = events.filter {
+        $0.id != nil && countdownView(date: $0.date, time: $0.time, today: today, nowMin: nowMin).state != .passed
+    }
+    if live.isEmpty { return nil }
+    if let f = live.first(where: { $0.featured == true }) { return f }
+    return live.sorted(by: cdBefore).first
+}
+
+struct CountdownDisplay: Equatable {
+    var event: CountdownEvent
+    var view: CountdownView
+    var title: String
+    var icon: String
+    var dateLine: String    // "20 dic · 18:30" / "20 dic"
+}
+
+extension FragolinaEntry {
+    /// Gli eventi da scegliere: il feed (Percorso B) se li ha, altrimenti lo snapshot (Percorso A).
+    var cdEvents: [CountdownEvent] {
+        if feedRevoked { return [] }
+        if let f = feed, let e = f.events { return e }
+        return snapshot?.cdEvents ?? []
+    }
+
+    var nowMinutes: Int {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+        return (c.hour ?? 0) * 60 + (c.minute ?? 0)
+    }
+
+    var countdown: CountdownDisplay? {
+        guard let e = pickCountdown(cdEvents, today: today, nowMin: nowMinutes), let c = parseCivil(e.date) else { return nil }
+        let v = countdownView(date: e.date, time: e.time, today: today, nowMin: nowMinutes)
+        let when = shortDate(c) + (minutesOfTime(e.time) != nil ? " · " + (e.time ?? "") : "")
+        let t = (e.title ?? "").isEmpty ? WS.cdUntitled : (e.title ?? "")
+        return CountdownDisplay(event: e, view: v, title: t, icon: e.icon ?? "star", dateLine: when)
+    }
+}
+
+/// Voci della timeline del conto alla rovescia: adesso, le prossime tre mezzanotti (+10 s) e, per l'evento con l'ora,
+/// ogni 30 min nelle 3 ore prima, l'ora esatta, un secondo dopo e la fine della festa. Specchio di `countdownTimelineMs`.
+func countdownTimelineDates(now: Date, eventDate: String?, eventTime: String?, calendar: Calendar = .current) -> [Date] {
+    let nowMs = now.timeIntervalSince1970 * 1000
+    var out: [Double] = [nowMs]
+    var cursor = now
+    for _ in 0..<3 {
+        guard let m = calendar.nextDate(after: cursor, matching: DateComponents(hour: 0, minute: 0, second: 10), matchingPolicy: .nextTime) else { break }
+        out.append(m.timeIntervalSince1970 * 1000)
+        cursor = m
+    }
+    if let c = parseCivil(eventDate), let at = minutesOfTime(eventTime),
+       let when = calendar.date(from: DateComponents(year: c.y, month: c.m, day: c.d, hour: at / 60, minute: at % 60)) {
+        let t = when.timeIntervalSince1970 * 1000
+        let grace = Double(CountdownRules.partyGraceMin) * 60_000
+        if t > nowMs - grace && t <= nowMs + 3 * 86_400_000 {
+            for k in 1...6 {
+                let before = t - Double(k) * 30 * 60_000
+                if before > nowMs { out.append(before) }
+            }
+            if t > nowMs { out.append(t) }
+            out.append(t + 1_000)
+            out.append(t + grace + 1_000)
+        }
+    }
+    var seen = Set<Double>()
+    return out.filter { $0 >= nowMs && seen.insert($0).inserted }.sorted().map { Date(timeIntervalSince1970: $0 / 1000) }
 }

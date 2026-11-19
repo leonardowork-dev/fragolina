@@ -1,7 +1,7 @@
 import SwiftUI
 import WidgetKit
 
-// I widget sono divisi in DUE pacchetti da al massimo 5 (e il pacchetto principale li compone con `.body`).
+// I widget sono divisi in pacchetti da al massimo 5 (e il pacchetto principale li compone con `.body`).
 // Motivo (sessione 5): un solo WidgetBundle con 7 widget aveva il sesto ("Il vostro pet") assente dalla galleria su
 // iOS 16.7, mentre i primi cinque comparivano. Il costruttore del WidgetBundle nasce con un limite di 5 elementi:
 // restare sotto quel numero in ogni pacchetto evita il problema. Il kind di ogni widget NON cambia.
@@ -30,5 +30,6 @@ struct FragolinaMoreWidgets: WidgetBundle {
         LockWidget()
         LockMoodWidget()
         FragolinaWidget()
+        CountdownWidget()
     }
 }

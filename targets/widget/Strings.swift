@@ -22,6 +22,8 @@ enum WS {
 
     static let noteGalleryName = "Biglietto"
     static let noteGalleryDesc = "Il disegno o la scritta che ti lascia lei. Sparisce dopo un'ora."
+    static let cdGalleryName = "Manca poco"
+    static let cdGalleryDesc = "Quanti giorni mancano al vostro prossimo evento."
     static let distGalleryName = "Distanza tra noi"
     static let distGalleryDesc = "Quanti chilometri ci sono fra voi due."
 
@@ -138,6 +140,18 @@ enum WS {
     static let distUnpairedSub = "Collegatevi dall'app."
     static func distUpdated(_ ago: String) -> String { "aggiornata \(ago)" }
     static let distKmUnit = "km"
+
+    // ---- Conto alla rovescia (stesse parole di src/lib/strings.it.ts, sezione countdown) ----
+    static let cdUntitled = "Un evento"
+    static let cdEmptyTitle = "Niente da aspettare"
+    static let cdEmptyTitleShort = "Niente"
+    static let cdEmptySub = "Aggiungi una data in Fragolina."
+    static let cdToday = "Oggi!"
+    static let cdNow = "È ora!"
+    static let cdPartyLine = "Il giorno è arrivato."
+    static let cdLockEmpty = "Manca poco"
+    static func cdInline(_ big: String, _ unit: String, _ title: String) -> String { "\(big) \(unit): \(title)" }
+    static func cdInlinePlain(_ unit: String, _ title: String) -> String { "\(unit.prefix(1).uppercased() + unit.dropFirst()): \(title)" }
 
     // ---- "aggiornato" ----
     static func updated(_ ago: String) -> String { "aggiornato " + ago }

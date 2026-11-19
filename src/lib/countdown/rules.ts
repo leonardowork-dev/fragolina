@@ -142,7 +142,10 @@ export function countdownTimelineMs(
   const wall = nowMs + off;
   const dayMs = 86_400_000;
   const startOfDay = Math.floor(wall / dayMs) * dayMs;
-  for (let i = 1; i <= 3; i++) out.add(startOfDay + i * dayMs + 10_000 - off);
+  // le prossime tre mezzanotti (+10 s), la prima strettamente dopo `now`
+  let m = startOfDay + 10_000 - off;
+  if (m <= nowMs) m += dayMs;
+  for (let i = 0; i < 3; i++) out.add(m + i * dayMs);
   if (event) {
     const at = minutesOf(event.time);
     const eventDayStart = dayNumber(event.date) * dayMs;

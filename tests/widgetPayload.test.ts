@@ -53,6 +53,8 @@ const baseSource = {
     partner: { name: "Nikole", state: "ok" as const, latE2: 4546, lonE2: 919, at: fixture.partnerLocAt! },
   },
   feed: { url: fixture.feedUrl, key: fixture.feedKey, token: fixture.feedToken },
+  // gli eventi della fixture v6 (il primo è "in evidenza")
+  events: fixture.cdEvents.map((e, i) => ({ ...e, icon: e.icon as "heart" | "ticket", at: 1000 + i })),
   // il pet della fixture v4: germoglio "Bacca", curato da lei (ub) con una mora, oggi in due
   pet: {
     ...emptyPet(),
@@ -236,7 +238,7 @@ describe("payload del widget (TypeScript ↔ fixture condivisa)", () => {
 describe("modello Swift Codable ↔ fixture", () => {
   const swift = fs.readFileSync(path.join(root, "targets/widget/Model.swift"), "utf8");
   const block = /struct Snapshot: Codable \{([\s\S]*?)\n\}/.exec(swift)?.[1] ?? "";
-  const fields = [...block.matchAll(/var (\w+): (\w+)\?/g)].map((m) => ({
+  const fields = [...block.matchAll(/var (\w+): (\[?\w+\]?)\?/g)].map((m) => ({
     name: m[1],
     type: m[2],
   }));
@@ -259,7 +261,8 @@ describe("modello Swift Codable ↔ fixture", () => {
         (f.type === "Double" && kind === "number") ||
         (f.type === "String" && kind === "string") ||
         (f.type === "Bool" && kind === "boolean") ||
-        (f.type === "NoteContent" && kind === "object");
+        (f.type === "NoteContent" && kind === "object") ||
+        (f.type === "[CountdownEvent]" && Array.isArray(v));
       expect(ok, `${f.name}: ${f.type} vs ${kind}`).toBe(true);
     }
   });

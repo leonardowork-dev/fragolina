@@ -49,7 +49,9 @@ export function useDeepLinks() {
                   ? "/(tabs)/draw"
                   : path === "/play"
                     ? "/(tabs)/play"
-                    : "/(tabs)/us",
+                    : path === "/countdown"
+                      ? "/countdown"
+                      : "/(tabs)/us",
           ),
         openGame: (kind) => useIntents.getState().requestGame(kind),
         requestMoodSheet: () => useIntents.getState().requestMoodSheet(),

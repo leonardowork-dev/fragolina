@@ -11,6 +11,8 @@ import { decay } from "@/lib/pet/rules";
 import { distanceView, haversineKm } from "@/lib/geo/distance";
 import { distanceTimelineMs, distanceWidgetModel, feedFromJson, noteTimelineMs, noteWidgetModel } from "@/lib/note/widgetModel";
 import { petTimelineMs, petWidgetModel } from "@/lib/pet/widgetModel";
+import { countdownDisplay, eventsForWidget, feedEventsFromJson } from "@/lib/countdown/widgetModel";
+import { countdownTimelineMs, countdownView, minutesOf } from "@/lib/countdown/rules";
 import { type WidgetSnapshot, decodeSnapshot } from "@/lib/widgetPayload";
 
 /**
@@ -46,7 +48,8 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
   const ago = [0, 1, 44, 45, 59, 60, 89, 90, 3599, 3600, 5399, 5400, 7200, 86399, 86400, 129599, 129600, 172800, 518400];
   const fx = (n: string) => fs.readFileSync(path.join(root, "tests/fixtures", n), "utf8");
   const snapshots: Record<string, string> = {
-    v5: fx("widget-snapshot.json"),
+    v6: fx("widget-snapshot.json"),
+    v5: fx("widget-snapshot-v5.json"),
     v4: fx("widget-snapshot-v4.json"),
     v3: fx("widget-snapshot-v3.json"),
     v2: fx("widget-snapshot-v2.json"),
@@ -178,6 +181,46 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
     return { nowMs: t, partnerAtMs: rnd() < 0.2 ? null : t - Math.floor(rnd() * 6 * H) };
   });
 
+  // ---- conto alla rovescia: eventi, feed e orari casuali (fuso UTC: il "giorno" del widget e quello di TypeScript coincidono) ----
+  const CD_ICONS = ["heart", "plane", "ticket", "cake", "gift", "sun", "star", "house", "train", "balloon"];
+  const CD_TITLES = ["Ci vediamo", "Concerto", "Vacanza", "Zoë e Àngelo 🍓", "Il giorno più bello dell'anno intero"];
+  const randTime = () => (rnd() < 0.5 ? null : `${pad(Math.floor(rnd() * 24))}:${pad(Math.floor(rnd() * 60))}`);
+  const randEvent = (t: number, i: number) => {
+    const d = new Date(t + Math.floor((rnd() - 0.25) * 12 * 86_400_000));
+    return {
+      id: `ev-${i}-${Math.floor(rnd() * 1e6)}`,
+      title: CD_TITLES[Math.floor(rnd() * CD_TITLES.length)]!,
+      date: iso([d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()]),
+      time: randTime(),
+      icon: CD_ICONS[Math.floor(rnd() * CD_ICONS.length)]!,
+      featured: rnd() < 0.25,
+    };
+  };
+  const cdCases = Array.from({ length: 1500 }, () => {
+    const t = nowMs + Math.floor((rnd() - 0.4) * 10 * 86_400_000);
+    const snapEvents = Array.from({ length: Math.floor(rnd() * 6) }, (_, i) => randEvent(t, i));
+    const hasFeed = rnd() < 0.5;
+    const feedEvents = hasFeed ? Array.from({ length: Math.floor(rnd() * 6) }, (_, i) => randEvent(t, 10 + i)) : null;
+    return {
+      nowMs: t,
+      snap: { ...(decodeSnapshot("{}") as WidgetSnapshot), v: 6, paired: true, partnerName: "Nikole", updatedAt: t - 1000, cdEvents: snapEvents },
+      feed: feedEvents ? JSON.stringify({ ok: true, now: t, note: null, partner: null, events: feedEvents }) : rnd() < 0.2 ? JSON.stringify({ ok: true, now: t, note: null, partner: null }) : null,
+      revoked: rnd() < 0.04,
+    };
+  });
+  const cdViewCases = Array.from({ length: 2500 }, () => {
+    const d = randDay([2026, 11, 1], [2027, 1, 31]);
+    return { date: iso(d), time: randTime(), today: iso(randDay([2026, 11, 1], [2027, 1, 31])), nowMin: Math.floor(rnd() * 1440) };
+  });
+  // confini dell'ultimo giorno: 61, 60, 59, 1, 0, -1, -59, -60 minuti dall'ora
+  for (const left of [180, 121, 120, 119, 61, 60, 59, 1, 0, -1, -59, -60, -61]) cdViewCases.push({ date: "2026-12-20", time: "18:30", today: "2026-12-20", nowMin: 18 * 60 + 30 - left });
+  cdViewCases.push({ date: "2026-12-20", time: null, today: "2026-12-20", nowMin: 700 }, { date: "2026-12-21", time: null, today: "2026-12-20", nowMin: 700 }, { date: "2026-02-30", time: null, today: "2026-12-20", nowMin: 0 });
+  const cdTlCases = Array.from({ length: 400 }, () => {
+    const t = nowMs + Math.floor((rnd() - 0.3) * 4 * 86_400_000);
+    const e = randEvent(t, 1);
+    return { nowMs: t, date: rnd() < 0.1 ? null : e.date, time: e.time };
+  });
+
   beforeAll(() => {
     for (let i = 0; i < 4000; i++) {
       const s = randDay([1995, 1, 1], [2026, 11, 30]);
@@ -198,6 +241,7 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
       [
         path.join(root, "targets/widget/Model.swift"),
         path.join(root, "targets/widget/Strings.swift"),
+        path.join(root, "targets/widget/EventIcons.swift"),
         path.join(root, "tests/swift/main.swift"),
         "-o",
         bin,
@@ -220,6 +264,9 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
         geo: geoCases,
         noteTimeline: noteTlCases,
         distanceTimeline: distTlCases,
+        countdown: cdCases.map((c) => ({ snapshot: JSON.stringify(c.snap), feed: c.feed, revoked: c.revoked, nowMs: c.nowMs })),
+        countdownView: cdViewCases,
+        countdownTimeline: cdTlCases,
       }),
     );
     // TZ=UTC: il "giorno di oggi" del widget (calendario locale) e quello di TypeScript sono lo stesso
@@ -257,7 +304,11 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
       const sw = out.snapshots[name];
       const ts = decodeSnapshot(raw) as Record<string, unknown>;
       expect(sw, `${name} non letto da Swift`).not.toBeNull();
-      for (const [k, v] of Object.entries(sw)) expect(ts[k], `${name}.${k}`).toEqual(v);
+      for (const [k, v] of Object.entries(sw)) {
+        // Swift non scrive i campi nil (es. l'ora di un evento "tutto il giorno"): in TypeScript sono null
+        const tsv = k === "cdEvents" ? (ts[k] as Record<string, unknown>[]).map((e) => Object.fromEntries(Object.entries(e).filter(([, x]) => x !== null))) : ts[k];
+        expect(tsv, `${name}.${k}`).toEqual(v);
+      }
     }
     // i campi che Swift legge come nil sono vuoti anche in TS
     expect(out.snapshots.tipiSbagliati.thinkingToday).toBeUndefined();
@@ -371,5 +422,51 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
     expect(sw.noteContent.strokes.length).toBe(2);
     expect(sw.feedToken).toMatch(/^[0-9a-f]{64}$/);
     expect(out.snapshots.v4.noteId).toBeUndefined();
+  });
+  it("conto alla rovescia: l'evento scelto, i giorni/ore/minuti, i testi: Swift = TypeScript su 1500 combinazioni snapshot+feed", () => {
+    const diffs: string[] = [];
+    cdCases.forEach((c, i) => {
+      const d = new Date(c.nowMs);
+      const today = iso([d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()]);
+      const nowMin = d.getUTCHours() * 60 + d.getUTCMinutes();
+      const ts = countdownDisplay(eventsForWidget(c.snap.cdEvents, c.feed ? feedEventsFromJson(JSON.parse(c.feed)) : null, c.revoked), today, nowMin);
+      const sw = out.countdown[i];
+      const a = ts ? { state: "event", id: ts.id, title: ts.title, icon: ts.icon, dateLine: ts.dateLine, view: ts.view } : { state: "empty" };
+      const b = sw && sw.state === "event" ? { ...sw, view: { ...sw.view } } : sw;
+      if (!isDeepStrictEqual(a, b)) diffs.push(`#${i} TS=${JSON.stringify(a)} Swift=${JSON.stringify(b)}`);
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    const states = new Set(out.countdown.map((x: { state: string; view?: { state: string } }) => (x.state === "event" ? x.view!.state : "empty")));
+    for (const st of ["days", "hours", "today", "empty"]) expect(states.has(st), `stato ${st} mai provato`).toBe(true);
+  });
+  it("conto alla rovescia: countdownView identica (confini dell'ultima ora, senza ora, data impossibile)", () => {
+    const diffs = cdViewCases.flatMap((c, i) => {
+      const ts = c.date === "2026-02-30" ? { state: "passed", daysUntil: -1, big: "", unit: "" } : countdownView(c, c.today, c.nowMin);
+      return isDeepStrictEqual(ts, out.countdownView[i]) ? [] : [`#${i} ${JSON.stringify(c)} TS=${JSON.stringify(ts)} Swift=${JSON.stringify(out.countdownView[i])}`];
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    const at = (left: number) => out.countdownView[cdViewCases.findIndex((c) => c.time === "18:30" && c.today === "2026-12-20" && c.nowMin === 18 * 60 + 30 - left)];
+    expect(at(61)).toMatchObject({ state: "hours", big: "2" });
+    expect(at(60)).toMatchObject({ state: "minutes", big: "60" });
+    expect(at(1)).toMatchObject({ state: "minutes", big: "1" });
+    expect(at(0)).toMatchObject({ state: "now" });
+    expect(at(-59)).toMatchObject({ state: "now" });
+    expect(at(-60)).toMatchObject({ state: "passed" });
+  });
+  it("conto alla rovescia: timeline (mezzanotti, ogni 30 min, ora esatta, fine festa) identica a TypeScript", () => {
+    const diffs = cdTlCases.flatMap((c, i) => {
+      const ev = c.date ? { date: c.date, time: c.time } : null;
+      const ts = countdownTimelineMs(ev, c.nowMs, 0);
+      return JSON.stringify(ts) === JSON.stringify(out.countdownTimeline[i]) ? [] : [`#${i}`];
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    expect(minutesOf("18:30")).toBe(1110);
+    const withTime = cdTlCases.findIndex((c) => c.date && c.time && out.countdownTimeline[cdTlCases.indexOf(c)].length > 5);
+    expect(withTime).toBeGreaterThanOrEqual(0);
+  });
+  it("snapshot v6 (cdEvents) letto uguale da Swift e TypeScript; il v5 non ha eventi", () => {
+    expect(out.snapshots.v6.cdEvents).toHaveLength(2);
+    expect(out.snapshots.v6.cdEvents[0]).toMatchObject({ title: "Ci vediamo", time: "18:30", featured: true });
+    expect(out.snapshots.v5.cdEvents).toBeUndefined();
   });
 });
