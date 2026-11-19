@@ -9,6 +9,21 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const db = new PGlite({ extensions: { pgcrypto } });
 
+
+// Finto schema `storage` di Supabase (stesse colonne e stessa funzione foldername), per provare per davvero le regole del bucket.
+const STORAGE_STUB = `
+  create schema storage;
+  create table storage.buckets (id text primary key, name text not null, public boolean default false, file_size_limit bigint, allowed_mime_types text[]);
+  create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets(id), name text,
+    owner uuid, owner_id text, created_at timestamptz default now());
+  create function storage.foldername(name text) returns text[] language plpgsql as $$
+    declare _parts text[]; begin select string_to_array(name, '/') into _parts; return _parts[1:array_length(_parts, 1) - 1]; end $$;
+  alter table storage.objects enable row level security;
+  grant usage on schema storage to anon, authenticated;
+  grant select, insert, update, delete on storage.objects to authenticated;
+  grant select on storage.buckets to authenticated;
+`;
+
 // Finto ambiente Supabase: ruoli, schema auth, auth.uid(), publication.
 await db.exec(`
   create role anon nologin; create role authenticated nologin;
@@ -20,6 +35,7 @@ await db.exec(`
   grant usage on schema public, auth to anon, authenticated;
   grant execute on function auth.uid() to anon, authenticated;
 `);
+await db.exec(STORAGE_STUB);
 await db.exec("create extension if not exists pgcrypto with schema extensions");
 const sql = fs.readFileSync(path.join(root, "supabase", "all.sql"), "utf8");
 await db.exec(sql);
@@ -597,7 +613,7 @@ check(
   `);
   await db2.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note") && !x.includes("_giochi")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7")).sort())
     await db2.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -736,7 +752,7 @@ check(
   check("i client non leggono widget_tokens", !(await tryq(N1, "select * from widget_tokens")).ok);
   const f1 = await feed(k1.token);
   check("il widget (anon + token) legge il feed", f1.ok === true && f1.note === null, JSON.stringify(f1));
-  check("il feed contiene SOLO now, note, partner", JSON.stringify(Object.keys(f1).sort()) === JSON.stringify(["note", "now", "ok", "partner"]), Object.keys(f1).join());
+  check("il feed contiene SOLO now, note, partner, events", JSON.stringify(Object.keys(f1).sort()) === JSON.stringify(["events", "note", "now", "ok", "partner"]), Object.keys(f1).join());
   await send(N1, "text", { text: "Per il blocco", bg: "blush" }, "note-key-0010");
   const f2 = await feed(k1.token);
   check("il feed mostra il biglietto attivo ('me': il mio widget mostra i miei)", f2.note && f2.note.by === "me" && f2.note.content.text === "Per il blocco", JSON.stringify(f2));
@@ -801,7 +817,7 @@ check(
   `);
   await db3.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note") && !x.includes("_giochi")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7")).sort())
     await db3.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -954,7 +970,7 @@ check(
   `);
   await db4.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_giochi")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_giochi") && !x.includes("_extra7")).sort())
     await db4.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true, why = "";
   try {
@@ -964,6 +980,208 @@ check(
     ok = (await db4.query("select count(*)::int n from pg_proc where proname in ('start_game','game_move','abandon_game','get_games')")).rows[0].n === 4;
   } catch (e) { ok = false; why = String(e.message); }
   check("sessione6-giochi.sql da solo, sopra le migrazioni 1-6 già eseguite (e rieseguibile)", ok, why);
+}
+
+// ---------- sessione 7: conto alla rovescia, domanda vera, ricordi, mese, storage (migrazione 8) ----------
+{
+  const E1 = await newUser(), E2 = await newUser(), E3 = await newUser(), E4 = await newUser(), ES = await newUser();
+  const mk = await rpc(E1, "public.create_couple('Leonardo')");
+  await rpc(E2, `public.join_couple('${mk.code}','Nikole')`);
+  const mk2 = await rpc(E3, "public.create_couple('Altra')");
+  await rpc(E4, `public.join_couple('${mk2.code}','Altro')`);
+  const cidOf = async (u) => (await db.query("select couple_id from couple_members where user_id=$1", [u])).rows[0].couple_id;
+  const C1 = await cidOf(E1), C2 = await cidOf(E3);
+  const call = (u, q, p = []) => as(u, async () => (await db.query(`select ${q} as r`, p)).rows[0].r);
+  const uid = (n) => `00000000-0000-4000-9000-${String(n).padStart(12, "0")}`;
+
+  // ----- conto alla rovescia -----
+  const up = (u, id, title, date, time, icon, feat, at) =>
+    call(u, "public.upsert_event($1::uuid,$2,$3::date,$4,$5,$6,$7)", [id, title, date, time, icon, feat, at]);
+  const r1 = await up(E1, uid(1), "Ci vediamo", "2031-03-14", "18:30", "heart", false, 1000);
+  check("evento: A lo crea e lo rilegge", r1.ok === true && r1.events.length === 1 && r1.events[0].title === "Ci vediamo" && r1.events[0].time === "18:30", JSON.stringify(r1));
+  const ev2 = await call(E2, "public.get_events()");
+  check("evento: B lo vede", ev2.ok && ev2.events.length === 1 && ev2.events[0].date === "2031-03-14");
+  check("evento: la terza coppia non lo vede", (await call(E3, "public.get_events()")).events.length === 0);
+  check("evento: uno sconosciuto non può leggere", (await call(ES, "public.get_events()")).error === "not_paired");
+  check("evento: l'altra coppia non può modificarlo", (await up(E3, uid(1), "Rubato", "2031-03-14", null, "heart", false, 5000)).error === "invalid_action");
+  for (const [n, args] of [["titolo vuoto", [uid(2), "  ", "2031-01-01", null, "heart", false, 1]], ["titolo di 29 caratteri", [uid(2), "x".repeat(29), "2031-01-01", null, "heart", false, 1]],
+    ["simbolo fuori elenco", [uid(2), "Ok", "2031-01-01", null, "💥", false, 1]], ["ora 25:00", [uid(2), "Ok", "2031-01-01", "25:00", "heart", false, 1]], ["data nel 1999", [uid(2), "Ok", "1999-01-01", null, "heart", false, 1]]]) {
+    check(`evento: ${n} rifiutato`, (await up(E1, ...args)).error === "invalid_action");
+  }
+  await up(E2, uid(1), "Ci vediamo!", "2031-03-15", null, "plane", false, 500); // più vecchio: non vince
+  check("evento: last-write-wins (una modifica più vecchia non vince)", (await call(E1, "public.get_events()")).events[0].title === "Ci vediamo");
+  await up(E2, uid(1), "Ci vediamo!", "2031-03-15", null, "plane", false, 2000); // più nuovo: vince
+  const lw = (await call(E1, "public.get_events()")).events[0];
+  check("evento: last-write-wins (la più recente vince, anche dall'altro)", lw.title === "Ci vediamo!" && lw.date === "2031-03-15" && lw.time === null && lw.icon === "plane");
+  await up(E1, uid(3), "Concerto", "2031-05-01", null, "ticket", true, 3000);
+  await up(E1, uid(4), "Vacanza", "2031-08-01", null, "sun", true, 3100);
+  const feat = (await call(E1, "public.get_events()")).events.filter((e) => e.featured);
+  check("evento: uno solo in evidenza (l'ultimo che lo chiede)", feat.length === 1 && feat[0].title === "Vacanza", JSON.stringify(feat));
+  const w1 = await call(E2, "public.rotate_widget_token()");
+  const feed = await asAnon(async () => (await db.query("select public.widget_feed($1) as r", [w1.token])).rows[0].r);
+  check("evento: il feed del widget porta gli eventi, l'in-evidenza per primo", feed.ok && feed.events.length === 3 && feed.events[0].title === "Vacanza", JSON.stringify(feed.events));
+  check("evento: il feed non porta altro (nessun id di utenti, niente risposte)", !JSON.stringify(feed).includes("qa") && feed.events.every((e) => Object.keys(e).sort().join() === "at,by,date,featured,icon,id,time,title"), Object.keys(feed.events[0] || {}).join());
+  const del = await call(E2, "public.delete_event($1::uuid,$2)", [uid(3), 4000]);
+  check("evento: B può cancellare (anche quello di A)", del.ok && del.events.length === 2);
+  const stale = await call(E1, "public.delete_event($1::uuid,$2)", [uid(4), 10]);
+  check("evento: una cancellazione più vecchia non vince", stale.events.some((e) => e.id === uid(4)));
+  const direct = await tryq(E1, "update countdown_events set title='x'");
+  check("evento: nessuna scrittura diretta", !direct.ok || direct.count === 0, JSON.stringify(direct));
+  const direct2 = await tryq(E3, "select * from countdown_events");
+  check("evento: RLS, la terza coppia non legge la tabella", direct2.ok && direct2.rows.length === 0);
+
+  // ----- domanda del giorno vera -----
+  const roma = (await db.query("select to_char(public._rome_day(), 'YYYY-MM-DD') d, to_char(public._rome_day()+1, 'YYYY-MM-DD') t, ((public._rome_day()+1) - date '1970-01-01') % 2 as par")).rows[0];
+  const qa1 = await call(E1, "public.get_qa($1)", ["q007"]);
+  const qa2 = await call(E2, "public.get_qa($1)", ["q200"]);
+  check("domanda: la prima persona fissa la domanda del giorno per entrambi", qa1.ok && qa2.ok && qa1.days[0].ref === "q007" && qa2.days[0].ref === "q007", JSON.stringify([qa1.days, qa2.days]));
+  check("domanda: il giorno è quello di Roma", qa1.today === roma.d && qa1.tomorrow === roma.t);
+  check("domanda: ref malformato ignorato", (await call(E3, "public.get_qa($1)", ["'; drop table x;--"])).days.length === 0);
+  const ans = (u, day, ref, text, key) => call(u, "public.answer_qa($1::date,$2,$3,$4)", [day, ref, text, key]);
+  check("domanda: testo vuoto rifiutato", (await ans(E1, roma.d, "q007", "   ", "chiave-domanda-1")).error === "invalid_content");
+  check("domanda: 281 caratteri rifiutati", (await ans(E1, roma.d, "q007", "x".repeat(281), "chiave-domanda-1")).error === "invalid_content");
+  check("domanda: 280 caratteri ok", (await ans(E3, roma.d, "q001", "è".repeat(280), "chiave-domanda-9")).ok === true);
+  check("domanda: giorno lontano rifiutato", (await ans(E1, "2020-01-01", "q007", "ciao", "chiave-domanda-1")).error === "invalid_content");
+  const a1 = await ans(E1, roma.d, "q007", "Il mare, sempre il mare", "chiave-domanda-1");
+  check("domanda: A risponde", a1.ok === true && a1.day.mine.text === "Il mare, sempre il mare" && a1.day.theirs === null && a1.day.theirsAnswered === false, JSON.stringify(a1));
+  // SEGRETO: B non vede il testo di A prima di aver risposto
+  const bq = await call(E2, "public.get_qa($1)", ["q007"]);
+  check("segreto: B vede che A ha risposto ma NON il testo", bq.days[0].theirsAnswered === true && bq.days[0].theirs === null && !JSON.stringify(bq).includes("mare"), JSON.stringify(bq.days[0]));
+  const raw = await tryq(E2, "select * from qa_texts");
+  check("segreto: B non legge qa_texts di A (RLS)", raw.ok && raw.rows.length === 0, JSON.stringify(raw));
+  const rawA = await tryq(E2, "select * from qa_answers");
+  check("segreto: qa_answers dice solo CHI ha risposto (senza testo)", rawA.ok && rawA.rows.length === 1 && !("text" in rawA.rows[0]));
+  check("segreto: la terza coppia non legge niente", (await tryq(E3, "select * from qa_texts where couple_id = $1", [C1])).rows.length === 0);
+  check("segreto: nessuna scrittura diretta in qa_texts", !(await tryq(E2, "insert into qa_texts (couple_id,user_id,day,text) values ($1,$2,current_date,'x')", [C1, E2])).ok);
+  const b1 = await ans(E2, roma.d, "q200", "Le montagne, con te", "chiave-domanda-2");
+  check("rivelazione: B risponde e vede subito la risposta di A", b1.ok && b1.day.theirs && b1.day.theirs.text === "Il mare, sempre il mare" && b1.day.mine.text === "Le montagne, con te", JSON.stringify(b1));
+  check("rivelazione: la domanda resta quella fissata dal primo", b1.day.ref === "q007");
+  const aq = await call(E1, "public.get_qa($1)", ["q007"]);
+  check("rivelazione: ora A vede quella di B", aq.days[0].theirs && aq.days[0].theirs.text === "Le montagne, con te");
+  const raw2 = await tryq(E2, "select user_id from qa_texts");
+  check("rivelazione: dopo la risposta di B la RLS mostra le due righe", raw2.rows.length === 2);
+  const dup = await ans(E1, roma.d, "q007", "Cambio idea", "chiave-domanda-3");
+  check("domanda: una sola risposta al giorno (non si cambia)", dup.ok && dup.duplicate === true && dup.day.mine.text === "Il mare, sempre il mare");
+  check("domanda: realtime con qa_answers e NON con qa_texts", (await db.query("select tablename from pg_publication_tables where pubname='supabase_realtime' and tablename in ('qa_answers','qa_texts','qa_days')")).rows.map((x) => x.tablename).sort().join() === "qa_answers,qa_days");
+  // domanda di domani, a turni
+  const authors = { a: par0(roma.par) ? E1 : E2, b: par0(roma.par) ? E2 : E1 };
+  function par0(p) { return Number(p) === 0; } // 0 = domani scrive il ruolo a (E1)
+  const writer = authors.a, other = authors.b;
+  check("domani: chi non è di turno non può scrivere", (await call(other, "public.set_tomorrow_question($1)", ["Una mia domanda"])).error === "not_your_turn");
+  check("domani: troppo corta rifiutata", (await call(writer, "public.set_tomorrow_question($1)", ["ab"])).error === "invalid_content");
+  const tm = await call(writer, "public.set_tomorrow_question($1)", ["Qual è il tuo ricordo preferito di noi?"]);
+  check("domani: chi è di turno la scrive", tm.ok && tm.day.ref === "custom" && tm.day.custom === "Qual è il tuo ricordo preferito di noi?", JSON.stringify(tm));
+  const tm2 = await call(writer, "public.set_tomorrow_question($1)", ["Meglio così: dove ci vedi fra dieci anni?"]);
+  check("domani: si può riscrivere prima che cominci", tm2.ok && tm2.day.custom.startsWith("Meglio così"));
+  const view = await call(other, "public.get_qa($1)", ["q050"]);
+  check("domani: anche l'altro la vede (e dice a chi tocca)", view.days[0].custom && view.days[0].day === roma.t && view.tomorrowTurn === false, JSON.stringify(view.days[0]));
+  check("domani: la terza coppia non ne sa niente", !JSON.stringify(await call(E3, "public.get_qa($1)", ["q001"])).includes("ricordo"));
+
+  // ----- migrazione delle vecchie risposte a/b -----
+  {
+    const dbm = new PGlite({ extensions: { pgcrypto } });
+    await dbm.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create schema extensions;
+      create table auth.users (id uuid primary key default gen_random_uuid());
+      create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+      create publication supabase_realtime; grant usage on schema public, auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated;`);
+    await dbm.exec(STORAGE_STUB);
+    await dbm.exec("create extension if not exists pgcrypto with schema extensions");
+    const dir = path.join(root, "supabase", "migrations");
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7")).sort()) await dbm.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+    const u1 = (await dbm.query("insert into auth.users default values returning id")).rows[0].id;
+    const u2 = (await dbm.query("insert into auth.users default values returning id")).rows[0].id;
+    const cc = (await dbm.query("insert into couples default values returning id")).rows[0].id;
+    await dbm.query("insert into couple_members (couple_id,user_id,display_name,role) values ($1,$2,'L','a'),($1,$3,'N','b')", [cc, u1, u2]);
+    await dbm.exec(`insert into daily_answers (couple_id,user_id,day,question_id,answer) values
+      ('${cc}','${u1}','2026-11-10','q-sabato','a'),('${cc}','${u2}','2026-11-10','q-sabato','b'),('${cc}','${u1}','2026-11-11','q-film','b')`);
+    const mig = fs.readFileSync(path.join(dir, fs.readdirSync(dir).find((x) => x.includes("_extra7"))), "utf8");
+    await dbm.exec(mig); await dbm.exec(mig);
+    const n = (await dbm.query("select (select count(*)::int from qa_answers) a, (select count(*)::int from qa_texts) t, (select count(*)::int from qa_days) d")).rows[0];
+    check("migrazione vecchie risposte: 3 risposte e 2 giorni copiati (e niente doppioni al secondo giro)", n.a === 3 && n.t === 3 && n.d === 2, JSON.stringify(n));
+    const ref = (await dbm.query("select ref from qa_days where day='2026-11-10'")).rows[0].ref;
+    check("migrazione vecchie risposte: il giorno ricorda la domanda originale", ref === "l-sabato", ref);
+    await dbm.exec(`set role authenticated; select set_config('request.jwt.claim.sub','${u1}',false)`);
+    const raw = (await dbm.query("select user_id, choice from qa_texts where day='2026-11-11'")).rows;
+    await dbm.exec(`reset role; set role authenticated; select set_config('request.jwt.claim.sub','${u2}',false)`);
+    const rawB = (await dbm.query("select user_id from qa_texts where day='2026-11-11'")).rows;
+    check("migrazione vecchie risposte: la scelta resta segreta finché l'altro non risponde", raw.length === 1 && raw[0].choice === "b" && rawB.length === 0, JSON.stringify([raw, rawB]));
+    await dbm.exec("reset role");
+    const day10 = (await dbm.query("select public._qa_day_json($1::uuid,$2::uuid,date '2026-11-10') j", [cc, u1])).rows[0].j;
+    check("migrazione vecchie risposte: chi aveva risposto a entrambi rivede le due scelte", day10.mine.choice === "a" && day10.theirs && day10.theirs.choice === "b", JSON.stringify(day10));
+  }
+
+  // ----- ricordi (foto e biglietti tenuti) -----
+  const bucket = (await db.query("select public, file_size_limit, allowed_mime_types from storage.buckets where id='memories'")).rows[0];
+  check("storage: il bucket `memories` è privato, ≤ 1 MB, solo JPEG", bucket && bucket.public === false && Number(bucket.file_size_limit) === 1048576 && bucket.allowed_mime_types.join() === "image/jpeg", JSON.stringify(bucket));
+  const draw = { strokes: [{ c: "ink", w: 1, p: [[10, 10], [500, 500]] }] };
+  const am = (u, id, kind, source, cap, day, path, w, h, bytes, content) =>
+    call(u, "public.add_memory($1::uuid,$2,$3,$4,$5::date,$6,$7,$8,$9,$10::jsonb)", [id, kind, source, cap, day, path, w, h, bytes, content ? JSON.stringify(content) : null]);
+  const m1 = await am(E1, uid(20), "draw", "note", "Il biglietto di Nikole", roma.d, null, null, null, null, draw);
+  check("ricordi: A tiene un biglietto", m1.ok && m1.memory.kind === "draw", JSON.stringify(m1));
+  check("ricordi: tenerlo due volte non lo duplica", (await am(E1, uid(20), "draw", "note", "x", roma.d, null, null, null, null, draw)).duplicate === true && (await call(E1, "public.get_memories()")).memories.length === 1);
+  check("ricordi: disegno non valido rifiutato", (await am(E1, uid(21), "draw", "note", "", roma.d, null, null, null, null, { strokes: [] })).error === "invalid_content");
+  check("ricordi: foto senza file rifiutata", (await am(E1, uid(22), "photo", "photo", "", roma.d, `${C1}/${uid(22)}.jpg`, 800, 600, 100000, null)).error === "no_file");
+  check("ricordi: foto con percorso di un'altra coppia rifiutata", (await am(E1, uid(22), "photo", "photo", "", roma.d, `${C2}/${uid(22)}.jpg`, 800, 600, 100000, null)).error === "invalid_action");
+  check("ricordi: didascalia di 121 caratteri rifiutata", (await am(E1, uid(23), "text", "note", "x".repeat(121), roma.d, null, null, null, null, { text: "ciao", bg: "butter" })).error === "invalid_action");
+  check("ricordi: data nel futuro lontano rifiutata", (await am(E1, uid(23), "text", "note", "", "2099-01-01", null, null, null, null, { text: "ciao", bg: "butter" })).error === "invalid_action");
+
+  // Storage: A carica un file nella cartella della coppia
+  const put = (u, name, bucketId = "memories") => tryq(u, "insert into storage.objects (bucket_id, name, owner_id) values ($1,$2,$3)", [bucketId, name, u]);
+  const photoPath = `${C1}/${uid(30)}.jpg`;
+  check("storage: A carica nella cartella della sua coppia", (await put(E1, photoPath)).ok);
+  check("storage: A non carica nella cartella di un'altra coppia", !(await put(E1, `${C2}/${uid(31)}.jpg`)).ok);
+  check("storage: B (stessa coppia) non è escluso dalla cartella", (await put(E2, `${C1}/${uid(32)}.jpg`)).ok);
+  check("storage: la terza coppia non carica nella cartella di A", !(await put(E3, `${C1}/${uid(33)}.jpg`)).ok);
+  check("storage: sconosciuto senza coppia non carica", !(await put(ES, `${C1}/${uid(34)}.jpg`)).ok);
+  check("storage: B legge il file di A", (await tryq(E2, "select name from storage.objects where name = $1", [photoPath])).rows.length === 1);
+  check("storage: la terza coppia NON legge il file di A", (await tryq(E3, "select name from storage.objects where name = $1", [photoPath])).rows.length === 0);
+  const ph = await am(E1, uid(30), "photo", "photo", "Roma, giugno", roma.d, photoPath, 1600, 1200, 400000, null);
+  check("ricordi: A registra la foto", ph.ok && ph.memory.path === photoPath, JSON.stringify(ph));
+  check("ricordi: B vede foto e biglietto", (await call(E2, "public.get_memories()")).memories.length === 2);
+  check("ricordi: la terza coppia non ne vede", (await call(E3, "public.get_memories()")).memories.length === 0);
+  check("ricordi: RLS sulla tabella", (await tryq(E3, "select * from memories")).rows.length === 0 && (await tryq(E2, "select * from memories")).rows.length === 2);
+  check("ricordi: nessuna scrittura diretta", !(await tryq(E1, "insert into memories (id,couple_id,kind,source,day,by_user) values (gen_random_uuid(),$1,'text','note',current_date,$2)", [C1, E1])).ok);
+  const nd = await tryq(E2, "delete from storage.objects where name = $1", [photoPath]);
+  check("storage: B NON può cancellare il file di A", nd.ok && nd.count === 0 && (await tryq(E1, "select 1 from storage.objects where name = $1", [photoPath])).rows.length === 1, JSON.stringify(nd));
+  check("ricordi: B non può togliere il ricordo di A", (await call(E2, "public.delete_memory($1::uuid)", [uid(30)])).error === "not_yours");
+  const dm = await call(E1, "public.delete_memory($1::uuid)", [uid(30)]);
+  check("ricordi: A lo toglie e riceve il percorso da cancellare", dm.ok && dm.path === photoPath, JSON.stringify(dm));
+  check("ricordi: cancellazione ripetuta = ok (idempotente)", (await call(E1, "public.delete_memory($1::uuid)", [uid(30)])).ok === true);
+  const nd2 = await tryq(E1, "delete from storage.objects where name = $1", [photoPath]);
+  check("storage: A cancella il proprio file", nd2.ok && nd2.count === 1);
+  check("ricordi: tolto dall'elenco", (await call(E2, "public.get_memories()")).memories.length === 1);
+
+  // ----- il nostro mese -----
+  await db.query("insert into mood_events (couple_id,user_id,mood_id,client_key) values ($1,$2,'felice','mese-1111'),($1,$3,'stanca','mese-2222')", [C1, E1, E2]);
+  await db.query("insert into pings (couple_id,from_user,client_key) values ($1,$2,'mese-pp-1'),($1,$2,'mese-pp-2'),($1,$3,'mese-pp-3')", [C1, E1, E2]);
+  const [yy, mm] = roma.d.split("-").map(Number);
+  const mo = await call(E1, "public.get_month($1,$2)", [yy, mm]);
+  check("mese: umori di entrambi", mo.ok && mo.moods.length === 2 && mo.moods.some((x) => x.u === E1 && x.m === "felice") && mo.moods.some((x) => x.u === E2 && x.m === "stanca"), JSON.stringify(mo));
+  check("mese: pensieri per persona", mo.pings[E1] === 2 && mo.pings[E2] === 1, JSON.stringify(mo.pings));
+  check("mese: giorni con risposta di entrambi", mo.qaBoth === 1, String(mo.qaBoth));
+  check("mese: la terza coppia non vede i vostri dati", (await call(E3, "public.get_month($1,$2)", [yy, mm])).moods.length === 0);
+  check("mese: mese fuori scala rifiutato", (await call(E1, "public.get_month(2026,13)")).error === "invalid_action");
+
+  // ----- il file da incollare, da solo -----
+  {
+    const dbs = new PGlite({ extensions: { pgcrypto } });
+    await dbs.exec(`create role anon nologin; create role authenticated nologin; create schema auth; create schema extensions;
+      create table auth.users (id uuid primary key default gen_random_uuid());
+      create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+      create publication supabase_realtime; grant usage on schema public, auth to anon, authenticated; grant execute on function auth.uid() to anon, authenticated;`);
+    await dbs.exec(STORAGE_STUB);
+    await dbs.exec("create extension if not exists pgcrypto with schema extensions");
+    const dir = path.join(root, "supabase", "migrations");
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7")).sort()) await dbs.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+    let ok = true, why = "";
+    try {
+      const solo = fs.readFileSync(path.join(root, "supabase", "sessione7-extra.sql"), "utf8");
+      await dbs.exec(solo); await dbs.exec(solo);
+      ok = (await dbs.query("select count(*)::int n from pg_proc where proname in ('get_events','upsert_event','delete_event','get_qa','answer_qa','set_tomorrow_question','get_memories','add_memory','delete_memory','get_month')")).rows[0].n === 10
+        && (await dbs.query("select count(*)::int n from pg_policies where schemaname='storage' and policyname like 'memories_%'")).rows[0].n === 3;
+    } catch (e) { ok = false; why = String(e.message); }
+    check("sessione7-extra.sql da solo, sopra le migrazioni 1-7 già eseguite (e rieseguibile; 3 regole di Storage)", ok, why);
+  }
 }
 
 const w = Math.max(...rows.map((r) => r[1].length));

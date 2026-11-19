@@ -50,3 +50,16 @@ if (giochiFile) {
   fs.writeFileSync(path.join(root, "supabase", "sessione6-giochi.sql"), head + "\n" + fs.readFileSync(path.join(dir, giochiFile), "utf8"));
   console.log("supabase/sessione6-giochi.sql: solo la migrazione dei giochi");
 }
+
+// Solo la migrazione della sessione 7 (conto alla rovescia, domanda vera, ricordi + Storage).
+const extraFile = files.find((f) => f.includes("_extra7"));
+if (extraFile) {
+  const head = `-- Fragolina · SOLO LA MIGRAZIONE DELLA SESSIONE 7: CONTO ALLA ROVESCIA, DOMANDA DEL GIORNO VERA, RICORDI (FOTO) E IL NOSTRO MESE.
+-- Generato da scripts/build-sql.mjs: non modificarlo a mano. Crea anche il contenitore privato delle foto ("memories") e le sue regole.
+-- Incollalo nell'editor SQL di Supabase (SQL Editor → New query) e premi Run. Non cancella nulla di ciò che c'è già
+-- (le risposte alla domanda del giorno già date vengono copiate nel nuovo formato).
+-- Si può rilanciare quante volte vuoi. Sotto "Success. No rows returned" = fatto.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione7-extra.sql"), head + "\n" + fs.readFileSync(path.join(dir, extraFile), "utf8"));
+  console.log("supabase/sessione7-extra.sql: solo la migrazione della sessione 7");
+}
