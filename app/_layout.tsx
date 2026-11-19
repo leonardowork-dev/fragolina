@@ -55,6 +55,11 @@ function Shell() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
         <Stack.Screen name="design-lab" options={{ presentation: "card" }} />
+        {/* Sessione 7: pagine con il tasto indietro (swipe di sistema compreso) */}
+        <Stack.Screen name="countdown" />
+        <Stack.Screen name="question" />
+        <Stack.Screen name="memories" />
+        <Stack.Screen name="month" />
       </Stack>
       <Grain />
       <HeartBurstLayer />

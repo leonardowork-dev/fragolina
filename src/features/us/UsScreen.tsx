@@ -25,6 +25,49 @@ import { useSettings } from "@/state/settingsStore";
 
 import { EditCoupleSheet } from "./EditCoupleSheet";
 
+/** Le cose da fare insieme (sessione 7): conto alla rovescia, domanda del giorno, ricordi, il nostro mese. Più il passo manuale se manca. */
+function TogetherLinks() {
+  const { colors } = useTheme();
+  const router = useRouter();
+  const available = useCouple((s) => s.extraAvailable);
+  const rows: { id: string; label: string; to: "/countdown" | "/question" | "/memories" | "/month"; fill: string }[] = [
+    { id: "countdown", label: S.countdown.title, to: "/countdown", fill: colors.sky },
+    { id: "question", label: S.qa.cardTitle, to: "/question", fill: colors.blush },
+    { id: "memories", label: S.memories.title, to: "/memories", fill: colors.butter },
+    { id: "month", label: S.month.title, to: "/month", fill: colors.leafSoft },
+  ];
+  return (
+    <>
+      {available === false ? (
+        <Sticker id="step7" fill={colors.butterSoft} radius={24} offset={4} padding={16} tiltMax={1}>
+          <View style={{ gap: 6 }}>
+            <Text variant="title" accessibilityRole="header">
+              {S.step7.title}
+            </Text>
+            <Text variant="body">{S.step7.body}</Text>
+          </View>
+        </Sticker>
+      ) : null}
+      <Sticker id="insieme" fill={colors.surface} radius={28} offset={4} padding={16} tiltMax={0.8} style={{ marginRight: 14 }}>
+        <View style={{ gap: 12 }}>
+          <Text variant="title" accessibilityRole="header">
+            {S.us.together}
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+            {rows.map((r) => (
+              <Sticker key={r.id} id={`together-${r.id}`} fill={r.fill} radius={18} offset={3} padding={0} tiltMax={1.5} onPress={() => router.push(r.to)} haptic="light" accessibilityLabel={r.label}>
+                <Text variant="bodyStrong" style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+                  {r.label}
+                </Text>
+              </Sticker>
+            ))}
+          </View>
+        </View>
+      </Sticker>
+    </>
+  );
+}
+
 /** Noi: la coppia (nomi, data) come adesivo grande, poi le impostazioni come righe di un secondo adesivo. */
 export function UsScreen() {
   const { colors } = useTheme();
@@ -121,6 +164,7 @@ export function UsScreen() {
       </Sticker>
 
       {coupleId ? <DistanceCard /> : null}
+      {coupleId ? <TogetherLinks /> : null}
 
       <Sticker
         id="impostazioni"

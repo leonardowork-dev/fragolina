@@ -9,7 +9,7 @@ import { outline } from "../tokens";
  * Nessun icon font. Uso: <Icon name="heart" size={24} fill={colors.accent} />
  */
 export type IconName =
-  "home" | "pet" | "draw" | "play" | "us" | "heart" | "plus" | "settings" | "check" | "close";
+  "home" | "pet" | "draw" | "play" | "us" | "heart" | "plus" | "settings" | "check" | "close" | "back" | "forward" | "search";
 
 type Props = { name: IconName; size?: number; color?: string; fill?: string };
 
@@ -141,6 +141,20 @@ export function Icon({ name, size = 24, color, fill }: Props) {
       break;
     case "close":
       body = <Path d="M6 6 L18 18 M18 6 L6 18" {...common} />;
+      break;
+    case "back":
+      body = <Path d="M15 5 L8 12 L15 19" {...common} />;
+      break;
+    case "forward":
+      body = <Path d="M9 5 L16 12 L9 19" {...common} />;
+      break;
+    case "search":
+      body = (
+        <>
+          <Circle cx="10.5" cy="10.5" r="6" fill={f} {...common} />
+          <Path d="M15 15 L20 20" {...common} />
+        </>
+      );
       break;
   }
   return (

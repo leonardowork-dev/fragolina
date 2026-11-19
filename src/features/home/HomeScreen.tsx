@@ -1,8 +1,7 @@
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { type GestureResponderEvent, Pressable, View } from "react-native";
 import Animated, {
-  FadeIn,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -24,18 +23,20 @@ import {
 } from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { motion, radius } from "@/design/tokens";
+import { HomeCountdown } from "@/features/countdown/HomeCountdown";
+import { YearAgoCard } from "@/features/memories/YearAgoCard";
+import { QaCard } from "@/features/qa/QaCard";
 import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { EditCoupleSheet } from "@/features/us/EditCoupleSheet";
 import { haptics } from "@/lib/haptics";
 import { cap, partnerLabel } from "@/lib/names";
 import { S } from "@/lib/strings.it";
-import { daysSince, formatLongDate, localDayKey, timeAgo } from "@/lib/time";
+import { daysSince, formatLongDate, timeAgo } from "@/lib/time";
 import { usePendingGame } from "@/features/play/usePending";
-import { selectPairing, selectPingsToday, selectQuestion, useCouple } from "@/state/coupleStore";
+import { selectPairing, selectPingsToday, useCouple } from "@/state/coupleStore";
 import { useIntents } from "@/state/intentStore";
 
 import { MoodSheet } from "./MoodSheet";
-import { RevealCard } from "./RevealCard";
 import { RollingNumber } from "./RollingNumber";
 
 /** Home: UN elemento dominante (il bottone "Penso a te" o, se manca una persona, l'invito a collegarsi). */
@@ -354,103 +355,6 @@ function MyMoodStrip({ onPress }: { onPress: () => void }) {
   );
 }
 
-function QuestionCard() {
-  const { colors } = useTheme();
-  const partner = useCouple((s) => s.partnerName);
-  const question = useCouple((s) => s.question);
-  const day = localDayKey();
-  const q = useMemo(() => selectQuestion({ question }, day), [question, day]);
-  const revealedDay = useCouple((s) => s.revealedDay);
-  const markRevealed = useCouple((s) => s.markRevealed);
-  const answer = useCouple((s) => s.answerQuestion);
-  const label = { a: q.a, b: q.b } as const;
-  const answered = q.myAnswer !== null;
-  return (
-    <Sticker
-      id="domanda"
-      fill={colors.surface}
-      radius={radius.lg}
-      offset={4}
-      padding={18}
-      tiltMax={1}
-      style={{ marginRight: 14 }}
-    >
-      <View style={{ gap: 12 }}>
-        <Text variant="caption">{S.home.questionTitle}</Text>
-        <Text variant="title">{q.text}</Text>
-        <View style={{ gap: 10 }}>
-          {(["a", "b"] as const).map((k) => {
-            const mine = q.myAnswer === k;
-            return (
-              <Sticker
-                key={k}
-                id={`risposta-${k}`}
-                testID={`answer-${k}`}
-                fill={mine ? colors.leaf : colors.blushSoft}
-                radius={radius.md}
-                offset={mine || !answered ? 3 : 0}
-                padding={0}
-                tiltMax={0.8}
-                onPress={answered ? undefined : () => answer(k)}
-                haptic="tick"
-                accessibilityLabel={label[k]}
-                accessibilityHint={answered ? undefined : S.home.answerHint}
-                style={{ opacity: answered && !mine ? 0.5 : 1 }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                    minHeight: 52,
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      borderWidth: 2.5,
-                      borderColor: colors.outline,
-                      backgroundColor: mine ? colors.surface : "transparent",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {mine ? <Icon name="check" size={16} /> : null}
-                  </View>
-                  <Text variant="bodyStrong" style={{ flexShrink: 1 }}>
-                    {label[k]}
-                  </Text>
-                </View>
-              </Sticker>
-            );
-          })}
-        </View>
-        {!answered ? (
-          <Text variant="caption">{S.home.answerHint}</Text>
-        ) : q.partnerAnswer ? (
-          <Animated.View entering={FadeIn.duration(motion.duration.enter).easing(motion.easeOut)}>
-            <RevealCard
-              partnerName={partner}
-              answerLabel={label[q.partnerAnswer]}
-              verdict={q.partnerAnswer === q.myAnswer ? S.home.sameAnswer : S.home.diffAnswer}
-              revealed={revealedDay === q.day}
-              onReveal={markRevealed}
-            />
-          </Animated.View>
-        ) : (
-          <Animated.View entering={FadeIn.duration(motion.duration.enter).easing(motion.easeOut)}>
-            <Text variant="body">{S.home.waitingPartner(partner)}</Text>
-          </Animated.View>
-        )}
-      </View>
-    </Sticker>
-  );
-}
-
 /** Un piccolo invito, solo se in una partita tocca a te. Se non c'è niente in sospeso non compare (nessun rumore). */
 function GameInvite() {
   const router = useRouter();
@@ -479,6 +383,28 @@ function GameInvite() {
         <Icon name="play" size={24} />
       </View>
     </Sticker>
+  );
+}
+
+/** Due adesivi diversi per arrivare ai Ricordi e a "Il nostro mese". */
+function AlbumLinks() {
+  const { colors } = useTheme();
+  const router = useRouter();
+  return (
+    <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
+      <Sticker id="link-ricordi" fill={colors.butter} radius={26} offset={5} padding={14} tiltMax={1.8} onPress={() => router.push("/memories")} haptic="light" accessibilityLabel={S.memories.openAlbum} style={{ flex: 1.2 }}>
+        <View style={{ gap: 2 }}>
+          <Text variant="title">{S.memories.title}</Text>
+          <Text variant="caption">{S.memories.sub}</Text>
+        </View>
+      </Sticker>
+      <Sticker id="link-mese" fill={colors.sky} radius={20} offset={4} padding={14} tiltMax={2} onPress={() => router.push("/month")} haptic="light" accessibilityLabel={S.memories.monthLink} style={{ flex: 1, marginTop: 18 }}>
+        <View style={{ gap: 2 }}>
+          <Text variant="title">{S.memories.monthLink}</Text>
+          <Text variant="caption">{S.memories.monthLinkSub}</Text>
+        </View>
+      </Sticker>
+    </View>
   );
 }
 
@@ -541,7 +467,10 @@ export function HomeScreen() {
         <MoodCard />
       </View>
       <MyMoodStrip onPress={() => setMoodSheet(true)} />
-      {pairing === "paired" ? <QuestionCard /> : null}
+      {pairing === "paired" ? <QaCard /> : null}
+      {pairing === "paired" ? <HomeCountdown /> : null}
+      {pairing === "paired" ? <YearAgoCard /> : null}
+      {pairing === "paired" ? <AlbumLinks /> : null}
       <MoodSheet
         visible={moodSheet || moodRequested}
         onClose={closeMoodSheet}

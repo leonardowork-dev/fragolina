@@ -14,6 +14,8 @@ export function TextField({
   placeholder,
   maxLength = 24,
   autoCapitalize = "words",
+  multiline = false,
+  minHeight,
 }: {
   label: string;
   value: string;
@@ -22,6 +24,9 @@ export function TextField({
   placeholder?: string;
   maxLength?: number;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  /** Più righe (risposte lunghe). */
+  multiline?: boolean;
+  minHeight?: number;
 }) {
   const { colors } = useTheme();
   return (
@@ -35,13 +40,16 @@ export function TextField({
         placeholderTextColor={colors.ink + "66"}
         accessibilityLabel={label}
         autoCapitalize={autoCapitalize}
-        autoCorrect={false}
-        returnKeyType="done"
+        autoCorrect={multiline}
+        returnKeyType={multiline ? "default" : "done"}
+        multiline={multiline}
+        textAlignVertical={multiline ? "top" : "center"}
         style={{
           fontFamily: fonts.bodySemi,
           fontSize: 17,
-          minHeight: 52,
+          minHeight: minHeight ?? 52,
           paddingHorizontal: 16,
+          paddingVertical: multiline ? 12 : 0,
           color: colors.ink,
           backgroundColor: colors.blushSoft,
           borderRadius: 16,

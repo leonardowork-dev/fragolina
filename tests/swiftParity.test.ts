@@ -429,7 +429,7 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
       const d = new Date(c.nowMs);
       const today = iso([d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()]);
       const nowMin = d.getUTCHours() * 60 + d.getUTCMinutes();
-      const ts = countdownDisplay(eventsForWidget(c.snap.cdEvents, c.feed ? feedEventsFromJson(JSON.parse(c.feed)) : null, c.revoked), today, nowMin);
+      const ts = countdownDisplay(eventsForWidget(c.snap.cdEvents as never, c.feed ? feedEventsFromJson(JSON.parse(c.feed)) : null, c.revoked), today, nowMin);
       const sw = out.countdown[i];
       const a = ts ? { state: "event", id: ts.id, title: ts.title, icon: ts.icon, dateLine: ts.dateLine, view: ts.view } : { state: "empty" };
       const b = sw && sw.state === "event" ? { ...sw, view: { ...sw.view } } : sw;

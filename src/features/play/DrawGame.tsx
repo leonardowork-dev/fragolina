@@ -10,6 +10,7 @@ import type { NoteDraw } from "@/lib/note/rules";
 import { S } from "@/lib/strings.it";
 
 import { NoteDrawingSvg } from "../draw/NoteArt";
+import { KeepButton } from "../memories/KeepButton";
 import { DrawingReplay } from "./DrawingReplay";
 import { GameShell } from "./GameShell";
 import { SketchPad } from "./SketchPad";
@@ -226,6 +227,11 @@ function Album({ source }: { source: GamesSource }) {
                     {word}
                   </Text>
                 </View>
+                {source.mode === "couple" ? (
+                  <View style={{ marginTop: 6 }}>
+                    <KeepButton id={g.id} kind="draw" source="game" caption={word} content={d.drawing!} />
+                  </View>
+                ) : null}
               </Sticker>
             );
           })}

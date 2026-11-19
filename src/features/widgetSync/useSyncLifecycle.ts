@@ -61,6 +61,22 @@ export function useRealtimeEffects() {
         toast.show(gameRejectText(s.gameRejected, s.partnerName));
         haptics.light();
       }
+      if (s.extraIncomingSeq !== before.extraIncomingSeq && s.extraIncoming) {
+        // novità della sessione 7 portate dall'altra persona: domanda, evento, foto
+        const x = s.extraIncoming;
+        toast.show(
+          x.what === "qa-answered"
+            ? S.extraToast.qaAnswered(s.partnerName)
+            : x.what === "qa-ready"
+              ? S.extraToast.qaReady
+              : x.what === "event"
+                ? S.extraToast.event(s.partnerName, x.title)
+                : x.what === "memory" && x.kind === "photo"
+                  ? S.extraToast.photo(s.partnerName)
+                  : S.extraToast.kept(s.partnerName),
+        );
+        haptics.light();
+      }
       if (s.pairedSeq !== before.pairedSeq) toast.show(S.toast.joined(s.partnerName));
       if (s.rejectedSeq !== before.rejectedSeq) toast.show(S.link.rejected);
     });

@@ -29,7 +29,7 @@ const iso = (days: number) => {
 };
 
 const base: WidgetSnapshot = {
-  v: 5,
+  v: 6,
   updatedAt: NOW - 5 * MIN,
   paired: true,
   partnerName: "Nikole",
@@ -84,6 +84,7 @@ const base: WidgetSnapshot = {
   feedUrl: "",
   feedKey: "",
   feedToken: "",
+  cdEvents: [],
 };
 
 const squiggle = (k: number) => ({

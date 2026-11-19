@@ -222,6 +222,9 @@ export type CoupleState = SyncedState &
     /** Giorno per cui hai già scoperto la risposta del partner. */
     revealedDay: string | null;
     markRevealed: () => void;
+    /** Giorno (di Roma) in cui hai già girato la carta con le due risposte della domanda vera. */
+    qaRevealedDay: string | null;
+    markQaRevealed: (day: string) => void;
     /** Motore di sincronizzazione (usare `syncEngine`). */
     __engine: Engine;
   };
@@ -924,12 +927,14 @@ export function createCoupleStore(deps: CoupleDeps) {
           lastSyncAt: null,
           sessionLost: false,
           revealedDay: null,
+          qaRevealedDay: null as string | null,
 
           setPartnerNameLocal: (name) => {
             const nm = name.trim().slice(0, 24);
             if (nm && !get().coupleId) set({ partnerName: nm });
           },
           markRevealed: () => set({ revealedDay: get().question.day }),
+          markQaRevealed: (day) => set({ qaRevealedDay: day }),
           setMyName: (name) => {
             const nm = name.trim().slice(0, 24);
             if (!nm) return;
@@ -1345,6 +1350,7 @@ export function createCoupleStore(deps: CoupleDeps) {
             lastSyncAt: s.lastSyncAt,
             sessionLost: s.sessionLost,
             revealedDay: s.revealedDay,
+            qaRevealedDay: s.qaRevealedDay,
             petServer: s.petServer,
             petLog: s.petLog,
             petMyLast: s.petMyLast,

@@ -23,12 +23,13 @@ import {
   textInkFor,
   validateContent,
 } from "@/lib/note/rules";
-import { replayNote } from "@/lib/note/sync";
+import { isLocalNoteId, replayNote } from "@/lib/note/sync";
 import type { NoteWidgetModel } from "@/lib/note/widgetModel";
 import { S } from "@/lib/strings.it";
 import { selectPairing, useCouple } from "@/state/coupleStore";
 
 import { DrawCanvas, type Stroke } from "./DrawCanvas";
+import { KeepButton } from "../memories/KeepButton";
 import { BG_HEX, INK_HEX, NoteDrawingSvg } from "./NoteArt";
 
 /**
@@ -381,6 +382,9 @@ function ActiveNote({ note, now, onClear }: { note: Note; now: number; onClear: 
           <Text variant="caption">{note.pending ? S.draw.waiting : S.draw.leaves(left)}</Text>
         </View>
         <Button label={S.draw.clearBtn} variant="secondary" haptic="medium" onPress={onClear} accessibilityHint={S.draw.clearLabel} />
+      </View>
+      <View style={{ marginTop: 12 }}>
+        <KeepButton id={note.id} kind={note.kind} source="note" caption={fromMe ? "" : note.byName} content={note.content} disabled={note.pending || isLocalNoteId(note.id)} />
       </View>
     </Sticker>
   );

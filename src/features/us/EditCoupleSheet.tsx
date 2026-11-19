@@ -9,7 +9,7 @@ import { daysInMonth, monthName, toIso } from "@/lib/time";
 import { useCouple } from "@/state/coupleStore";
 
 /** Modifica nomi e data di inizio. Nomi: max 24 caratteri. Data: tre stepper con tick aptico. */
-function Stepper({
+export function Stepper({
   label,
   text,
   onDec,

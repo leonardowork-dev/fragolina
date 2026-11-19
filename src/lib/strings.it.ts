@@ -536,6 +536,7 @@ export const S = {
     toast: "Si sta ancora cuocendo. Ti avviso io.",
   },
   us: {
+    together: "Insieme",
     title: "Noi",
     names: "Nomi",
     startDate: "Dal",
@@ -741,6 +742,14 @@ export const S = {
     emptyMonth: "Questo mese è ancora un foglio bianco.",
     needsStep: "Manca un passo: il mese si accende dopo il file della sessione 7 (vedi Noi → Manca un passo).",
     dayTitle: (d: number) => `giorno ${d}`,
+  },
+  /** Avvisi in tempo reale della sessione 7. */
+  extraToast: {
+    qaAnswered: (n: string) => `${n} ha risposto alla domanda di oggi`,
+    qaReady: "Le risposte di oggi sono pronte",
+    event: (n: string, t: string) => `${n} ha aggiunto «${t}» a Manca poco`,
+    photo: (n: string) => `${n} ha messo una foto nei Ricordi`,
+    kept: (n: string) => `${n} ha tenuto qualcosa nei Ricordi`,
   },
   /** Passo manuale della sessione 7 (Noi). */
   step7: {
