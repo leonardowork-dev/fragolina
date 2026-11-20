@@ -1,1 +1,4 @@
-export { MonthScreen as default } from "@/features/memories/MonthScreen";
+import { withErrorBoundary } from "@/design/layout/ErrorBoundary";
+import { MonthScreen } from "@/features/memories/MonthScreen";
+
+export default withErrorBoundary(MonthScreen, "month");

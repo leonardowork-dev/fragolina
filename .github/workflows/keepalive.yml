@@ -1,0 +1,41 @@
+name: Keepalive Supabase
+
+# Il piano gratuito di Supabase mette in pausa il progetto dopo 7 giorni senza attività.
+# Ogni 3 giorni facciamo UNA chiamata leggera con la chiave PUBBLICA (la stessa dell'app: mai la service_role):
+# la funzione `widget_feed` con un token finto risponde subito "invalid_token" ma passa dal database, quindi conta come attività.
+# Se il progetto fosse già in pausa la chiamata fallisce e GitHub manda una mail "workflow fallito": è il segnale per
+# riattivarlo da Supabase (Restore project). Costo zero: pochi secondi di runner Linux ogni 3 giorni.
+on:
+  schedule:
+    - cron: "17 6 */3 * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Chiamata leggera al progetto
+        env:
+          SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Mancano i secret EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY (vedi MANUAL_TODO.md)"
+            exit 1
+          fi
+          code=$(curl -sS --max-time 25 --retry 2 --retry-delay 5 -o /tmp/resp.json -w '%{http_code}' \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/widget_feed" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"p_token":"keepalive"}')
+          echo "HTTP $code"
+          # Non stampo il corpo della risposta più del necessario: è solo {"ok":false,"error":"invalid_token"}.
+          head -c 200 /tmp/resp.json; echo
+          if [ "$code" != "200" ]; then
+            echo "::error::Il progetto non risponde (HTTP $code). Se è in pausa: Supabase → Restore project."
+            exit 1
+          fi

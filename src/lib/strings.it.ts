@@ -144,11 +144,22 @@ export const S = {
       unknown: "Qualcosa non ha funzionato. Riprova.",
     },
   },
+  error: {
+    title: "Qualcosa si è incastrato",
+    body: "Non è colpa tua. Riprova: se si ripete, chiudi Fragolina e riaprila. Quello che avevi mandato non si perde.",
+    bodyScreen: "Questa schermata non è riuscita ad aprirsi. Riprova: le altre schede funzionano.",
+    retry: "Riprova",
+  },
   link: {
     offline: "Senza rete",
     offlineQueued: (n: number) =>
       n === 1 ? "Senza rete · 1 in attesa" : `Senza rete · ${n} in attesa`,
     connecting: "Mi collego…",
+    queued: (n: number) => (n === 1 ? "1 in attesa" : `${n} in attesa`),
+    serverDown: "Il server dorme",
+    serverDownTitle: "Il server dorme",
+    serverDownBody:
+      "Non riesco a parlare con il server: il piano gratuito si mette in pausa se non lo si usa per una settimana. Tutto ciò che fai resta sul telefono e parte da solo appena si risveglia. Chi ha creato l'app può riattivarlo in un minuto da Supabase.",
     mock: "Prova locale",
     rejected: "Non sono riuscito a inviare l'ultima cosa: l'ho annullata.",
   },

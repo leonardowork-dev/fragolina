@@ -23,6 +23,7 @@ import {
 import { safeStorage } from "@/lib/storage";
 import { S } from "@/lib/strings.it";
 import { backoffDelay } from "@/lib/sync/backoff";
+import { useNet } from "./netStore";
 import { enqueue, flushQueue } from "@/lib/sync/queue";
 import {
   type SyncedState,
@@ -148,6 +149,8 @@ type Engine = {
   start: () => void;
   stop: () => void;
   setForeground: (a: boolean) => void;
+  /** La rete è tornata (lo dice il sistema): riconnette subito e svuota la coda, senza aspettare il backoff. */
+  networkBack: () => void;
   resync: () => Promise<void>;
   flush: () => Promise<void>;
 };
@@ -297,6 +300,7 @@ export function createCoupleStore(deps: CoupleDeps) {
           unsub = null;
         };
         const goOffline = () => {
+          useNet.getState().noteFailure();
           set({ link: "offline" });
           teardown();
           if (!started || !foreground) return;
@@ -751,6 +755,7 @@ export function createCoupleStore(deps: CoupleDeps) {
             onStatus: (st) => {
               if (st === "live") {
                 attempt = 0;
+                useNet.getState().noteSuccess();
                 set({ link: "live" });
                 void resync()
                   .then(flush)
@@ -801,6 +806,7 @@ export function createCoupleStore(deps: CoupleDeps) {
               });
             } else set({ userId });
             await resync();
+            useNet.getState().noteSuccess();
             subscribeIfNeeded();
             if (!get().coupleId) set({ link: "live" });
             attempt = 0;
@@ -1333,6 +1339,13 @@ export function createCoupleStore(deps: CoupleDeps) {
               attempt = 0;
               void connect();
             },
+            networkBack: () => {
+              if (!started || !foreground) return;
+              attempt = 0;
+              if (retryTimer) clearTimeout(retryTimer);
+              retryTimer = null;
+              void connect();
+            },
             resync,
             flush,
           },
@@ -1379,6 +1392,7 @@ export function createCoupleStore(deps: CoupleDeps) {
       start: () => engine().start(),
       stop: () => engine().stop(),
       setForeground: (a: boolean) => engine().setForeground(a),
+      networkBack: () => engine().networkBack(),
       resync: () => engine().resync(),
       flush: () => engine().flush(),
     },

@@ -1,1 +1,4 @@
-export { CountdownScreen as default } from "@/features/countdown/CountdownScreen";
+import { withErrorBoundary } from "@/design/layout/ErrorBoundary";
+import { CountdownScreen } from "@/features/countdown/CountdownScreen";
+
+export default withErrorBoundary(CountdownScreen, "countdown");

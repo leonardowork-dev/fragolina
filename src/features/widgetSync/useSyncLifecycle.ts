@@ -1,3 +1,4 @@
+import * as Network from "expo-network";
 import { useEffect } from "react";
 import { AppState, Dimensions } from "react-native";
 
@@ -7,6 +8,7 @@ import { petToastText } from "@/features/pet/petToast";
 import { gameRejectText, gameToastText } from "@/features/play/toasts";
 import { S } from "@/lib/strings.it";
 import { syncEngine, useCouple } from "@/state/coupleStore";
+import { isOnline, networkCameBack, useNet } from "@/state/netStore";
 
 /** Avvia il motore di sincronizzazione (quando lo store è pronto) e lo segue nei cambi primo piano / secondo piano. */
 export function useSyncLifecycle() {
@@ -22,6 +24,35 @@ export function useSyncLifecycle() {
       syncEngine.stop();
     };
   }, [hydrated]);
+}
+
+/**
+ * Rete: quando il sistema dice che internet è TORNATA, si riconnette subito e si svuota la coda offline (senza
+ * aspettare il backoff 1→30 s). Errori del modulo nativo: silenziosi (si resta col backoff di prima).
+ */
+export function useNetworkRecovery() {
+  useEffect(() => {
+    let sub: { remove: () => void } | null = null;
+    let alive = true;
+    const apply = (state: Network.NetworkState) => {
+      const next = isOnline(state);
+      const prev = useNet.getState().reachable;
+      useNet.getState().setReachable(next);
+      if (networkCameBack(prev, next)) syncEngine.networkBack();
+    };
+    try {
+      void Network.getNetworkStateAsync()
+        .then((st) => alive && apply(st))
+        .catch(() => {});
+      sub = Network.addNetworkStateListener((st) => apply(st));
+    } catch {
+      /* senza modulo: resta il backoff */
+    }
+    return () => {
+      alive = false;
+      sub?.remove();
+    };
+  }, []);
 }
 
 /**

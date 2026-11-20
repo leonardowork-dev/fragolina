@@ -16,11 +16,13 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ConfettiLayer, HeartBurstLayer, ThemeProvider, ToastProvider, useTheme } from "@/design";
+import { ErrorBoundary } from "@/design/layout/ErrorBoundary";
 import { Grain } from "@/design/layout/Grain";
 import { SplashOverlay } from "@/design/layout/SplashOverlay";
 import "@/features/distance/backgroundTask";
+import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { useLocationSync } from "@/features/distance/useLocationSync";
-import { useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useSyncLifecycle";
+import { useNetworkRecovery, useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useSyncLifecycle";
 import { useDeepLinks } from "@/features/widgetSync/useDeepLinks";
 import { useWidgetSync } from "@/features/widgetSync/useWidgetSync";
 import { preloadSounds } from "@/lib/sound";
@@ -39,6 +41,7 @@ function Shell() {
   useWidgetSync();
   useLocationSync();
   useSyncLifecycle();
+  useNetworkRecovery();
   useRealtimeEffects();
   useDeepLinks();
 
@@ -74,6 +77,7 @@ function Shell() {
       <Grain />
       <HeartBurstLayer />
       <ConfettiLayer />
+      <LinkBadge />
     </View>
   );
 }
@@ -117,10 +121,12 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <KeyboardProvider>
           <ThemeProvider>
-            <ToastProvider>
-              <Shell />
-              <SplashOverlay ready />
-            </ToastProvider>
+            <ErrorBoundary name="app">
+              <ToastProvider>
+                <Shell />
+                <SplashOverlay ready />
+              </ToastProvider>
+            </ErrorBoundary>
           </ThemeProvider>
         </KeyboardProvider>
       </SafeAreaProvider>

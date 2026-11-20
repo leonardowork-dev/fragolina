@@ -1,3 +1,4 @@
+import { withErrorBoundary } from "@/design/layout/ErrorBoundary";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
 
-export default OnboardingScreen;
+export default withErrorBoundary(OnboardingScreen, "onboarding");

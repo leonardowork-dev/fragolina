@@ -26,7 +26,6 @@ import { motion, radius } from "@/design/tokens";
 import { HomeCountdown } from "@/features/countdown/HomeCountdown";
 import { YearAgoCard } from "@/features/memories/YearAgoCard";
 import { QaCard } from "@/features/qa/QaCard";
-import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { EditCoupleSheet } from "@/features/us/EditCoupleSheet";
 import { haptics } from "@/lib/haptics";
 import { cap, partnerLabel } from "@/lib/names";
@@ -459,7 +458,6 @@ export function HomeScreen() {
         >
           <Text variant="title">{S.home.title}</Text>
         </Pressable>
-        <LinkBadge />
       </View>
       {pairing === "paired" ? <ThinkHero /> : <ConnectHero />}
       {pairing === "paired" ? <GameInvite /> : null}

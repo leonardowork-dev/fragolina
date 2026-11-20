@@ -15,12 +15,12 @@ import {
 } from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { DistanceCard } from "@/features/distance/DistanceCard";
-import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { PairingPanel } from "@/features/pairing/PairingPanel";
 import { appVersionLabel } from "@/lib/appInfo";
 import { S } from "@/lib/strings.it";
 import { daysSince, formatLongDate } from "@/lib/time";
 import { useCouple } from "@/state/coupleStore";
+import { useNet } from "@/state/netStore";
 import { useSettings } from "@/state/settingsStore";
 
 import { EditCoupleSheet } from "./EditCoupleSheet";
@@ -86,6 +86,9 @@ export function UsScreen() {
   const setOnboardingDone = useSettings((s) => s.setOnboardingDone);
   const [edit, setEdit] = useState(false);
   const sessionLost = useCouple((s) => s.sessionLost);
+  const serverDownRaw = useNet((s) => s.serverDown);
+  const backendKind = useCouple((s) => s.backendKind);
+  const serverDown = serverDownRaw && backendKind === "supabase";
   const dismissLost = useCouple((s) => s.dismissSessionLost);
   const days = daysSince(start);
   const versionLabel = appVersionLabel();
@@ -103,8 +106,17 @@ export function UsScreen() {
         <Text variant="display" accessibilityRole="header">
           {S.us.title}
         </Text>
-        <LinkBadge />
       </View>
+      {serverDown ? (
+        <Sticker id="server-dorme" fill={colors.butterSoft} radius={24} offset={4} padding={16} tiltMax={1}>
+          <View style={{ gap: 6 }}>
+            <Text variant="title" accessibilityRole="header">
+              {S.link.serverDownTitle}
+            </Text>
+            <Text variant="body">{S.link.serverDownBody}</Text>
+          </View>
+        </Sticker>
+      ) : null}
       {sessionLost ? (
         <Sticker
           id="sessione-persa"
