@@ -539,7 +539,9 @@ try {
     const N = W === A ? B : A;
     check("domani: chi non è di turno non può scrivere", (await rpc(N.c, "set_tomorrow_question", { p_text: "Non tocca a me" })).error === "not_your_turn");
     check("domani: chi è di turno la scrive e l'altro la vede", (await rpc(W.c, "set_tomorrow_question", { p_text: "Qual è la cosa più bella di oggi?" })).ok === true && (await rpc(N.c, "get_qa", { p_today_ref: "q007" })).days.some((d) => d.ref === "custom"));
-    await new Promise((r) => setTimeout(r, 2500));
+    // il realtime a volte è lento: si aspetta fino a 12 s, ma si esce appena arriva (il test ora dura ~2 s di solito)
+    for (let i = 0; i < 24 && qaAns < 1; i++) await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
     check("domanda realtime: qa_answers arriva (solo 'ha risposto'), qa_texts MAI", qaAns >= 1 && qaTxt === 0, `qa_answers=${qaAns} qa_texts=${qaTxt}`);
     await B.c.removeChannel(qchan);
 
