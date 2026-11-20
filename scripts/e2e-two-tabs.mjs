@@ -388,13 +388,8 @@ try {
   check("Biglietto: A lo vede 'Da Nikole'", await seen(A, /^Da Nikole$/, 8000));
   await settle(A, 800);
   await shot(A, "A", "disegno-ricevuto");
-  // scadenza a 1 ora (orologio finto sulla scheda A)
-  await A.clock.install();
-  await A.clock.fastForward(61 * 60 * 1000);
-  check("Biglietto: dopo 61 minuti sparisce da solo (orologio finto)", await (async () => { for (let i = 0; i < 30; i++) { if ((await A.getByText(/Sul blocco adesso/).count()) === 0) return true; await A.clock.fastForward(21000); await settle(A, 300); } return false; })());
-  await shot(A, "A", "biglietto-scaduto");
-  await A.clock.resume(); // il tempo torna a scorrere (i tempi d'attesa della rete finta usano i timer)
-  // offline (su B: la scheda A ha l'orologio finto): il biglietto resta in coda e parte al ritorno della rete
+  // offline (su B), PRIMA di toccare l'orologio: l'orologio finto di Playwright vale per tutto il contesto (anche per B) e farebbe
+  // litigare l'ora delle schermate con quella dello store. Il biglietto resta in coda e parte al ritorno della rete
   await offline(B, true);
   await exact(B, "Scritta").click();
   await B.getByLabel("Testo del biglietto").fill("Ti scrivo senza rete");
@@ -405,6 +400,12 @@ try {
   await offline(B, false);
   check("Biglietto offline: al ritorno della rete arriva ad A", await seen(A, /Nikole ti ha lasciato un biglietto/, 30000));
 
+  // scadenza a 1 ora (orologio finto sulla scheda A)
+  await A.clock.install();
+  await A.clock.fastForward(61 * 60 * 1000);
+  check("Biglietto: dopo 61 minuti sparisce da solo (orologio finto)", await (async () => { for (let i = 0; i < 30; i++) { if ((await A.getByText(/Sul blocco adesso/).count()) === 0) return true; await A.clock.fastForward(21000); await settle(A, 300); } return false; })());
+  await shot(A, "A", "biglietto-scaduto");
+  await A.clock.resume(); // il tempo torna a scorrere (i tempi d'attesa della rete finta usano i timer)
   // ---- distanza: Roma (A) e Milano (B), con consenso reciproco ----
   await A.getByRole("tab", { name: "Noi" }).click();
   await B.getByRole("tab", { name: "Noi" }).click();

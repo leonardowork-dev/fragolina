@@ -225,8 +225,9 @@ export function PlayScreen() {
         faceStyle={{ minHeight: 210, justifyContent: "center" }}
         accessibilityLabel={`${S.play.games[dom.kind].name}. ${dom.turn === "mine" ? S.play.mine : dom.turn === "theirs" ? S.play.theirs(source.partnerName) : S.play.heroNone}`}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-          <View style={{ flex: 1, gap: 8 }}>
+        {/* Se il testo (min 160) e il disegno non ci stanno insieme (schermo stretto o testo grande), il disegno va sotto. */}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 14 }}>
+          <View style={{ flex: 1, gap: 8, minWidth: 160 }}>
             {dom.turn === "none" ? (
               <Text variant="caption">{S.play.heroNone}</Text>
             ) : (
@@ -245,7 +246,7 @@ export function PlayScreen() {
       </Sticker>
 
       {/* gli altri due: adesivi diversi (larghezza, altezza, inclinazione) */}
-      <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, alignItems: "flex-start" }}>
         {a ? (
           <Sticker
             id={`other-${a.kind}`}
@@ -255,7 +256,7 @@ export function PlayScreen() {
             padding={16}
             tiltMax={2}
             onPress={() => open(a.kind)}
-            style={{ flex: 1.2 }}
+            style={{ flex: 1.2, minWidth: 140 }}
             faceStyle={{ minHeight: 240 }}
             accessibilityLabel={`${S.play.games[a.kind].name}. ${a.turn === "mine" ? S.play.mine : a.turn === "theirs" ? S.play.theirs(source.partnerName) : S.play.games[a.kind].line}`}
           >
@@ -278,7 +279,7 @@ export function PlayScreen() {
             padding={14}
             tiltMax={2.5}
             onPress={() => open(b.kind)}
-            style={{ flex: 1, marginTop: 40 }}
+            style={{ flex: 1, minWidth: 140, marginTop: 40 }}
             faceStyle={{ minHeight: 210 }}
             accessibilityLabel={`${S.play.games[b.kind].name}. ${b.turn === "mine" ? S.play.mine : b.turn === "theirs" ? S.play.theirs(source.partnerName) : S.play.games[b.kind].line}`}
           >

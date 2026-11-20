@@ -52,10 +52,10 @@ function Need({ id, value }: { id: NeedId; value: number }) {
           accessibilityLabel={S.pet.a11y.need(label, word)}
         >
           <Glyph kind={look.glyph} size={38} level={value / NEED_MAX} fill={look.level} id={`need-${id}`} />
-          <Text variant="caption" align="center" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.3}>
+          <Text variant="caption" align="center" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.15}>
             {label}
           </Text>
-          <Text variant="caption" align="center" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.3} color={lvl === "low" ? palette.strawberryDeep : undefined}>
+          <Text variant="caption" align="center" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15} color={lvl === "low" ? palette.strawberryDeep : undefined}>
             {word}
           </Text>
         </Sticker>
