@@ -37,6 +37,7 @@ import {
 } from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { MOOD_IDS } from "@/features/home/moods";
+import { play, type SoundId } from "@/lib/sound";
 import { S } from "@/lib/strings.it";
 import { useSettings } from "@/state/settingsStore";
 
@@ -48,6 +49,66 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {title}
       </Text>
       {children}
+    </View>
+  );
+}
+
+const LAB_SOUNDS: { id: SoundId; label: string }[] = [
+  { id: "pop", label: "Penso a te" },
+  { id: "plink", label: "Umore" },
+  { id: "paper", label: "Biglietto" },
+  { id: "chew", label: "Pet mangia" },
+  { id: "carezza", label: "Carezza" },
+  { id: "snore", label: "Nanna" },
+  { id: "grow", label: "Cresce" },
+  { id: "fanfara", label: "Schiusa / vittoria" },
+  { id: "tok", label: "Mossa" },
+  { id: "pareggio", label: "Pareggio" },
+  { id: "rivela", label: "Rivela" },
+  { id: "scatto", label: "Foto" },
+  { id: "festa", label: "Collegati" },
+];
+
+/** Provoca un errore di disegno per provare la schermata "Qualcosa si è incastrato". */
+function Bomb(): React.ReactElement {
+  throw new Error("Errore di prova (laboratorio)");
+}
+
+/** Casi peggiori: i dati più scomodi che l'app può ricevere, nei componenti veri. */
+const LONG_NAME = "Bartolomeo-Maria Alessandro de' Medici 🍓💖🧁";
+const T280 =
+  "Questa è una risposta lunghissima, di quelle che si scrivono quando si ha tanto da dire e non ci si vuole fermare: parla del mare, della montagna, del treno delle sette e dieci, di quella sera in cui pioveva e noi due sotto lo stesso ombrello a ridere come matti, e di tutte le cose piccole che rendono bella una giornata qualunque, anche questa.";
+
+function WorstCase() {
+  const { colors } = useTheme();
+  return (
+    <View style={{ gap: 12 }}>
+      <Sticker id="w-nome" fill={colors.blush} radius={28} offset={5} padding={16} tiltMax={1}>
+        <View style={{ gap: 6 }}>
+          <Avatar name={LONG_NAME} size={56} fill={colors.butter} />
+          <Text variant="display" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.6}>
+            {LONG_NAME}
+          </Text>
+          <Text variant="bodyStrong">{`Insieme dal 1 gennaio 2099 · 0 giorni`}</Text>
+        </View>
+      </Sticker>
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        <Sticker id="w-n0" fill={colors.accent} radius={26} offset={4} padding={14} style={{ flex: 1 }}>
+          <Text variant="hero" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
+            0
+          </Text>
+        </Sticker>
+        <Sticker id="w-n9999" fill={colors.sky} radius={26} offset={4} padding={14} style={{ flex: 1.4 }}>
+          <Text variant="hero" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
+            9999
+          </Text>
+        </Sticker>
+      </View>
+      <Sticker id="w-testo" fill={colors.surface} radius={22} offset={4} padding={14}>
+        <Text variant="body">{T280}</Text>
+      </Sticker>
+      <Chip label={`${LONG_NAME} — un'etichetta lunghissima`} selected={false} onPress={() => {}} />
+      <Button label="Un bottone con un testo davvero molto molto lungo da leggere" variant="secondary" fullWidth />
     </View>
   );
 }
@@ -137,6 +198,7 @@ export function DesignLab() {
   const { colors, dark } = useTheme();
   const toast = useToast();
   const [sheet, setSheet] = useState(false);
+  const [bomb, setBomb] = useState(false);
   const [chip, setChip] = useState(0);
   const reduce = useSettings((s) => s.reduceMotionOverride);
   const setReduce = useSettings((s) => s.setReduceMotionOverride);
@@ -144,8 +206,8 @@ export function DesignLab() {
 
   return (
     <Screen tabBar={false}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Text variant="display" accessibilityRole="header">
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <Text variant="display" accessibilityRole="header" style={{ flexShrink: 1 }}>
           {S.lab.title}
         </Text>
         <Button label={S.common.close} variant="secondary" onPress={() => router.back()} />
@@ -310,6 +372,23 @@ export function DesignLab() {
           <Sparkle size={28} />
           <Sparkle size={18} delay={300} color={palette.strawberry} />
         </View>
+      </Section>
+
+      <Section title="Suoni (con l'interruttore silenzioso spento)">
+        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+          {LAB_SOUNDS.map((x) => (
+            <Chip key={x.id} label={x.label} selected={false} onPress={() => play(x.id)} />
+          ))}
+        </View>
+      </Section>
+
+      <Section title="Casi peggiori">
+        <WorstCase />
+      </Section>
+
+      <Section title="Errore di prova">
+        <Button label="Provoca un errore" variant="secondary" onPress={() => setBomb(true)} />
+        {bomb ? <Bomb /> : null}
       </Section>
 
       <Section title="Sheet, toast, scheletri, stato vuoto">

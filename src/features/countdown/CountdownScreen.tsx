@@ -30,7 +30,16 @@ export function BigWhen({ v, size = 56 }: { v: ReturnType<ReturnType<typeof useC
   }
   return (
     <View style={{ alignItems: "flex-start" }}>
-      <Text variant="hero" style={{ fontSize: size, lineHeight: size + 4 }} adjustsFontSizeToFit numberOfLines={1} testID="cd-big">
+      {/* Il numero è un disegno più che un testo: non cresce con "Testo grande" (1.1×) e per 3-4 cifre si fa un po' più piccolo. */}
+      <Text
+        variant="hero"
+        style={{ fontSize: size * (v.big.length >= 4 ? 0.72 : v.big.length === 3 ? 0.85 : 1), lineHeight: size + 4 }}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
+        maxFontSizeMultiplier={1.1}
+        numberOfLines={1}
+        testID="cd-big"
+      >
         {v.big}
       </Text>
       <Text variant="bodyStrong">{unitText(v)}</Text>

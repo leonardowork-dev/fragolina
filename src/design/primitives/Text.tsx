@@ -1,5 +1,7 @@
 import React from "react";
-import { Text as RNText, type TextProps as RNTextProps, type TextStyle } from "react-native";
+import { StyleSheet, Text as RNText, type TextProps as RNTextProps, type TextStyle } from "react-native";
+
+import { devFontScale } from "@/lib/devFontScale";
 
 import { useTheme } from "../ThemeProvider";
 import { type TypeVariant, type, fonts } from "../tokens";
@@ -23,6 +25,16 @@ export function Text({ variant = "body", color, align, style, children, ...rest 
   const { colors } = useTheme();
   const t = type[variant];
   const isDisplay = DISPLAY.includes(variant);
+  const maxMul = rest.maxFontSizeMultiplier ?? (isDisplay ? 1.35 : 2);
+  // Solo nel browser, con ?fontScale=…: simula Dynamic Type (sul telefono lo fa iOS).
+  const emu = Math.min(devFontScale(), maxMul);
+  const emuStyle: TextStyle | null = (() => {
+    if (emu <= 1) return null;
+    const flat = StyleSheet.flatten(style) ?? {};
+    const size = flat.fontSize ?? t.size;
+    const line = flat.lineHeight ?? Math.round(t.size * t.line);
+    return { fontSize: size * emu, lineHeight: line * emu };
+  })();
   return (
     <RNText
       allowFontScaling
@@ -40,6 +52,7 @@ export function Text({ variant = "body", color, align, style, children, ...rest 
           fontWeight: t.family === fonts.display ? "normal" : undefined,
         },
         style,
+        emuStyle,
       ]}
     >
       {children}

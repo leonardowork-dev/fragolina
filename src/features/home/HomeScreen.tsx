@@ -88,7 +88,7 @@ function ThinkHero() {
         faceStyle={{ minHeight: 250, justifyContent: "flex-end" }}
       >
         <View style={{ gap: 10 }}>
-          <Text variant="hero" adjustsFontSizeToFit numberOfLines={2} minimumFontScale={0.7}>
+          <Text variant="hero" adjustsFontSizeToFit numberOfLines={2} minimumFontScale={0.7} style={{ paddingRight: 44 }}>
             {S.home.thinkTitle}
           </Text>
           <Text variant="bodyStrong" numberOfLines={2}>
