@@ -1,11 +1,11 @@
 # IMPROVEMENTS.md — backlog (dopo il lancio)
 Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 
-- Prune dei `pings` più vecchi di 90 giorni (job pg_cron o funzione chiamata da `get_state`) per restare sotto i 500 MB del piano gratuito.
+- ~~Prune dei `pings` più vecchi di 90 giorni~~ — fatto in sessione 8 (archivio dei conteggi, trigger).
 - CAPTCHA/Turnstile sugli accessi anonimi (oggi: solo il limite di 30/ora per IP di Supabase).
 - Notifiche push vere (richiedono account Apple a pagamento + APNs): oggi niente; alternativa gratuita: Percorso B del widget (fetch) per aggiornarlo senza aprire l'app.
 - Realtime delle cancellazioni (`member-left`): oggi si scopre con la risincronizzazione (45 s o primo piano); si potrebbe usare un canale Broadcast.
-- `expo-network` per sapere subito quando torna la rete (oggi: backoff 1→30 s).
+- ~~`expo-network` per sapere subito quando torna la rete~~ — fatto in sessione 8 (`useNetworkRecovery`).
 - Domanda del giorno: banca da 24 domande in `strings.it.ts`; aggiungerne e un editor "scrivi tu la domanda per domani".
 - Cambio di fuso orario fra i due telefoni: il "giorno" è quello del telefono; se uno viaggia le domande possono slittare di un giorno.
 - Esportazione/ricordi: storico degli umori (la tabella `mood_events` lo conserva già) con una pagina "il nostro mese".
@@ -20,7 +20,7 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - Lock screen: scelta "giorni/faccina" dentro un solo widget con configurazione (SiriKit `IntentConfiguration` su iOS 16).
 - Pet: il registro delle cure dovrebbe distinguere anche i cambi di nome e le schiuse con un'icona; oggi i nomi non compaiono.
 - Pet: più cibi (con stagioni), un accessorio da sbloccare a ogni stadio, il pet nel widget con la sua nanna che si "spegne" (sfondo scuro anche nel piccolo).
-- Pet: suono leggero (masticare, russare) quando arriveranno i suoni (sessione 8).
+- ~~Pet: suono leggero (masticare, russare)~~ — fatto in sessione 8 (`chew`, `snore`; il russare suona quando metti a nanna).
 - Pet: promemoria gentile "vi aspetta" solo quando si apre l'app (le notifiche non sono possibili senza account a pagamento).
 - Pet: tenere una piccola storia (dal giorno 1: stadi raggiunti, giorni di cura in due) nella scheda Noi.
 - Pet: gioco a due (stessa partita su entrambi i telefoni) invece del gioco da soli.
@@ -58,3 +58,14 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - Notifiche (serve un account a pagamento: fuori budget): "Nikole ha risposto".
 - Cancellazioni in tempo reale (oggi si vedono al prossimo sondaggio).
 - Widget: "Un anno fa oggi" come widget grande (rimandato: Leonardo vuole solo i widget di tipo giorni/distanza/biglietto/conto alla rovescia).
+
+## Idee dalla sessione 8
+- **Suoni:** una famiglia di timbri per stagione (Natale), volume per categoria (azioni / feste), "suono di Nikole" diverso dal tuo per i momenti in arrivo; suoni dei widget non sono possibili (iOS).
+- **Movimento:** transizione condivisa (shared element) dall'adesivo della Home alla pagina Manca poco/Ricordi; test su telefono con la registrazione dello schermo per misurare i fotogrammi.
+- **Rete:** badge che si trasforma in una barra di avanzamento quando la coda si svuota ("3 → 2 → 1"); "ritenta ora" a mano toccando il badge.
+- **Keepalive:** un secondo controllo che scrive un piccolo messaggio nel repository (un commit) ogni 50 giorni, così GitHub non sospende il workflow dopo 60 giorni di silenzio.
+- **Server:** esportazione JSON di sicurezza (coppia, ricordi, domande) con un bottone in Noi, per l'eventualità di perdere il progetto gratuito.
+- **Accessibilità:** test automatico su un vero albero di accessibilità (react-native-testing-library, `getByRole`) invece del controllo statico dei sorgenti; ordine di lettura di VoiceOver verificato con `accessibilityOrder` (iOS 17+).
+- **Icona:** il tuo disegno al posto della fragola (`assets/user-art/app-icon.png`), e una variante scura (iOS 18) e una "tinted".
+- **Dati brutti:** nomi con emoji disegnati con un font con emoji a colori nei display (oggi Bagel non le ha: iOS usa il carattere di sistema).
+

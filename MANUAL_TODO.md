@@ -334,3 +334,75 @@ Il widget mostra l'evento "in evidenza" (o il più vicino): il numero dei giorni
 
 ### S7-6. Quando arriva Nikole (sessione 9)
 Ognuno vede gli eventi dell'altra persona e le foto in tempo reale. La domanda del giorno è **la stessa per entrambi** (giorno = ora di Roma per tutti e due); la risposta dell'altra resta **segreta finché non rispondi anche tu**; "Domani" si alterna (un giorno scrive Leonardo, il giorno dopo Nikole).
+
+
+## Sessione 8 — Rifinitura: suoni, transizioni, casi limite, icona (passo-passo)
+
+### S8-0. Cosa è già fatto DA CLAUDE (non devi toccare niente)
+- **Database:** la pulizia dei "penso a te" più vecchi di 90 giorni è già applicata (`npm run db:apply`, file `supabase/sessione8-rifinitura.sql`). Non perde nulla: totali e "Il nostro mese" contano anche i vecchi.
+- **Controlli:** `backend:check` (server vero), `backend:sqltest`, `npm test`, `tsc`, `eslint`, prove nel browser (`npm run e2e`): fatti prima della build.
+- **Keepalive:** su GitHub gira da solo ogni 3 giorni un piccolo controllo che tiene sveglio il progetto Supabase (così non va in pausa dopo 7 giorni). Se un giorno fallisce, GitHub ti manda una mail "Keepalive Supabase failed": significa che il progetto dorme → vedi S8-5.
+- **Build:** `npm run ship:release` → `Fragolina-release.ipa` in `OneDrive\Desktop\Fragolina-build`. Claude apre la cartella e Sideloadly.
+
+### S8-1. Installa la nuova app (Sideloadly) — l'unica cosa che resta a te
+1. Collega l'iPhone al PC con il cavo e **sbloccalo**.
+2. In **Sideloadly** trascina **`Fragolina-release.ipa`** dalla cartella **Fragolina-build** che si è aperta (se non è già caricato).
+3. **Apple ID**: lo stesso di sempre. **"Remove extensions" resta SPENTO** (altrimenti spariscono i widget).
+4. Premi **Start**, scrivi la password dell'Apple ID se la chiede, aspetta **Done**.
+5. È un'installazione "sopra": **coppia, pet, foto e coda restano**. (Vedi S8-6 per i dettagli e per cosa fare se l'app chiede di ricollegarsi.)
+
+### S8-2. Cosa provare (spunta man mano; se qualcosa non va, scrivi a Claude cosa)
+**Suoni** (originali, bassi, un suono per azione)
+- [ ] **Interruttore silenzioso (quello sul fianco dell'iPhone) SPENTO** (niente arancione visibile): tocca **Penso a te** → senti un "pop". Scegli un umore → "plink". Dai da mangiare al pet → "mastica"; carezza → "mmh"; manda un biglietto → fruscio di carta; mossa a Tris → "tok"; foto nell'album → "scatto".
+- [ ] **Interruttore silenzioso ACCESO** (si vede l'arancione): **nessun suono**, ma le vibrazioni restano.
+- [ ] **Noi → Impostazioni → Suoni**: spento = silenzio assoluto, acceso = tornano. Resta dopo aver chiuso e riaperto l'app. **"Meno movimento" NON spegne i suoni** (si spengono solo con "Suoni").
+- [ ] Con la **musica** in sottofondo (Spotify/Musica): i suoni si sentono sopra, **la musica non si interrompe**.
+- [ ] Carezze o mosse velocissime: non fa "mitragliatrice" (al massimo un suono ogni 0,12 s).
+- [ ] Nel laboratorio (5 tocchi sul titolo Fragolina in Home → sezione **Suoni**) c'è un bottone per ogni suono: serve a sentirli tutti.
+
+**Transizioni e avvio**
+- [ ] Apertura app: schermata rossa col marchio → Home **senza salti** (nessun lampo bianco, nessun cambio di font). Dopo il caricamento ci vuole meno di mezzo secondo.
+- [ ] **Home → Manca poco / Ricordi / Il nostro mese / Domanda**: la pagina entra da destra; **trascina dal bordo sinistro** per tornare indietro; nessun lampo bianco.
+- [ ] Le 5 schede (Home, Pet, Disegna, Gioca, Noi) cambiano **subito**, senza animazioni (voluto).
+- [ ] Il numero dei giorni insieme "scorre" solo quando cambia (un giorno nuovo), **non a ogni apertura**. Coriandoli di un evento: **una volta sola**, anche se riapri l'app più volte.
+- [ ] Pet: la fragolina si muove (respira) solo quando sei nella scheda Pet.
+
+**Casi limite**
+- [ ] **Modalità aereo**: tocca "Penso a te" due volte → compare **un solo** adesivo in alto sopra la barra: "Senza rete · 2 in attesa". Togli la modalità aereo → **dopo pochi secondi sparisce da solo** e Nikole riceve i pensieri.
+- [ ] **Testo grande**: Impostazioni iPhone → Schermo e luminosità → Dimensione testo → trascina al massimo (e anche "Testo più grande" in Accessibilità). Guarda Home, Pet, Noi, Manca poco, Ricordi: niente testo tagliato nei punti importanti (i nomi molto lunghi si rimpiccioliscono).
+- [ ] **VoiceOver** (facoltativo): Impostazioni → Accessibilità → VoiceOver. Ogni bottone ha un nome parlato.
+- [ ] **Disegna e indovina**: inizia a disegnare, esci dalla scheda (o chiudi l'app) e rientra entro 60 s → **il disegno è ancora lì** e il tempo è quello che resta.
+- [ ] **Se il server è in pausa**: compare "Il server dorme" (vedi S8-5).
+
+**Versione e icona**
+- [ ] **Noi** (in fondo): "Fragolina · Versione 1.0.0 (build N, abc1234)". **N cresce a ogni installazione** (serve per capire quale IPA hai).
+- [ ] **Icona nuova**: fragola con bordo bianco su fondo rosso (lo stesso rosso dell'avvio). Se vedi ancora la vecchia (fondo rosa): **riavvia l'iPhone** (iOS tiene l'icona in cache).
+- [ ] Il nome sotto l'icona è **Fragolina**.
+
+### S8-3. Come mettere il TUO disegno come icona
+1. Sul PC apri **Esplora file** e scrivi nella barra in alto: `\\wsl$\Ubuntu\home\leonardo\fragolina\assets\user-art\` → Invio.
+2. Incolla lì un file chiamato esattamente **`app-icon.png`**: **1024×1024 pixel, quadrato, senza trasparenza**, angoli NON arrotondati (li fa iOS).
+3. Scrivi a Claude: **"rifai la build"**. Fa tutto lui (e riapre Sideloadly).
+4. Dopo l'installazione, se vedi la vecchia icona: **riavvia l'iPhone**.
+(Se il file non c'è, l'app usa la fragola disegnata da Claude: `scripts/make-icon.mjs`, `npm run icons`.)
+
+### S8-4. Per Claude: comandi nuovi
+`npm run sounds:gen` (rigenera `assets/sounds/*.wav`), `npm run e2e:s8` (prova della sessione 8; serve `npm run web` con `.env.local` spostato e `CHROME_LIBS`), `node scripts/make-icon.mjs --variants` (anteprime icona in `docs/shots/session8/icon/`), `npm run icons` (rigenera icona e marchio dello splash).
+
+### S8-5. Se compare "Il server dorme" (progetto Supabase in pausa)
+Il piano gratuito mette il progetto in pausa dopo 7 giorni **senza attività**; il keepalive di GitHub lo evita, ma se GitHub salta un giro succede. Cosa vedi: l'adesivo "Il server dorme" e, in Noi, una spiegazione. **Quello che fai non si perde**: resta sul telefono e parte da solo appena si risveglia.
+1. Sul PC apri **https://supabase.com/dashboard** → clicca il progetto di Fragolina.
+2. Se vedi **"Project paused"** → bottone **Restore project** → aspetta 1-2 minuti.
+3. Sul telefono tocca "Penso a te" per provare: l'adesivo sparisce.
+Per controllare che il keepalive funzioni: GitHub → repository `fragolina` → **Actions** → **Keepalive Supabase** → ultimo giro verde (si può lanciare a mano con **Run workflow**).
+
+### S8-6. Reinstallare ogni 7 giorni (con l'Apple ID gratuito): cosa resta e cosa no
+- L'app firmata con un Apple ID gratuito **smette di aprirsi dopo 7 giorni** ("App non disponibile"). Si rimette a posto reinstallando con Sideloadly **lo stesso IPA con lo stesso Apple ID**: è un aggiornamento "sopra" (stesso identificativo `app.fragolina.couple`), **non cancella i dati**.
+- **Resta:** coppia, nomi, data, pet, ricordi (le foto sono sul server), la **coda offline** (le cose fatte senza rete partono da sole), il **token dei widget** (sta nei dati condivisi con i widget), le impostazioni, la sessione (sta nel Portachiavi).
+- **Ripartenza pulita:** se riapri l'app scaduta dopo il rinnovo, al primo avvio sincronizza, svuota la coda e i widget si riaggiornano. Una cosa in coda che nel frattempo non ha più senso (es. una risposta di un giorno troppo vecchio) viene scartata con un avviso gentile.
+- **NON resta (e come si rimedia):** se **cambi Apple ID** o **disinstalli l'app a mano**, iOS può perdere la sessione nel Portachiavi: l'app lo dice con un adesivo giallo in Noi ("Questo telefono non è più nel posto") e basta **ricollegarsi con un codice** (Noi → crea un nuovo posto; l'altra persona entra col codice). Non si perde nulla sul server.
+- **Routine:** una volta a settimana (es. la domenica): collega l'iPhone → Sideloadly → stesso IPA → Start. Claude può rifare la build quando serve (scrivi "rifai la build").
+
+### S8-7. Cosa NON posso fare da solo (e perché)
+- **Sentire i suoni e vedere i movimenti sul telefono:** non ho un iPhone né un Mac. Ho provato file, tempi, regole e schermate nel browser; l'orecchio e il dito sono tuoi (checklist S8-2).
+- **Premere Start in Sideloadly:** richiede l'iPhone collegato, sbloccato e la tua password Apple (non la tengo io, giustamente).
