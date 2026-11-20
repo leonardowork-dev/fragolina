@@ -69,6 +69,7 @@ export function SplashOverlay({ ready }: { ready: boolean }) {
           source={require("../../../assets/splash-mark.png")}
           style={{ width: SPLASH_MARK_WIDTH, height: SPLASH_MARK_HEIGHT }}
           resizeMode="contain"
+          accessible={false}
           accessibilityIgnoresInvertColors
         />
       </Animated.View>

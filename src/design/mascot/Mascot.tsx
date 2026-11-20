@@ -268,7 +268,7 @@ export function Mascot({
   const art = (
     <Animated.View style={[{ width: size, height: h }, anim]}>
       {userArt.mascot ? (
-        <Image source={userArt.mascot} style={{ width: size, height: size }} contentFit="contain" />
+        <Image source={userArt.mascot} style={{ width: size, height: size }} contentFit="contain" accessible={false} />
       ) : (
         <Svg width={size} height={h} viewBox="0 0 220 240">
           {shadow ? (

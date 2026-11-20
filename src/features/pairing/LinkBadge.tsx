@@ -3,23 +3,9 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Sticker, Text, useTheme } from "@/design";
-import { S } from "@/lib/strings.it";
+import { linkBadgeText } from "@/lib/linkBadge";
 import { useCouple } from "@/state/coupleStore";
 import { useNet } from "@/state/netStore";
-
-/** Cosa dice l'unico badge di stato dell'app. `null` = niente (va tutto bene). Funzione pura, provata nei test. */
-export function linkBadgeText(o: {
-  link: string;
-  queued: number;
-  backendKind: string;
-  serverDown: boolean;
-}): { text: string; tone: "warn" | "info" } | null {
-  if (o.serverDown && o.backendKind === "supabase") return { text: S.link.serverDown, tone: "warn" };
-  if (o.link === "offline") return { text: o.queued > 0 ? S.link.offlineQueued(o.queued) : S.link.offline, tone: "warn" };
-  if (o.queued > 0) return { text: S.link.queued(o.queued), tone: "info" };
-  if (o.backendKind === "mock") return { text: S.link.mock, tone: "info" };
-  return null;
-}
 
 /**
  * UN SOLO badge di stato in tutta l'app (montato nella radice, sopra la barra delle tab): appare solo se serve

@@ -572,6 +572,21 @@ try {
     check("mese: get_month risponde con i giorni con due risposte", mo.ok && mo.qaBoth >= 1, JSON.stringify(mo).slice(0, 160));
   }
 
+  // Sessione 8: pulizia dei pensieri vecchi (archivio privato, funzione non chiamabile dai client)
+  {
+    const arch = await A.c.from("ping_archive").select("*");
+    const archErr = String(arch.error?.code ?? arch.error?.message ?? "");
+    if (/PGRST205|42P01|does not exist|Could not find/i.test(archErr)) {
+      rows.push(["MANCA", "sessione 8: tabella ping_archive (lancia npm run db:apply)", archErr]);
+    } else {
+      check("sessione 8: l'archivio dei pensieri non è leggibile dai client", !!arch.error || (arch.data ?? []).length === 0, JSON.stringify(arch).slice(0, 120));
+      const pr = await rpc(A.c, "_prune_pings", {});
+      check("sessione 8: _prune_pings non è chiamabile dai client", !!pr.error || pr.ok === false, JSON.stringify(pr).slice(0, 120));
+      const st8 = await rpc(A.c, "get_state", { p_day: day, p_day_start: new Date().toISOString() });
+      check("sessione 8: get_state risponde ancora (totali con archivio)", st8.ok === true && Number.isFinite(st8.pings_received_total), JSON.stringify(st8).slice(0, 120));
+    }
+  }
+
   // pulizia: entrambi escono (la coppia si cancella da sola)
   await rpc(A.c, "leave_couple");
   await rpc(B.c, "leave_couple");
