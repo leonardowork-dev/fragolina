@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-na
 
 import { Button, Chip, Sticker, StickerPressable, Text, useTheme } from "@/design";
 import { motion, outline } from "@/design/tokens";
-import { INK_KEYS, type InkKey, type NoteDraw, buildDraw, pointsFromSvg } from "@/lib/note/rules";
+import { INK_KEYS, type InkKey, type NoteDraw, buildDraw, drawToRaw, pointsFromSvg } from "@/lib/note/rules";
 import { S } from "@/lib/strings.it";
 
 import { DrawCanvas, type Stroke } from "../draw/DrawCanvas";
@@ -21,18 +21,30 @@ export function SketchPad({
   size,
   locked,
   onChange,
+  initial,
 }: {
   size: number;
   locked?: boolean;
   onChange: (d: NoteDraw | null) => void;
+  /** Bozza da riprendere (tornando in una partita lasciata a metà). Letta solo al primo montaggio. */
+  initial?: NoteDraw | null;
 }) {
   const { colors } = useTheme();
   const [pen, setPen] = useState<InkKey>("strawberry");
   const [thick, setThick] = useState(false);
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
-  const nextId = useRef(1);
-  const inked = useSharedValue(0);
   const inner = size - outline.width * 2;
+  const [strokes, setStrokes] = useState<Stroke[]>(() =>
+    initial
+      ? drawToRaw(initial, inner).map((r, i) => ({
+          id: i + 1,
+          svg: r.points.map(([x, y], j) => `${j === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" "),
+          color: INK_HEX[r.color],
+          thick: r.thick,
+        }))
+      : [],
+  );
+  const nextId = useRef(strokes.length + 1);
+  const inked = useSharedValue(strokes.length ? 1 : 0);
 
   const onCommit = useCallback(
     (svg: string, color: string, isThick: boolean) => {

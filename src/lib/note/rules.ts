@@ -101,6 +101,15 @@ export function pointsFromSvg(svg: string): [number, number][] {
   return out;
 }
 
+/** L'inverso di `buildDraw`: da vettori 0-1000 a punti in pixel su una tela quadrata di lato `size` (per riprendere una bozza). */
+export function drawToRaw(draw: NoteDraw, size: number): RawStroke[] {
+  return draw.strokes.map((s) => ({
+    points: s.p.map(([x, y]) => [(x / NOTE_GRID) * size, (y / NOTE_GRID) * size] as [number, number]),
+    color: s.c,
+    thick: s.w === 2,
+  }));
+}
+
 /** Distanza di un punto dal segmento a-b (Ramer-Douglas-Peucker). */
 function segDist(p: [number, number], a: [number, number], b: [number, number]): number {
   const dx = b[0] - a[0];

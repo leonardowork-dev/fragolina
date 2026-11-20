@@ -1087,7 +1087,7 @@ check(
     await dbm.exec(STORAGE_STUB);
     await dbm.exec("create extension if not exists pgcrypto with schema extensions");
     const dir = path.join(root, "supabase", "migrations");
-    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7")).sort()) await dbm.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7") && !x.includes("_rifinitura")).sort()) await dbm.exec(fs.readFileSync(path.join(dir, f), "utf8"));
     const u1 = (await dbm.query("insert into auth.users default values returning id")).rows[0].id;
     const u2 = (await dbm.query("insert into auth.users default values returning id")).rows[0].id;
     const cc = (await dbm.query("insert into couples default values returning id")).rows[0].id;
@@ -1162,6 +1162,35 @@ check(
   check("mese: la terza coppia non vede i vostri dati", (await call(E3, "public.get_month($1,$2)", [yy, mm])).moods.length === 0);
   check("mese: mese fuori scala rifiutato", (await call(E1, "public.get_month(2026,13)")).error === "invalid_action");
 
+  // ----- sessione 8: pulizia dei "penso a te" più vecchi di 90 giorni (con archivio: i conteggi non cambiano) -----
+  {
+    const st0 = await rpc(E1, `public.get_state(date '${roma.d}', date_trunc('day', now()))`);
+    const mesi0 = await call(E1, "public.get_month($1,$2)", [yy, mm]);
+    await db.query("insert into pings (couple_id,from_user,client_key,created_at) values ($1,$2,'old-pp-0001', now() - interval '120 days'),($1,$2,'old-pp-0002', now() - interval '100 days'),($1,$3,'old-pp-0003', now() - interval '95 days'),($1,$3,'old-pp-0004', now() - interval '30 days')", [C1, E1, E2]);
+    const st1 = await rpc(E1, `public.get_state(date '${roma.d}', date_trunc('day', now()))`);
+    check("pulizia: prima, il totale ricevuti conta anche i pensieri vecchi", st1.pings_received_total === st0.pings_received_total + 2, `${st0.pings_received_total} → ${st1.pings_received_total}`);
+    await db.query("select public._prune_pings()");
+    const old = (await db.query("select count(*)::int n from pings where created_at < now() - interval '90 days'")).rows[0].n;
+    check("pulizia: nessun pensiero più vecchio di 90 giorni resta nella tabella", old === 0, String(old));
+    const recent = (await db.query("select count(*)::int n from pings where client_key = 'old-pp-0004'")).rows[0].n;
+    check("pulizia: quelli recenti restano", recent === 1);
+    const st2 = await rpc(E1, `public.get_state(date '${roma.d}', date_trunc('day', now()))`);
+    check("pulizia: totale ricevuti e ultimo pensiero invariati", st2.pings_received_total === st1.pings_received_total && st2.last_ping_received_at === st1.last_ping_received_at && st2.last_ping_sent_at === st1.last_ping_sent_at, `${st1.pings_received_total} vs ${st2.pings_received_total}`);
+    const arch = (await db.query("select coalesce(sum(n),0)::int n from ping_archive where couple_id = $1", [C1])).rows[0].n;
+    check("pulizia: l'archivio ha contato i 3 pensieri tolti", arch === 3, String(arch));
+    await db.query("select public._prune_pings()");
+    check("pulizia: rieseguibile (nessun doppio conteggio)", (await db.query("select coalesce(sum(n),0)::int n from ping_archive where couple_id = $1", [C1])).rows[0].n === 3);
+    const mesi1 = await call(E1, "public.get_month($1,$2)", [yy, mm]);
+    check("pulizia: il mese corrente non cambia", JSON.stringify(mesi1.pings) === JSON.stringify(mesi0.pings), JSON.stringify([mesi0.pings, mesi1.pings]));
+    const old3 = new Date(); old3.setMonth(old3.getMonth() - 4);
+    const mOld = await call(E1, "public.get_month($1,$2)", [old3.getFullYear(), old3.getMonth() + 1]);
+    check("pulizia: un mese vecchio conta ancora i pensieri archiviati", Object.values(mOld.pings).reduce((a, b) => a + b, 0) >= 1, JSON.stringify(mOld.pings));
+    const priv = await tryq(E1, "select * from ping_archive");
+    check("pulizia: l'archivio non è leggibile dalle persone (nessuna policy)", !priv.ok || priv.rows.length === 0, JSON.stringify(priv).slice(0, 100));
+    const anonFn = await tryq(E1, "select public._prune_pings()");
+    check("pulizia: _prune_pings non è chiamabile dalle persone", !anonFn.ok);
+  }
+
   // ----- il file da incollare, da solo -----
   {
     const dbs = new PGlite({ extensions: { pgcrypto } });
@@ -1181,6 +1210,14 @@ check(
         && (await dbs.query("select count(*)::int n from pg_policies where schemaname='storage' and policyname like 'memories_%'")).rows[0].n === 3;
     } catch (e) { ok = false; why = String(e.message); }
     check("sessione7-extra.sql da solo, sopra le migrazioni 1-7 già eseguite (e rieseguibile; 3 regole di Storage)", ok, why);
+    try {
+      const solo8 = fs.readFileSync(path.join(root, "supabase", "sessione8-rifinitura.sql"), "utf8");
+      await dbs.exec(solo8); await dbs.exec(solo8);
+      ok = (await dbs.query("select count(*)::int n from pg_proc where proname in ('_prune_pings','tg_pings_prune','get_state','get_month')")).rows[0].n === 4
+        && (await dbs.query("select count(*)::int n from pg_tables where tablename = 'ping_archive'")).rows[0].n === 1;
+      why = "";
+    } catch (e) { ok = false; why = String(e.message); }
+    check("sessione8-rifinitura.sql da solo, sopra le migrazioni 1-7 (e rieseguibile)", ok, why);
   }
 }
 

@@ -63,3 +63,14 @@ if (extraFile) {
   fs.writeFileSync(path.join(root, "supabase", "sessione7-extra.sql"), head + "\n" + fs.readFileSync(path.join(dir, extraFile), "utf8"));
   console.log("supabase/sessione7-extra.sql: solo la migrazione della sessione 7");
 }
+
+// Solo la migrazione della sessione 8 (rifinitura: pulizia dei "penso a te" vecchi con archivio dei conteggi).
+const rifFile = files.find((f) => f.includes("_rifinitura"));
+if (rifFile) {
+  const head = `-- Fragolina · SOLO LA MIGRAZIONE DELLA SESSIONE 8 (rifinitura): pulizia dei "penso a te" più vecchi di 90 giorni, con archivio dei conteggi.
+-- Generato da scripts/build-sql.mjs: non modificarlo a mano. Non perde nulla di ciò che l'app mostra (totali e "Il nostro mese" contano anche l'archivio).
+-- Rieseguibile quante volte vuoi. ATTENZIONE: ridefinisce get_state e get_month; se rilanci a mano un file più vecchio (sessione7), rilancia dopo anche questo.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione8-rifinitura.sql"), head + "\n" + fs.readFileSync(path.join(dir, rifFile), "utf8"));
+  console.log("supabase/sessione8-rifinitura.sql: solo la migrazione della sessione 8");
+}

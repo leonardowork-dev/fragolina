@@ -33,6 +33,15 @@ export function useMemories() {
   }, [memoriesServer, eventsServer, qaServer, queue, userId, startDate, now]);
 }
 
+/** Rilegge l'album dal server, al massimo una volta ogni 15 s (anche se molte foto falliscono insieme). */
+let lastAlbumRefresh = 0;
+export function requestAlbumRefresh(now = Date.now()): boolean {
+  if (now - lastAlbumRefresh < 15_000) return false;
+  lastAlbumRefresh = now;
+  void useCouple.getState().refreshExtra().catch(() => {});
+  return true;
+}
+
 type Cached = { url: string; at: number };
 const cache = new Map<string, Cached>();
 const FRESH_MS = 8 * 60_000; // gli URL durano 10 minuti: si rifanno dopo 8
@@ -54,6 +63,9 @@ export function useSignedUrls(paths: string[]): { urls: Record<string, string>; 
         for (const [p, url] of Object.entries(r)) cache.set(p, { url, at: Date.now() });
         setFailed(false);
         setTick((t) => t + 1);
+        // KNOWN_ISSUES 48: un file che il server non sa più firmare è stato cancellato dall'altra persona mentre
+        // l'album era aperto: si rilegge l'elenco subito (la foto sparisce) invece di aspettare il sondaggio.
+        if (need.some((p) => !r[p])) requestAlbumRefresh();
       })
       .catch(() => alive && setFailed(true));
     return () => {

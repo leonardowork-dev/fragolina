@@ -23,6 +23,7 @@ import {
 import { safeStorage } from "@/lib/storage";
 import { S } from "@/lib/strings.it";
 import { backoffDelay } from "@/lib/sync/backoff";
+import { COUPLE_VERSION, migrateCouple } from "./migrateCouple";
 import { useNet } from "./netStore";
 import { enqueue, flushQueue } from "@/lib/sync/queue";
 import {
@@ -289,6 +290,18 @@ export function createCoupleStore(deps: CoupleDeps) {
         let flushing: Promise<void> | null = null;
         let resyncing: Promise<void> | null = null;
         const seenPings = new Set<string>();
+        // Mutex "io" (KNOWN_ISSUES 42, causa di fondo): una lettura dello stato e la spedizione della coda non si
+        // sovrappongono mai. Altrimenti la lettura poteva arrivare DOPO l'inserimento di un pensiero sul server ma PRIMA
+        // che l'operazione uscisse dalla coda: il conteggio (server + coda) lo contava due volte.
+        let ioChain: Promise<unknown> = Promise.resolve();
+        const io = <T,>(fn: () => Promise<T>): Promise<T> => {
+          const run = ioChain.then(fn, fn);
+          ioChain = run.then(
+            () => undefined,
+            () => undefined,
+          );
+          return run;
+        };
 
         const clearTimers = () => {
           if (retryTimer) clearTimeout(retryTimer);
@@ -538,9 +551,12 @@ export function createCoupleStore(deps: CoupleDeps) {
           resyncing = (async () => {
             const d = new Date(now());
             try {
-              const state = await backend.getState(localDayKey(d), localDayStartMs(d));
               const prevCouple = get().coupleId;
-              ingest({ kind: "snapshot", state, day: localDayKey(d) });
+              const state = await io(async () => {
+                const st = await backend.getState(localDayKey(d), localDayStartMs(d));
+                ingest({ kind: "snapshot", state: st, day: localDayKey(d) });
+                return st;
+              });
               set({ lastSyncAt: now() });
               // Il pet: una chiamata a parte. Se fallisce per un motivo che non è la rete, il resto dell'app va avanti.
               if (!state.paired || !state.couple) {
@@ -667,6 +683,7 @@ export function createCoupleStore(deps: CoupleDeps) {
           flushing = (async () => {
             try {
               for (let round = 0; round < 5 && get().queue.length; round++) {
+                const r = await io(async () => {
                 const batch = get().queue;
                 const r = await flushQueue(
                   batch,
@@ -709,6 +726,8 @@ export function createCoupleStore(deps: CoupleDeps) {
                       }
                     : null),
                 }));
+                  return r;
+                });
                 if (r.stoppedBy === "network") {
                   goOffline();
                   return;
@@ -1354,8 +1373,8 @@ export function createCoupleStore(deps: CoupleDeps) {
       {
         name: deps.storageName ?? "fragolina.couple.v2",
         storage: createJSONStorage(() => deps.storage ?? safeStorage),
-        version: 2,
-        migrate: (persisted) => persisted as CoupleState,
+        version: COUPLE_VERSION,
+        migrate: (persisted, version) => migrateCouple(persisted, version) as unknown as CoupleState,
         partialize: (s) =>
           ({
             ...pickSynced(s),

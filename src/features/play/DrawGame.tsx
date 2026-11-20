@@ -9,6 +9,7 @@ import { DRAW_MAX_GUESSES, GUESS_MAX, whoseTurn } from "@/lib/games/reducer";
 import type { DrawData, GameRow } from "@/lib/games/types";
 import type { NoteDraw } from "@/lib/note/rules";
 import { S } from "@/lib/strings.it";
+import { DRAFT_MAX_AGE_MS, useDrawDraft } from "@/state/drawDraftStore";
 
 import { NoteDrawingSvg } from "../draw/NoteArt";
 import { KeepButton } from "../memories/KeepButton";
@@ -36,14 +37,20 @@ function DrawerTurn({ source, game, word }: { source: GamesSource; game: GameRow
   const draftRef = useRef<NoteDraw | null>(null);
   const size = Math.min(width - PAGE_MARGIN * 2 - 6, 480);
 
-  const onChange = useCallback((d: NoteDraw | null) => {
-    draftRef.current = d;
-    setDraft(d);
-  }, []);
+  const gameId = game.id;
+  const onChange = useCallback(
+    (d: NoteDraw | null) => {
+      draftRef.current = d;
+      setDraft(d);
+      useDrawDraft.getState().save(gameId, d); // la bozza sopravvive a un'uscita dalla schermata o dall'app (KNOWN_ISSUES 38)
+    },
+    [gameId],
+  );
   const send = (d: NoteDraw | null) => {
     if (!d || sent.current) return false;
     sent.current = true;
     setSentFlag(true);
+    useDrawDraft.getState().clear(gameId);
     haptics.light();
     play("tok");
     source.move(game.id, { type: "drawing", content: d });
@@ -53,6 +60,34 @@ function DrawerTurn({ source, game, word }: { source: GamesSource; game: GameRow
   useEffect(() => {
     sendRef.current = send;
   });
+
+  // Ripresa: se avevo cominciato a disegnare questa partita e sono uscito, riparto dai secondi che restano con il disegno
+  // com'era; se il tempo è finito nel frattempo, parte ciò che c'era (o, se era vuoto, si ricomincia da "Via!").
+  const draftReady = useDrawDraft((d) => d.hydrated);
+  const [resumed, setResumed] = useState(false);
+  const [initialDraft, setInitialDraft] = useState<NoteDraw | null>(null);
+  useEffect(() => {
+    if (!draftReady || resumed) return;
+    /* eslint-disable react-hooks/set-state-in-effect -- si legge la bozza persistita una volta sola, appena è pronta */
+    setResumed(true);
+    const cur = useDrawDraft.getState().current;
+    if (!cur || cur.gameId !== gameId) return;
+    const left0 = Math.max(0, SECONDS - Math.floor((Date.now() - cur.startedAt) / 1000));
+    if (Date.now() - cur.startedAt > DRAFT_MAX_AGE_MS) {
+      useDrawDraft.getState().clear(gameId);
+      return;
+    }
+    if (left0 <= 0) {
+      if (!cur.draft || !sendRef.current(cur.draft)) useDrawDraft.getState().clear(gameId);
+      return;
+    }
+    draftRef.current = cur.draft;
+    setInitialDraft(cur.draft);
+    setDraft(cur.draft);
+    setLeft(left0);
+    setStartedAt(cur.startedAt);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [draftReady, resumed, gameId]);
 
   // il tempo: si conta dall'orologio (non dai tick), così l'app in secondo piano non "regala" secondi
   useEffect(() => {
@@ -65,12 +100,13 @@ function DrawerTurn({ source, game, word }: { source: GamesSource; game: GameRow
       // scaduto: parte quello che c'è; se è vuoto si ricomincia
       if (!sendRef.current(draftRef.current)) {
         setNote(S.play.draw.timeUpEmpty);
+        useDrawDraft.getState().clear(gameId);
         setStartedAt(null);
         setLeft(SECONDS);
       }
     }, 500);
     return () => clearInterval(t);
-  }, [startedAt]);
+  }, [startedAt, gameId]);
 
   if (startedAt === null)
     return (
@@ -95,7 +131,10 @@ function DrawerTurn({ source, game, word }: { source: GamesSource; game: GameRow
           onPress={() => {
             setNote(null);
             setResetKey((k) => k + 1);
-            setStartedAt(Date.now());
+            const t0 = Date.now();
+            useDrawDraft.getState().begin(gameId, t0);
+            setInitialDraft(null);
+            setStartedAt(t0);
             setLeft(SECONDS);
           }}
         />
@@ -115,7 +154,7 @@ function DrawerTurn({ source, game, word }: { source: GamesSource; game: GameRow
           {word}
         </Text>
       </View>
-      <SketchPad key={resetKey} size={size} locked={done || left === 0} onChange={onChange} />
+      <SketchPad key={resetKey} size={size} locked={done || left === 0} onChange={onChange} initial={initialDraft} />
       {left === 0 && !done ? <Text variant="title">{S.play.draw.timeUp}</Text> : null}
       <Button label={S.play.draw.send} disabled={!draft || done} onPress={() => send(draft)} haptic="success" />
     </>
