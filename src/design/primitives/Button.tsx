@@ -1,6 +1,8 @@
 import React from "react";
 import { type GestureResponderEvent, View } from "react-native";
 
+import type { SoundId } from "@/lib/sound";
+
 import { useTheme } from "../ThemeProvider";
 import { radius } from "../tokens";
 import { Icon, type IconName } from "../icons/Icon";
@@ -20,6 +22,8 @@ export type ButtonProps = {
   icon?: IconName;
   disabled?: boolean;
   haptic?: "tick" | "light" | "medium" | "success";
+  /** Suono sul tocco (con l'aptica). */
+  sound?: SoundId;
   accessibilityHint?: string;
   fullWidth?: boolean;
 };
@@ -32,6 +36,7 @@ export function Button({
   icon,
   disabled,
   haptic = "light",
+  sound,
   accessibilityHint,
   fullWidth,
 }: ButtonProps) {
@@ -43,6 +48,7 @@ export function Button({
         onPress={onPress}
         disabled={disabled}
         haptic={haptic}
+        sound={sound}
         accessibilityLabel={label}
         accessibilityHint={accessibilityHint}
         style={{
@@ -76,6 +82,7 @@ export function Button({
       tiltMax={1}
       onPress={onPress}
       haptic={haptic}
+      sound={sound}
       disabled={disabled}
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}

@@ -11,6 +11,7 @@ import Animated, {
 import { Button, Sticker, StickerPressable, Text, useEffectsBus, useTheme } from "@/design";
 import { motion, outline, PAGE_MARGIN } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
+import { play } from "@/lib/sound";
 import { whoseTurn } from "@/lib/games/reducer";
 import type { GameRow, TrisData } from "@/lib/games/types";
 import { S } from "@/lib/strings.it";
@@ -19,7 +20,7 @@ import { FlowerPiece, StrawberryPiece } from "./art";
 import { GameShell } from "./GameShell";
 import { StartCard } from "./StartCard";
 import { lastClosedOf, openGameOf, type GamesSource } from "./useGamesSource";
-import { useGameReward } from "./useReward";
+import { useGameEndSound, useGameReward } from "./useReward";
 
 /** Una pedina che "si attacca": parte un po' più grande e scende nel posto con una molla (solo se è nuova). */
 function Piece({ kind, size, fresh }: { kind: "X" | "O"; size: number; fresh: boolean }) {
@@ -100,6 +101,7 @@ export function TrisGame({ source, onBack }: { source: GamesSource; onBack: () =
     wasOpen.current = game.status === "open";
   }, [game, source.me]);
   useGameReward(game, source.mode === "couple");
+  useGameEndSound(game, source.me);
 
   const boardW = Math.min(width - PAGE_MARGIN * 2, 420);
   const pad = 14;
@@ -111,6 +113,7 @@ export function TrisGame({ source, onBack }: { source: GamesSource; onBack: () =
   const place = (i: number) => {
     if (!game || !d || !canMove || d.board[i] !== "-") return;
     haptics.light();
+    play("tok");
     source.move(game.id, { type: "place", cell: i });
   };
 

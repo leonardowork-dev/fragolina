@@ -9,6 +9,19 @@ syncWidgetArt(__dirname);
 
 const icon = fs.existsSync(userIcon) ? "./assets/user-art/app-icon.png" : "./assets/icon.png";
 
+// Numero di build e commit (in CI: run e SHA; in locale: "dev" e git). Compaiono in Noi → "Versione".
+let gitSha = (process.env.GIT_SHA || "").slice(0, 7);
+if (!gitSha) {
+  try {
+    gitSha = require("child_process")
+      .execSync("git rev-parse --short=7 HEAD", { cwd: __dirname, stdio: ["ignore", "pipe", "ignore"] })
+      .toString()
+      .trim();
+  } catch {
+    gitSha = "";
+  }
+}
+
 const BUNDLE_ID = "app.fragolina.couple";
 const APP_GROUP = `group.${BUNDLE_ID}`;
 
@@ -42,6 +55,8 @@ module.exports = {
       "expo-router",
       "expo-font",
       "expo-secure-store",
+      // Solo riproduzione di piccoli suoni: nessun microfono, nessun testo di permesso.
+      ["expo-audio", { microphonePermission: false }],
       [
         "expo-location",
         {
@@ -71,6 +86,7 @@ module.exports = {
       ],
       "@bacons/apple-targets",
     ],
+    extra: { buildNumber: process.env.BUILD_NUMBER || "", gitSha },
     experiments: { typedRoutes: true, reactCompiler: true },
   },
 };

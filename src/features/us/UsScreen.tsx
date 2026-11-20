@@ -1,4 +1,3 @@
-import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { View } from "react-native";
@@ -18,6 +17,7 @@ import { Screen } from "@/design/layout/Screen";
 import { DistanceCard } from "@/features/distance/DistanceCard";
 import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { PairingPanel } from "@/features/pairing/PairingPanel";
+import { appVersionLabel } from "@/lib/appInfo";
 import { S } from "@/lib/strings.it";
 import { daysSince, formatLongDate } from "@/lib/time";
 import { useCouple } from "@/state/coupleStore";
@@ -79,6 +79,8 @@ export function UsScreen() {
   const coupleId = useCouple((s) => s.coupleId);
   const haptics = useSettings((s) => s.haptics);
   const setHaptics = useSettings((s) => s.setHaptics);
+  const sounds = useSettings((s) => s.sounds);
+  const setSounds = useSettings((s) => s.setSounds);
   const reduce = useSettings((s) => s.reduceMotionOverride);
   const setReduce = useSettings((s) => s.setReduceMotionOverride);
   const setOnboardingDone = useSettings((s) => s.setOnboardingDone);
@@ -86,7 +88,7 @@ export function UsScreen() {
   const sessionLost = useCouple((s) => s.sessionLost);
   const dismissLost = useCouple((s) => s.dismissSessionLost);
   const days = daysSince(start);
-  const version = Constants.expoConfig?.version ?? "1.0.0";
+  const versionLabel = appVersionLabel();
 
   return (
     <Screen>
@@ -188,6 +190,13 @@ export function UsScreen() {
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ flex: 1 }}>
+              <Text variant="bodyStrong">{S.us.sounds}</Text>
+              <Text variant="caption">{S.us.soundsHint}</Text>
+            </View>
+            <StickerSwitch value={sounds} onChange={setSounds} label={S.us.sounds} />
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">{S.us.reduceMotion}</Text>
               <Text variant="caption">{S.us.reduceMotionHint}</Text>
             </View>
@@ -213,7 +222,7 @@ export function UsScreen() {
             <Icon name="heart" size={26} fill={colors.blush} />
           </StickerPressable>
           <Text variant="caption">
-            {S.appName} · {S.us.version} {version}
+            {S.appName} · {versionLabel}
           </Text>
         </View>
       </Sticker>

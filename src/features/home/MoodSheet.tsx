@@ -46,6 +46,7 @@ function Option({
         accessibilityLabel={S.moods[mood]}
         accessibilityState={{ selected }}
         haptic="tick"
+        sound="plink"
         onPress={() => {
           if (!reduceMotion)
             pop.set(

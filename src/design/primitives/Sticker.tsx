@@ -10,6 +10,8 @@ import Animated from "react-native-reanimated";
 
 import { tiltFor } from "@/lib/hash";
 
+import type { SoundId } from "@/lib/sound";
+
 import { useTheme } from "../ThemeProvider";
 import { outline, radius as radii, shadowOffset } from "../tokens";
 import { type HapticKind, usePressFeedback } from "./Pressable";
@@ -35,6 +37,8 @@ export type StickerProps = {
   padding?: number;
   onPress?: (e: GestureResponderEvent) => void;
   haptic?: HapticKind;
+  /** Suono sul commit (con l'aptica). */
+  sound?: SoundId;
   /** Scala dello stato premuto (di base 0.97; il bottone eroe usa 0.95). */
   pressScale?: number;
   disabled?: boolean;
@@ -60,6 +64,7 @@ export function Sticker(props: StickerProps) {
     padding = 16,
     onPress,
     haptic = "light",
+    sound,
     pressScale,
     disabled,
     accessibilityLabel,
@@ -71,7 +76,7 @@ export function Sticker(props: StickerProps) {
     testID,
   } = props;
   const { colors } = useTheme();
-  const { faceStyle, pressProps } = usePressFeedback({ offset, haptic, onPress, pressScale });
+  const { faceStyle, pressProps } = usePressFeedback({ offset, haptic, sound, onPress, pressScale });
   const rotate = `${tiltFor(id, tiltMax)}deg`;
   const interactive = !!onPress && !disabled;
 

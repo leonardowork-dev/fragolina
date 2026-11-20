@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { Button, Sheet, Text, TextField, useToast } from "@/design";
 import { CAPTION_MAX } from "@/lib/memories/types";
 import type { PreparedPhoto } from "@/lib/memories/photoDevice";
+import { play } from "@/lib/sound";
 import { S } from "@/lib/strings.it";
 import { daysInMonth, monthName, toIso } from "@/lib/time";
 import { useCouple } from "@/state/coupleStore";
@@ -57,7 +58,10 @@ function Form({ photo, today, onClose }: { photo: PreparedPhoto; today: string; 
         fullWidth
         onPress={() => {
           const r = add({ uri: photo.uri, w: photo.w, h: photo.h, bytes: photo.bytes }, caption, toIso(y, m, d));
-          if (r.ok) toast.show(link === "offline" ? S.memories.savedQueued : S.memories.saved);
+          if (r.ok) {
+            play("scatto");
+            toast.show(link === "offline" ? S.memories.savedQueued : S.memories.saved);
+          }
           onClose(r.ok);
         }}
       />

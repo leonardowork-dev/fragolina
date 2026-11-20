@@ -11,16 +11,29 @@ type SettingsState = {
   hydrated: boolean;
   onboardingDone: boolean;
   haptics: boolean;
+  /** Suoni piccoli sulle azioni (acceso di default). "Meno movimento" non li spegne. */
+  sounds: boolean;
   reduceMotionOverride: boolean | null;
   darkOverride: boolean;
   /** Aggiornare la posizione anche ad app chiusa (permesso "Sempre", solo iOS). */
   locationAlways: boolean;
   setOnboardingDone: (v: boolean) => void;
   setHaptics: (v: boolean) => void;
+  setSounds: (v: boolean) => void;
   setReduceMotionOverride: (v: boolean | null) => void;
   setDarkOverride: (v: boolean) => void;
   setLocationAlways: (v: boolean) => void;
 };
+
+/** v0 = prima della sessione 8 (senza `sounds`). v1 = con `sounds`. */
+export const SETTINGS_VERSION = 1;
+
+export function migrateSettings(old: unknown, version: number): Partial<SettingsState> {
+  const s = (old && typeof old === "object" ? old : {}) as Record<string, unknown>;
+  const out: Record<string, unknown> = { ...s };
+  if (version < 1 && typeof out.sounds !== "boolean") out.sounds = true;
+  return out as Partial<SettingsState>;
+}
 
 export const useSettings = create<SettingsState>()(
   persist(
@@ -28,21 +41,26 @@ export const useSettings = create<SettingsState>()(
       hydrated: false,
       onboardingDone: false,
       haptics: true,
+      sounds: true,
       reduceMotionOverride: null,
       darkOverride: false,
       locationAlways: false,
       setOnboardingDone: (onboardingDone) => set({ onboardingDone }),
       setHaptics: (haptics) => set({ haptics }),
+      setSounds: (sounds) => set({ sounds }),
       setReduceMotionOverride: (reduceMotionOverride) => set({ reduceMotionOverride }),
       setDarkOverride: (darkOverride) => set({ darkOverride }),
       setLocationAlways: (locationAlways) => set({ locationAlways }),
     }),
     {
       name: "fragolina.settings.v1",
+      version: SETTINGS_VERSION,
+      migrate: migrateSettings,
       storage: createJSONStorage(() => safeStorage),
       partialize: (s) => ({
         onboardingDone: s.onboardingDone,
         haptics: s.haptics,
+        sounds: s.sounds,
         reduceMotionOverride: s.reduceMotionOverride,
         darkOverride: s.darkOverride,
         locationAlways: s.locationAlways,

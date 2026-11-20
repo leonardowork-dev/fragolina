@@ -4,6 +4,7 @@ import { TextInput, View, useWindowDimensions } from "react-native";
 import { Button, Mascot, Sticker, Text, useTheme } from "@/design";
 import { fonts, outline, PAGE_MARGIN } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
+import { play } from "@/lib/sound";
 import { DRAW_MAX_GUESSES, GUESS_MAX, whoseTurn } from "@/lib/games/reducer";
 import type { DrawData, GameRow } from "@/lib/games/types";
 import type { NoteDraw } from "@/lib/note/rules";
@@ -16,7 +17,7 @@ import { GameShell } from "./GameShell";
 import { SketchPad } from "./SketchPad";
 import { StartCard } from "./StartCard";
 import { lastClosedOf, openGameOf, type GamesSource } from "./useGamesSource";
-import { useGameReward } from "./useReward";
+import { useGameEndSound, useGameReward } from "./useReward";
 
 const SECONDS = 60;
 const nameOf = (source: GamesSource, uid: string) => (uid === source.me ? source.meName : source.partnerName);
@@ -44,6 +45,7 @@ function DrawerTurn({ source, game, word }: { source: GamesSource; game: GameRow
     sent.current = true;
     setSentFlag(true);
     haptics.light();
+    play("tok");
     source.move(game.id, { type: "drawing", content: d });
     return true;
   };
@@ -135,6 +137,7 @@ function GuesserTurn({ source, game, d }: { source: GamesSource; game: GameRow; 
     const t = text.trim();
     if (!t || blocked) return;
     if (viaKeyboard) haptics.light(); // dal bottone ci pensa il bottone: una sola aptica per azione
+    play("tok");
     source.move(game.id, { type: "guess", text: t });
     setText("");
   };
@@ -252,6 +255,7 @@ export function DrawGame({ source, onBack }: { source: GamesSource; onBack: () =
   const word = (game && source.mine[game.id]?.word) || "";
   const imDrawer = d?.drawer === source.me;
   useGameReward(game, source.mode === "couple");
+  useGameEndSound(game, source.me);
   const size = Math.min(width - PAGE_MARGIN * 2 - 6, 480);
 
   let body: React.ReactNode = null;

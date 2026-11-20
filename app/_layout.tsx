@@ -22,6 +22,7 @@ import { useLocationSync } from "@/features/distance/useLocationSync";
 import { useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useSyncLifecycle";
 import { useDeepLinks } from "@/features/widgetSync/useDeepLinks";
 import { useWidgetSync } from "@/features/widgetSync/useWidgetSync";
+import { preloadSounds } from "@/lib/sound";
 import { useSettings } from "@/state/settingsStore";
 
 void SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -78,6 +79,12 @@ export default function RootLayout() {
   });
   const hydrated = useSettings((s) => s.hydrated);
   const ready = fontsLoaded && hydrated;
+  const soundsOn = useSettings((s) => s.sounds);
+
+  // I player dei suoni si preparano una volta, a impostazioni lette (e se li accendi dopo).
+  useEffect(() => {
+    if (ready && soundsOn) preloadSounds();
+  }, [ready, soundsOn]);
 
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync().catch(() => {});

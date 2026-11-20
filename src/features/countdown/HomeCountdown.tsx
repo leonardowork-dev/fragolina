@@ -3,14 +3,15 @@ import React, { useEffect } from "react";
 import { View } from "react-native";
 
 import { Sticker, Text, useEffectsBus, useTheme } from "@/design";
+import { play } from "@/lib/sound";
 import { S } from "@/lib/strings.it";
+import { useCelebrated } from "@/state/celebratedStore";
 import { useCouple } from "@/state/coupleStore";
 
 import { EventIcon } from "./EventIcon";
 import { isParty, whenText } from "./format";
 import { useCountdown } from "./useCountdown";
 
-const celebrated = new Set<string>();
 
 /** In Home: il prossimo evento ("tra 12 giorni: Ci vediamo"). Se non c'è nessun evento non compare (niente rumore). Il giorno dell'evento: festa, una volta. */
 export function HomeCountdown() {
@@ -21,12 +22,14 @@ export function HomeCountdown() {
   const v = picked ? viewOf(picked) : null;
   const party = !!v && isParty(v);
   const key = picked ? `${picked.id}|${today}` : "";
+  const celebratedReady = useCelebrated((s) => s.hydrated);
   useEffect(() => {
-    if (party && key && !celebrated.has(key)) {
-      celebrated.add(key);
+    // Una volta per evento e giorno, anche dopo riavvii (chiave persistita): mai su avvii a freddo ripetuti.
+    if (party && key && celebratedReady && useCelebrated.getState().firstTime(`cd|${key}`)) {
       useEffectsBus.getState().fireConfetti();
+      play("fanfara");
     }
-  }, [party, key]);
+  }, [party, key, celebratedReady]);
   if (!paired || !picked || !v) return null;
   return (
     <Sticker

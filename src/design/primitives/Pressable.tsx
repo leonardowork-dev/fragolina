@@ -15,6 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { haptics } from "@/lib/haptics";
+import { play, type SoundId } from "@/lib/sound";
 
 import { useTheme } from "../ThemeProvider";
 import { motion, shadowOffset } from "../tokens";
@@ -25,6 +26,8 @@ type Options = {
   offset?: number;
   pressScale?: number;
   haptic?: HapticKind;
+  /** Suono (sullo stesso frame dell'aptica, mai unico feedback). Vedi `src/lib/sound.ts`. */
+  sound?: SoundId;
   onPress?: (e: GestureResponderEvent) => void;
 };
 
@@ -38,6 +41,7 @@ export function usePressFeedback({
   offset = shadowOffset.md,
   pressScale = motion.pressScale,
   haptic = "none",
+  sound,
   onPress,
 }: Options) {
   const { reduceMotion } = useTheme();
@@ -64,9 +68,10 @@ export function usePressFeedback({
     onPress: useCallback(
       (e: GestureResponderEvent) => {
         if (haptic !== "none") haptics[haptic]();
+        if (sound) play(sound);
         onPress?.(e);
       },
-      [haptic, onPress],
+      [haptic, sound, onPress],
     ),
   };
   return { faceStyle, pressProps };
@@ -75,6 +80,7 @@ export function usePressFeedback({
 export type StickerPressableProps = Omit<RNPressableProps, "style" | "children"> & {
   children: React.ReactNode;
   haptic?: HapticKind;
+  sound?: SoundId;
   offset?: number;
   pressScale?: number;
   style?: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
@@ -88,6 +94,7 @@ export function StickerPressable({
   children,
   onPress,
   haptic,
+  sound,
   offset = 0,
   pressScale,
   style,
@@ -99,6 +106,7 @@ export function StickerPressable({
     offset,
     pressScale,
     haptic,
+    sound,
     onPress: onPress ?? undefined,
   });
   return (

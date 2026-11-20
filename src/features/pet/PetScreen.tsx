@@ -8,6 +8,7 @@ import { Screen } from "@/design/layout/Screen";
 import type { PetFace } from "@/design/mascot/PetArt";
 import { palette } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
+import { play } from "@/lib/sound";
 import { type FoodId, SLEEP_MS, stageProgress } from "@/lib/pet/rules";
 import { S } from "@/lib/strings.it";
 import { useCouple } from "@/state/coupleStore";
@@ -190,6 +191,7 @@ function PetMain() {
     const { width, height } = Dimensions.get("window");
     useEffectsBus.getState().fireConfetti(width / 2, height * 0.3);
     haptics.success();
+    play("fanfara");
     // un attimo dopo i coriandoli: prima la festa, poi la domanda del nome
     const t = setTimeout(() => {
       react("happy");
@@ -197,6 +199,14 @@ function PetMain() {
     }, 700);
     return () => clearTimeout(t);
   }, [hatched, petAvailable, pet.hatchedBy, meId, react]);
+
+  // Il pet cresce mentre lo guardi (seme → germoglio → fragolina → grande): un momento raro, una volta per stadio.
+  const prevStage = useRef(stage);
+  useEffect(() => {
+    const before = prevStage.current;
+    prevStage.current = stage;
+    if (hatched && before !== "egg" && before !== stage) play("grow");
+  }, [stage, hatched]);
 
   // L'altra persona cura il pet mentre sei qui: il pet reagisce (il toast lo mostra la radice dell'app).
   const lastIncoming = useRef(incomingSeq);
@@ -222,11 +232,15 @@ function PetMain() {
     return false;
   };
   const feed = (id: FoodId) => {
-    if (result(petAct("feed", id))) react("eat");
+    if (result(petAct("feed", id))) {
+      react("eat");
+      play("chew");
+    }
   };
   const cuddle = () => {
     if (result(petAct("cuddle"))) {
       react("love");
+      play("carezza");
       const { width, height } = Dimensions.get("window");
       useEffectsBus.getState().fireHearts(width / 2, height * 0.34);
     }
@@ -236,7 +250,10 @@ function PetMain() {
     cuddle();
   };
   const sleep = () => {
-    if (result(petAct("sleep"))) setTray(false);
+    if (result(petAct("sleep"))) {
+      setTray(false);
+      play("snore");
+    }
   };
 
   const poke = () => {

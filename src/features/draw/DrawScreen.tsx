@@ -299,6 +299,7 @@ export function DrawScreen() {
           id="send-note"
           label={S.draw.send}
           haptic="success"
+          sound="paper"
           disabled={!canSend}
           onPress={send}
           accessibilityHint={S.draw.sendLabel}

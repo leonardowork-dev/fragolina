@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-na
 import { Button, Sticker, StickerPressable, Text, useEffectsBus, useTheme } from "@/design";
 import { motion, outline } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
+import { play } from "@/lib/sound";
 import { QUIZ_DECK } from "@/lib/games/quizDeck";
 import { QUIZ_LEN } from "@/lib/games/reducer";
 import type { GameRow, QuizData } from "@/lib/games/types";
@@ -13,7 +14,7 @@ import { S } from "@/lib/strings.it";
 import { GameShell } from "./GameShell";
 import { StartCard } from "./StartCard";
 import { lastClosedOf, openGameOf, type GamesSource } from "./useGamesSource";
-import { useGameReward } from "./useReward";
+import { useGameEndSound, useGameReward } from "./useReward";
 
 /** Una carta che si gira alla rivelazione (rotazione con easeOut; con "meno movimento" solo dissolvenza). */
 function FlipCard({
@@ -78,7 +79,10 @@ export function QuizGame({ source, onBack }: { source: GamesSource; onBack: () =
   useEffect(() => {
     if (!d) return;
     const n = d.reveals.filter(Boolean).length;
-    if (n > prevReveals.current) haptics.success();
+    if (n > prevReveals.current) {
+      haptics.success();
+      play("rivela");
+    }
     prevReveals.current = n;
   }, [d]);
   const wasOpen = useRef(game?.status === "open");
@@ -88,6 +92,7 @@ export function QuizGame({ source, onBack }: { source: GamesSource; onBack: () =
     wasOpen.current = game.status === "open";
   }, [game]);
   useGameReward(game, source.mode === "couple");
+  useGameEndSound(game, source.me);
 
   // la domanda "mia" di adesso: la prima in cui non ho ancora risposto nel mio ruolo
   const current = d ? d.subjects.findIndex((s, q) => !d.answered[q][s === source.me ? "s" : "g"]) : -1;
@@ -139,6 +144,7 @@ export function QuizGame({ source, onBack }: { source: GamesSource; onBack: () =
                     <StickerPressable
                       key={opt}
                       haptic="light"
+                      sound="tok"
                       onPress={() => source.move(game.id, { type: "answer", q: current, idx: i })}
                       accessibilityRole="button"
                       accessibilityLabel={S.play.quiz.option(i + 1, opt)}

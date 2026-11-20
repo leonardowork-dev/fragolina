@@ -5,8 +5,10 @@ import { Button, EmptyState, Sticker, Text, useEffectsBus, useTheme, useToast } 
 import { Screen } from "@/design/layout/Screen";
 import { radius } from "@/design/tokens";
 import { type CountdownEvent } from "@/lib/countdown/rules";
+import { play } from "@/lib/sound";
 import { S } from "@/lib/strings.it";
 import { addDaysIso, formatLongDate } from "@/lib/time";
+import { useCelebrated } from "@/state/celebratedStore";
 import { useCouple } from "@/state/coupleStore";
 
 import { PageHeader } from "../common/PageHeader";
@@ -96,9 +98,14 @@ export function CountdownScreen() {
   }, [refresh]);
 
   const bigV = picked ? viewOf(picked) : null;
+  const celebratedReady = useCelebrated((s) => s.hydrated);
   useEffect(() => {
-    if (bigV && isParty(bigV)) useEffectsBus.getState().fireConfetti();
-  }, [bigV?.state, picked?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- una festa per evento/stato, non per ogni render
+    // La festa dell'evento parte una volta (stessa chiave della Home: se l'hai già vista lì, qui non si ripete).
+    if (bigV && picked && isParty(bigV) && celebratedReady && useCelebrated.getState().firstTime(`cd|${picked.id}|${today}`)) {
+      useEffectsBus.getState().fireConfetti();
+      play("fanfara");
+    }
+  }, [bigV?.state, picked?.id, today, celebratedReady]); // eslint-disable-line react-hooks/exhaustive-deps -- una festa per evento/giorno, non per ogni render
 
   const rest = upcoming.filter((e) => e.id !== picked?.id);
   return (

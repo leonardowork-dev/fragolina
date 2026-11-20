@@ -83,6 +83,7 @@ function ThinkHero() {
         tiltMax={1.2}
         pressScale={0.95}
         haptic="success"
+        sound="pop"
         onPress={onPress}
         accessibilityLabel={S.a11y.thinkButton(partner)}
         faceStyle={{ minHeight: 250, justifyContent: "flex-end" }}

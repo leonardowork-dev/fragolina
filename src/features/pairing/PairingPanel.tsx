@@ -15,6 +15,7 @@ import {
 } from "@/design";
 import { motion } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
+import { play } from "@/lib/sound";
 import { isCompleteCode, extractCode } from "@/lib/joinCode";
 import { S } from "@/lib/strings.it";
 import { type ActionResult, selectPairing, useCouple } from "@/state/coupleStore";
@@ -133,6 +134,7 @@ export function PairingPanel({
         celebrated.current = true;
         setMoment(true);
         haptics.success();
+        play("festa");
         useMascot.getState().react("love", 2200);
         useEffectsBus.getState().fireConfetti();
         onPaired?.();

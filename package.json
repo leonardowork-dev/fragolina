@@ -29,6 +29,7 @@
     "worst-e2e": "node scripts/worst-case-e2e.mjs",
     "e2e:games": "node scripts/e2e-games.mjs",
     "icons:gen": "node scripts/gen-event-icons.mjs",
+    "sounds:gen": "node scripts/make-sounds.mjs",
     "e2e:extra": "node scripts/e2e-extra.mjs",
     "db:setup": "node scripts/db-setup.mjs",
     "db:apply": "node scripts/db-apply.mjs"
@@ -45,6 +46,7 @@
     "@supabase/supabase-js": "^2.119.0",
     "expo": "~58.0.23",
     "expo-asset": "~58.0.20",
+    "expo-audio": "~58.0.12",
     "expo-clipboard": "^58.0.4",
     "expo-constants": "~58.0.15",
     "expo-dev-client": "~58.0.18",
@@ -56,6 +58,7 @@
     "expo-image-picker": "~58.0.10",
     "expo-linking": "~58.0.16",
     "expo-location": "~58.0.22",
+    "expo-network": "~58.0.5",
     "expo-router": "~58.0.30",
     "expo-secure-store": "~58.0.2",
     "expo-splash-screen": "~58.0.13",

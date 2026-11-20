@@ -77,6 +77,7 @@ export function FlipPair({
           tiltMax={1.2}
           onPress={onReveal}
           haptic="light"
+          sound="rivela"
           accessibilityLabel={S.qa.flip}
           accessibilityHint={S.qa.flipHint}
           style={{ flex: 1 }}
