@@ -57,6 +57,11 @@ TypeScript strict, ESLint (`--max-warnings=0`) e `tsc` puliti prima di ogni comm
 - Modifichi lo schema del widget? Aggiorna insieme: `widgetPayload.ts`, fixture, `Model.swift` (`Snapshot`), `WIDGET_SCHEMA_VERSION`, e lancia `npm test`.
 - Modifichi un layout del widget? Aggiorna la replica in `src/features/lab/widgets/` e guarda `docs/shots/widgets/`.
 
+## Migrazioni Supabase: le applica Claude (`npm run db:apply`)
+- **Non far incollare SQL a Leonardo.** Dopo aver aggiunto una migrazione e rigenerato `supabase/sessioneN-*.sql` (`npm run backend:sql`), lancia `npm run db:apply`: applica in ordine i file `supabase/sessioneN-*.sql` non ancora applicati (o cambiati) e li registra in `public.app_migrations` (nome + sha256). I file sono ripetibili. `npm run db:apply -- --status` mostra lo stato senza toccare nulla; `-- nome.sql` forza la riapplicazione di un file. Poi `npm run backend:check` deve dare tutto PASS, nessuna riga `MANCA`.
+- La stringa `SUPABASE_DB_URL` (Session pooler, IPv4, porta 5432, regione **eu-north-1**, host `aws-0-eu-north-1.pooler.supabase.com`, utente `postgres.<ref>`) sta SOLO in `.env.local` (non su git, non nei log). Se manca: chiedi a Leonardo la password del database (una volta) e lancia `SUPABASE_DB_PASSWORD='…' npm run db:setup` (prova le regioni, salva la stringa, non salva la password). Password persa: Supabase → Project Settings → Database → Reset database password.
+- Una nuova sessione con una nuova migrazione: crea `supabase/migrations/<data>_<nome>.sql`, aggiungi la generazione di `supabase/sessioneN-<nome>.sql` in `scripts/build-sql.mjs`, poi `db:apply` e `backend:check`.
+
 ## Sessione 2 — comandi e regole utili
 - `npm test` (vitest, ~70 prove), `npm run backend:sqltest` (SQL su Postgres locale), `npm run backend:check` (end-to-end sul progetto Supabase vero; senza chiavi fa la prova a secco), `npm run backend:sql` (rigenera `supabase/all.sql`), `npm run setup-env` (crea `.env.local`), `npm run e2e` / `npm run worst-e2e` (due schede nel browser, serve `npm run web`; in WSL senza sudo imposta `CHROME_LIBS`).
 - Modifichi una migrazione? Aggiungi un file nuovo in `supabase/migrations/` (mai riscrivere), poi `npm run backend:sql` e `npm run backend:sqltest`.

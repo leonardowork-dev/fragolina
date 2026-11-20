@@ -4,6 +4,10 @@ Tutto il resto lo fa Claude. Dopo ogni passo c'è scritto **cosa devi vedere**. 
 Costo: **zero** (Supabase ha un piano gratuito che basta e avanza per due persone; non ti chiede la carta di credito).
 
 ---
+## Novità: Claude applica da solo le migrazioni del database
+Dalla fine della sessione 7 **non devi più incollare SQL su Supabase**: Claude lancia `npm run db:apply` (usa `SUPABASE_DB_URL` in `.env.local`, mai su git). I passaggi "incolla il file" delle sessioni 1-7 qui sotto restano solo come ripiego storico. Se Claude ti chiede la password del database: Supabase → Project Settings → Database → **Reset database password**, poi scrivila a Claude (una sola volta).
+
+---
 ## PRIORITÀ 1 — Il database (serve per collegare i due telefoni)
 Senza questo l'app funziona ma in "prova locale": non parla con il telefono di Nikole.
 
@@ -289,7 +293,7 @@ Appena siete in due, in **Gioca** compaiono le partite vere: la partita in cui *
 
 ## Sessione 7 — Manca poco, domanda del giorno vera, Ricordi (passo-passo, in ordine)
 
-### S7-1. Accendi le novità sul database (una volta sola, 3 minuti)
+### S7-1. Accendi le novità sul database — **fatto da Claude con `db:apply`** (ripiego manuale sotto)
 Servono tabelle nuove su Supabase (eventi, domanda del giorno, ricordi) **e un contenitore privato per le foto**. Il file fa tutto da solo, compreso il contenitore: **non devi cliccare nient'altro nel pannello**. Senza questo passo l'app funziona lo stesso, ma Noi dice **"Manca un passo"** e le nuove schede (Manca poco, domanda, Ricordi, Il nostro mese) restano vuote.
 1. Sul PC apri **https://supabase.com/dashboard** (accedi se serve) e clicca il tuo progetto di Fragolina.
 2. Colonna a sinistra → **SQL Editor** (icona `>_`) → **New query**.

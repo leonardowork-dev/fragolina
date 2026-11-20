@@ -356,7 +356,7 @@ try {
     const anon = mk();
     const feed = (tok) => rpc(anon, "widget_feed", { p_token: tok });
     const f1 = await feed(t.token);
-    check("widget: con chiave pubblica + token valido il feed risponde (solo now, note, partner)", f1.ok === true && JSON.stringify(Object.keys(f1).sort()) === JSON.stringify(["note", "now", "ok", "partner"]), JSON.stringify(f1).slice(0, 200));
+    check("widget: con chiave pubblica + token valido il feed risponde (solo now, note, partner, eventi)", f1.ok === true && JSON.stringify(Object.keys(f1).sort()) === JSON.stringify(["events", "note", "now", "ok", "partner"]), JSON.stringify(f1).slice(0, 200));
     check("widget: il feed mostra l'ultimo biglietto attivo", f1.note && f1.note.id === d1.note.id, JSON.stringify(f1.note).slice(0, 120));
     check("widget: token sbagliato → invalid_token", (await feed("0".repeat(64))).error === "invalid_token");
     check("widget: token malformato → invalid_token", (await feed("ciao")).error === "invalid_token");
@@ -515,8 +515,9 @@ try {
     // domanda del giorno vera: il segreto sul server vero
     const qchan = B.c.channel("chk7-qa-" + uuid().slice(0, 6));
     let qaAns = 0, qaTxt = 0;
-    qchan.on("postgres_changes", { event: "*", schema: "public", table: "qa_answers" }, () => qaAns++).on("postgres_changes", { event: "*", schema: "public", table: "qa_texts" }, () => qaTxt++).subscribe();
-    await new Promise((r) => setTimeout(r, 1500));
+    qchan.on("postgres_changes", { event: "*", schema: "public", table: "qa_answers", filter: `couple_id=eq.${cid}` }, () => qaAns++).on("postgres_changes", { event: "*", schema: "public", table: "qa_texts", filter: `couple_id=eq.${cid}` }, () => qaTxt++);
+    await new Promise((r) => qchan.subscribe((st) => st === "SUBSCRIBED" && r()));
+    await new Promise((r) => setTimeout(r, 800));
     const q1 = await rpc(A.c, "get_qa", { p_today_ref: "q007" });
     const q2 = await rpc(B.c, "get_qa", { p_today_ref: "q200" });
     check("domanda: la prima persona fissa la domanda per entrambi", q1.ok && q2.ok && q1.days[0].ref === "q007" && q2.days[0].ref === "q007", JSON.stringify([q1.days?.[0], q2.days?.[0]]));
@@ -538,7 +539,7 @@ try {
     const N = W === A ? B : A;
     check("domani: chi non è di turno non può scrivere", (await rpc(N.c, "set_tomorrow_question", { p_text: "Non tocca a me" })).error === "not_your_turn");
     check("domani: chi è di turno la scrive e l'altro la vede", (await rpc(W.c, "set_tomorrow_question", { p_text: "Qual è la cosa più bella di oggi?" })).ok === true && (await rpc(N.c, "get_qa", { p_today_ref: "q007" })).days.some((d) => d.ref === "custom"));
-    await new Promise((r) => setTimeout(r, 2500));
+    await new Promise((r) => setTimeout(r, 12000));
     check("domanda realtime: qa_answers arriva (solo 'ha risposto'), qa_texts MAI", qaAns >= 1 && qaTxt === 0, `qa_answers=${qaAns} qa_texts=${qaTxt}`);
     await B.c.removeChannel(qchan);
 
