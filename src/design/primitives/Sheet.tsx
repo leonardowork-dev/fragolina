@@ -67,7 +67,7 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
       setMounted(true);
       if (reduceMotion) {
         y.set(0);
-        fade.set(withTiming(1, { duration: 160 }));
+        fade.set(withTiming(1, { duration: 160, easing: motion.easeOut }));
       } else {
         fade.set(1);
         y.set(withSpring(0, motion.springSheet));
@@ -75,7 +75,7 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
     } else if (mounted) {
       if (reduceMotion) {
         fade.set(
-          withTiming(0, { duration: 140 }, (done) => {
+          withTiming(0, { duration: 140, easing: motion.easeOut }, (done) => {
             if (done) scheduleOnRN(setMounted, false);
           }),
         );

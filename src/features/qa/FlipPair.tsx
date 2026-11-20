@@ -32,7 +32,7 @@ export function FlipPair({
       first.current = false;
       return;
     }
-    if (reduceMotion) k.set(withTiming(revealed ? 1 : 0, { duration: 160 }));
+    if (reduceMotion) k.set(withTiming(revealed ? 1 : 0, { duration: 160, easing: motion.easeOut }));
     else k.set(withSpring(revealed ? 1 : 0, motion.spring));
   }, [revealed, reduceMotion, k]);
 

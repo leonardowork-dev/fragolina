@@ -11,14 +11,18 @@ import Animated, {
 import { Text } from "@/design/primitives/Text";
 import { useTheme } from "@/design/ThemeProvider";
 import type { TypeVariant } from "@/design/tokens";
+import { useCelebrated } from "@/state/celebratedStore";
 
 /**
- * Contatore "a rullo" (stile contachilometri): alla PRIMA visualizzazione ogni cifra scorre fino al valore con una
- * piccola sfalsatura; poi resta testo normale. È tutto transform sul thread UI: nessun setState per frame.
+ * Contatore "a rullo" (stile contachilometri): ogni cifra scorre fino al valore con una piccola sfalsatura, ma solo la
+ * PRIMA volta che quel numero compare su questo telefono (il giorno nuovo, non a ogni avvio: l'avvio a freddo deve
+ * restare fermo). Poi resta testo normale. È tutto transform sul thread UI: nessun setState per frame.
  * Altezze e larghezze delle cifre sono misurate (Dynamic Type safe). Con "Meno movimento": mostra subito il valore.
  * Uso: <RollingNumber value={412} variant="hero" />
  */
-let alreadyPlayed = false;
+
+const ROLL_BASE = 600;
+const ROLL_PER_DIGIT = 25;
 
 function Column({
   digit,
@@ -44,7 +48,7 @@ function Column({
       withDelay(
         index * 70,
         withTiming(-digit * lineH, {
-          duration: 900 + digit * 40,
+          duration: ROLL_BASE + digit * ROLL_PER_DIGIT,
           easing: Easing.bezier(0.23, 1, 0.32, 1),
         }),
       ),
@@ -78,7 +82,10 @@ export function RollingNumber({
   const digits = str.split("").map(Number);
   const [lineH, setLineH] = useState(0);
   const [widths, setWidths] = useState<number[]>([]);
-  const [rolling, setRolling] = useState(!alreadyPlayed && !reduceMotion);
+  const seenKey = `roll|${str}`;
+  const [rolling, setRolling] = useState(
+    () => !reduceMotion && !useCelebrated.getState().keys.includes(seenKey),
+  );
   const started = useRef(false);
   const sizeStyle = size
     ? { fontSize: size, lineHeight: Math.round(size * 1.0), letterSpacing: size * -0.03 }
@@ -89,10 +96,10 @@ export function RollingNumber({
   useEffect(() => {
     if (!rolling || !measured || started.current) return;
     started.current = true;
-    alreadyPlayed = true;
-    const t = setTimeout(() => setRolling(false), 900 + 9 * 40 + digits.length * 70 + 120);
+    useCelebrated.getState().firstTime(seenKey);
+    const t = setTimeout(() => setRolling(false), ROLL_BASE + 9 * ROLL_PER_DIGIT + digits.length * 70 + 120);
     return () => clearTimeout(t);
-  }, [rolling, measured, digits.length]);
+  }, [rolling, measured, digits.length, seenKey]);
 
   const showColumns = rolling && measured;
   return (

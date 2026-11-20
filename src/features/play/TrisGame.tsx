@@ -30,7 +30,7 @@ function Piece({ kind, size, fresh }: { kind: "X" | "O"; size: number; fresh: bo
   useEffect(() => {
     if (!fresh || reduceMotion) return;
     s.set(withSpring(1, motion.springSnappy));
-    o.set(withTiming(1, { duration: 120 }));
+    o.set(withTiming(1, { duration: 120, easing: motion.easeOut }));
   }, [fresh, reduceMotion, s, o]);
   const style = useAnimatedStyle(() => ({ opacity: o.get(), transform: [{ scale: s.get() }] }));
   return (
@@ -46,7 +46,7 @@ function WinLine({ cell, gap, line, pad }: { cell: number; gap: number; line: nu
   useEffect(() => {
     if (reduceMotion) return;
     k.set(withDelay(150, withTiming(1, { duration: 280, easing: motion.easeOut })));
-    o.set(withDelay(150, withTiming(1, { duration: 160 })));
+    o.set(withDelay(150, withTiming(1, { duration: 160, easing: motion.easeOut })));
   }, [reduceMotion, k, o]);
   const style = useAnimatedStyle(() => ({ opacity: o.get(), transform: [{ scaleX: k.get() }] }));
   const center = (i: number) => ({

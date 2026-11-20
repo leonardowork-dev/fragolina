@@ -1,13 +1,7 @@
 import type { BottomTabBarProps } from "expo-router/build/layouts/Tabs";
 import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { haptics } from "@/lib/haptics";
@@ -16,12 +10,12 @@ import { S } from "@/lib/strings.it";
 import { useTheme } from "../ThemeProvider";
 import { Icon, type IconName } from "../icons/Icon";
 import { Text } from "../primitives/Text";
-import { motion, outline } from "../tokens";
+import { outline } from "../tokens";
 
 /**
  * Barra delle tab: adesivo di carta con contorno e ombra dura, fluttuante. La macchia fragola dell'attiva
- * scorre con una molla (è un elemento assoluto e senza figli: può animare solo transform); il glifo fa un
- * piccolo squish. Il contenuto NON scorre tra le tab (animation: none). Tick aptico alla selezione.
+ * cambia posto subito (elemento assoluto e senza figli). Cancello di frequenza: le tab non si animano, né il
+ * contenuto (animation: none), né la macchia, né il glifo. Tick aptico alla selezione.
  */
 const ICONS: Record<string, IconName> = {
   index: "home",
@@ -50,15 +44,7 @@ function TabItem({
   onPress: () => void;
   label: string;
 }) {
-  const { colors, reduceMotion } = useTheme();
-  const k = useSharedValue(1);
-  useEffect(() => {
-    if (focused && !reduceMotion)
-      k.set(withSequence(withTiming(0, { duration: 70 }), withSpring(1, motion.springBouncy)));
-  }, [focused, reduceMotion, k]);
-  const glyph = useAnimatedStyle(() => ({
-    transform: [{ scaleX: 1 + 0.14 * (1 - k.get()) }, { scaleY: 1 - 0.18 * (1 - k.get()) }],
-  }));
+  const { colors } = useTheme();
   return (
     <Pressable
       accessibilityRole="tab"
@@ -67,13 +53,11 @@ function TabItem({
       onPress={onPress}
       style={{ flex: 1, height: 56, alignItems: "center", justifyContent: "center", gap: 1 }}
     >
-      <Animated.View style={glyph}>
-        <Icon
-          name={ICONS[routeName] ?? "home"}
-          size={26}
-          fill={focused ? colors.butter : colors.blushSoft}
-        />
-      </Animated.View>
+      <Icon
+        name={ICONS[routeName] ?? "home"}
+        size={26}
+        fill={focused ? colors.butter : colors.blushSoft}
+      />
       <Text
         variant="caption"
         maxFontSizeMultiplier={1.15}
@@ -95,13 +79,9 @@ export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
 
   useEffect(() => {
     if (itemW === 0) return;
-    const target = state.index * itemW;
-    if (!hasPlaced.get()) {
-      x.set(target);
-      hasPlaced.set(true);
-    } else {
-      x.set(withSpring(target, motion.springSnappy));
-    }
+    // Cancello di frequenza: le tab non si animano (durata 0). La macchia cambia posto nello stesso frame del tocco.
+    x.set(state.index * itemW);
+    hasPlaced.set(true);
   }, [state.index, itemW, x, hasPlaced]);
 
   const blob = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));

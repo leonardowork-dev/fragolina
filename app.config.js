@@ -34,6 +34,8 @@ module.exports = {
     icon,
     scheme: "fragolina",
     userInterfaceStyle: "light",
+    // Fondo carta sotto tutto: nessun lampo bianco nelle transizioni.
+    backgroundColor: "#FFF4F6",
     newArchEnabled: true,
     ios: {
       bundleIdentifier: BUNDLE_ID,

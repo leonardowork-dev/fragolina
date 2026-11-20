@@ -45,7 +45,7 @@ function ToastItem({ text, onGone }: { text: string; onGone: () => void }) {
     if (leaving.get()) return;
     leaving.set(true);
     o.set(
-      withTiming(0, { duration: 160 }, (done) => {
+      withTiming(0, { duration: 160, easing: motion.easeOut }, (done) => {
         if (done) scheduleOnRN(onGone);
       }),
     );
@@ -70,7 +70,7 @@ function ToastItem({ text, onGone }: { text: string; onGone: () => void }) {
         leaving.set(true);
         y.set(withTiming(-120, { duration: 180, easing: motion.easeOut }));
         o.set(
-          withTiming(0, { duration: 180 }, (done) => {
+          withTiming(0, { duration: 180, easing: motion.easeOut }, (done) => {
             if (done) scheduleOnRN(onGone);
           }),
         );

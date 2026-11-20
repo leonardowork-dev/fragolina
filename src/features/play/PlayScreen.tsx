@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
-import { Button, EmptyState, Skeleton, Sticker, Text, useTheme } from "@/design";
+import { Button, EmptyState, Reveal, Skeleton, Sticker, Text, useTheme } from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { ConfirmSheet } from "@/features/pairing/ConfirmSheet";
 import { type HubEntry, hubOrder, scoreSummary } from "@/lib/games/hub";
@@ -189,6 +189,7 @@ export function PlayScreen() {
   if (summary.draw) scoreLines.push({ key: "draw", label: S.play.score.drawLabel, text: S.play.score.draw(summary.draw.solved) });
 
   return (
+    <Reveal>
     <Screen>
       <View style={{ gap: 4 }}>
         <Text variant="display" accessibilityRole="header">
@@ -330,5 +331,6 @@ export function PlayScreen() {
         }}
       />
     </Screen>
+    </Reveal>
   );
 }

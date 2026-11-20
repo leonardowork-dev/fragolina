@@ -5,7 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-na
 
 import { Button, Chip, Sticker, StickerPressable, Text, useTheme, useToast } from "@/design";
 import { Screen } from "@/design/layout/Screen";
-import { fonts, outline, PAGE_MARGIN, palette } from "@/design/tokens";
+import { fonts, motion, outline, PAGE_MARGIN, palette } from "@/design/tokens";
 import { Frame } from "@/features/lab/widgets/kit";
 import * as NV from "@/features/lab/widgets/noteViews";
 import {
@@ -85,7 +85,7 @@ export function DrawScreen() {
   }, []);
 
   const hint = useAnimatedStyle(() => ({
-    opacity: withTiming(inked.get() > 0 ? 0 : 1, { duration: 160 }),
+    opacity: withTiming(inked.get() > 0 ? 0 : 1, { duration: 160, easing: motion.easeOut }),
   }));
 
   // Il contenuto che partirebbe adesso (anche per l'anteprima).

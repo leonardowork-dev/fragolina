@@ -13,6 +13,7 @@ import Animated, {
 import Svg, { Circle, Ellipse, G, Path } from "react-native-svg";
 
 import { haptics } from "@/lib/haptics";
+import { useScreenFocused } from "@/lib/useScreenFocused";
 import { S } from "@/lib/strings.it";
 import { userArt } from "@/lib/userArt.generated";
 
@@ -202,8 +203,9 @@ export function Mascot({
 
   // Dondolio lento (idle/sleepy). Loop non guidato dal tocco: bezier, mai ease-in secco.
   const bobY = useSharedValue(0);
+  const focused = useScreenFocused();
   useEffect(() => {
-    if (!bob || reduceMotion) {
+    if (!bob || reduceMotion || !focused) {
       bobY.set(0);
       return;
     }
@@ -220,7 +222,7 @@ export function Mascot({
         -1,
       ),
     );
-  }, [bob, reduceMotion, shown, size, bobY]);
+  }, [bob, reduceMotion, focused, shown, size, bobY]);
 
   // Squish alla reazione/al tocco (azione dell'utente: ammesso il piacere).
   const squish = useSharedValue(0);

@@ -3,7 +3,7 @@ import { View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import { Button, Chip, Sticker, StickerPressable, Text, useTheme } from "@/design";
-import { outline } from "@/design/tokens";
+import { motion, outline } from "@/design/tokens";
 import { INK_KEYS, type InkKey, type NoteDraw, buildDraw, pointsFromSvg } from "@/lib/note/rules";
 import { S } from "@/lib/strings.it";
 
@@ -50,7 +50,7 @@ export function SketchPad({
   );
   useEffect(() => onChange(draw), [draw, onChange]);
 
-  const hint = useAnimatedStyle(() => ({ opacity: withTiming(inked.get() > 0 ? 0 : 1, { duration: 160 }) }));
+  const hint = useAnimatedStyle(() => ({ opacity: withTiming(inked.get() > 0 ? 0 : 1, { duration: 160, easing: motion.easeOut }) }));
 
   return (
     <View style={{ gap: 14 }}>

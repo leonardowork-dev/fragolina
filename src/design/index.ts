@@ -10,7 +10,7 @@ export { Badge } from "./primitives/Badge";
 export { Sheet } from "./primitives/Sheet";
 export { ToastProvider, useToast } from "./primitives/Toast";
 export { EmptyState } from "./primitives/EmptyState";
-export { Skeleton } from "./primitives/Skeleton";
+export { Reveal, Skeleton } from "./primitives/Skeleton";
 export { HeartBurstLayer } from "./effects/HeartBurst";
 export { ConfettiLayer } from "./effects/Confetti";
 export { Sparkle } from "./effects/Sparkle";

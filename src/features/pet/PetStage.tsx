@@ -18,6 +18,7 @@ import { Sticker, useTheme } from "@/design";
 import { type PetFace, PetArt, STAGE_SCALE, faceForMood } from "@/design/mascot/PetArt";
 import { motion } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
+import { useScreenFocused } from "@/lib/useScreenFocused";
 import type { PetMood, PetStage } from "@/lib/pet/rules";
 
 /**
@@ -71,6 +72,7 @@ export function PetStageView({
   const shownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const bobY = useSharedValue(0);
+  const focused = useScreenFocused();
   const breathe = useSharedValue(0);
   const squish = useSharedValue(0);
   const hop = useSharedValue(0);
@@ -87,20 +89,20 @@ export function PetStageView({
 
   // Respiro: dondolio lento da svegli, pancia che si gonfia da addormentati.
   useEffect(() => {
-    if (reduceMotion || stage === "egg") {
+    if (reduceMotion || stage === "egg" || !focused) {
       bobY.set(0);
       breathe.set(0);
       return;
     }
     const ease = Easing.bezier(0.45, 0, 0.55, 1);
     if (asleep) {
-      bobY.set(withTiming(0, { duration: 200 }));
+      bobY.set(withTiming(0, { duration: 200, easing: motion.easeOut }));
       breathe.set(withRepeat(withSequence(withTiming(1, { duration: 2200, easing: ease }), withTiming(0, { duration: 2200, easing: ease })), -1));
     } else {
-      breathe.set(withTiming(0, { duration: 200 }));
+      breathe.set(withTiming(0, { duration: 200, easing: motion.easeOut }));
       bobY.set(withRepeat(withSequence(withTiming(-size * 0.022, { duration: 1700, easing: ease }), withTiming(0, { duration: 1700, easing: ease })), -1));
     }
-  }, [asleep, reduceMotion, size, stage, bobY, breathe]);
+  }, [asleep, reduceMotion, focused, size, stage, bobY, breathe]);
 
   // Ammicca ogni 3-5 s (cambio di faccia, non movimento: resta anche con "Meno movimento").
   useEffect(() => {

@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import { useAnimatedRef } from "react-native-reanimated";
 
-import { Button, Icon, Skeleton, Sticker, Text, useEffectsBus, useTheme, useToast } from "@/design";
+import { Button, Icon, Reveal, Skeleton, Sticker, Text, useEffectsBus, useTheme, useToast } from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import type { PetFace } from "@/design/mascot/PetArt";
 import { palette } from "@/design/tokens";
@@ -38,7 +38,11 @@ export function PetScreen() {
   if (petAvailable === false) return <PetSide kind="unavailable" />;
   // Collegati ma il server non ha ancora risposto: scheletro. Se siamo offline si può comunque toccare (va in coda).
   if (petAvailable === null && !hasPet && link !== "offline") return <PetSkeleton />;
-  return <PetMain />;
+  return (
+    <Reveal>
+      <PetMain />
+    </Reveal>
+  );
 }
 
 function PetSkeleton() {

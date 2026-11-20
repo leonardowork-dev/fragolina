@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View } from "react-native";
+import { Image } from "react-native";
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -9,38 +8,43 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
-import { Mascot } from "../mascot/Mascot";
 import { useTheme } from "../ThemeProvider";
-import { palette } from "../tokens";
+import { motion, palette } from "../tokens";
+
+/** Misure del marchio: le stesse dello splash nativo (app.config.js: imageWidth 200, immagine 440×480). */
+export const SPLASH_MARK_WIDTH = 200;
+const SPLASH_MARK_HEIGHT = Math.round((SPLASH_MARK_WIDTH * 480) / 440);
+export const SPLASH_HOLD_MS = 120;
+export const SPLASH_FADE_MS = 220;
 
 /**
- * Splash animato: sul fondo fragola la mascotte compare da scala 0.9 con opacità (mai da zero), resta un attimo e
- * l'overlay si dissolve. Si vede solo all'avvio a freddo. Con "Meno movimento": solo dissolvenza.
+ * Splash → Home senza salti: l'overlay riproduce ESATTAMENTE lo splash nativo (stesso fondo fragola, stesso marchio,
+ * stesse misure, stessa posizione), quindi al passaggio dal nativo non si vede nulla cambiare. Poi, dopo un attimo,
+ * si dissolve (marchio e fondo insieme, il marchio sale un poco) e la Home è già sotto, con i font caricati.
+ * Totale dopo il caricamento: 120 + 220 = 340 ms (< 600). Si vede solo all'avvio a freddo.
+ * Con "Meno movimento": solo dissolvenza, il marchio non si sposta.
  */
 export function SplashOverlay({ ready }: { ready: boolean }) {
   const { reduceMotion } = useTheme();
   const [gone, setGone] = useState(false);
-  const pop = useSharedValue(0);
-  const cover = useSharedValue(1);
+  const out = useSharedValue(0);
 
   useEffect(() => {
     if (!ready) return;
-    pop.set(withTiming(1, { duration: 320, easing: Easing.bezier(0.23, 1, 0.32, 1) }));
-    cover.set(
+    out.set(
       withDelay(
-        620,
-        withTiming(0, { duration: 260, easing: Easing.bezier(0.23, 1, 0.32, 1) }, (done) => {
+        SPLASH_HOLD_MS,
+        withTiming(1, { duration: SPLASH_FADE_MS, easing: motion.easeOut }, (done) => {
           if (done) scheduleOnRN(setGone, true);
         }),
       ),
     );
-  }, [ready, pop, cover]);
+  }, [ready, out]);
 
+  const coverStyle = useAnimatedStyle(() => ({ opacity: 1 - out.get() }));
   const markStyle = useAnimatedStyle(() => ({
-    opacity: pop.get(),
-    transform: reduceMotion ? [] : [{ scale: 0.9 + 0.1 * pop.get() }],
+    transform: reduceMotion ? [] : [{ scale: 1 + 0.08 * out.get() }],
   }));
-  const coverStyle = useAnimatedStyle(() => ({ opacity: cover.get() }));
   if (gone) return null;
   return (
     <Animated.View
@@ -60,10 +64,13 @@ export function SplashOverlay({ ready }: { ready: boolean }) {
         coverStyle,
       ]}
     >
-      <Animated.View style={markStyle}>
-        <View accessibilityElementsHidden>
-          <Mascot size={150} tappable={false} bob={false} />
-        </View>
+      <Animated.View style={markStyle} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Image
+          source={require("../../../assets/splash-mark.png")}
+          style={{ width: SPLASH_MARK_WIDTH, height: SPLASH_MARK_HEIGHT }}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
       </Animated.View>
     </Animated.View>
   );

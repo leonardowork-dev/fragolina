@@ -9,7 +9,8 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -23,6 +24,8 @@ import { useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useS
 import { useDeepLinks } from "@/features/widgetSync/useDeepLinks";
 import { useWidgetSync } from "@/features/widgetSync/useWidgetSync";
 import { preloadSounds } from "@/lib/sound";
+import { useCelebrated } from "@/state/celebratedStore";
+import { useCouple } from "@/state/coupleStore";
 import { useSettings } from "@/state/settingsStore";
 
 void SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -48,10 +51,16 @@ function Shell() {
   }, [hydrated, onboardingDone, segments, router]);
 
   return (
-    <>
+    <View style={{ flex: 1, backgroundColor: colors.ground }}>
       <StatusBar style={dark ? "light" : "dark"} />
       <Stack
-        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.ground } }}
+        screenOptions={{
+          headerShown: false,
+          // Pagine con tasto indietro: spinta da destra, swipe indietro dal bordo, fondo carta sempre sotto (nessun lampo bianco).
+          animation: "slide_from_right",
+          gestureEnabled: true,
+          contentStyle: { backgroundColor: colors.ground },
+        }}
       >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
@@ -65,7 +74,7 @@ function Shell() {
       <Grain />
       <HeartBurstLayer />
       <ConfettiLayer />
-    </>
+    </View>
   );
 }
 
@@ -78,7 +87,17 @@ export default function RootLayout() {
     Figtree_700Bold,
   });
   const hydrated = useSettings((s) => s.hydrated);
-  const ready = fontsLoaded && hydrated;
+  const coupleHydrated = useCouple((s) => s.hydrated);
+  const celebratedHydrated = useCelebrated((s) => s.hydrated);
+  // Tutto ciò che decide cosa si vede al primo frame è già pronto: font, preferenze, coppia, feste già viste.
+  // Niente salti di layout né font che cambiano dopo lo splash.
+  // Rete di sicurezza: se un archivio non risponde entro 2,5 s si parte lo stesso (mai uno schermo vuoto per sempre).
+  const [stalled, setStalled] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setStalled(true), 2500);
+    return () => clearTimeout(t);
+  }, []);
+  const ready = fontsLoaded && ((hydrated && coupleHydrated && celebratedHydrated) || stalled);
   const soundsOn = useSettings((s) => s.sounds);
 
   // I player dei suoni si preparano una volta, a impostazioni lette (e se li accendi dopo).
