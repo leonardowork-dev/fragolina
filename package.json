@@ -29,7 +29,9 @@
     "worst-e2e": "node scripts/worst-case-e2e.mjs",
     "e2e:games": "node scripts/e2e-games.mjs",
     "icons:gen": "node scripts/gen-event-icons.mjs",
-    "e2e:extra": "node scripts/e2e-extra.mjs"
+    "e2e:extra": "node scripts/e2e-extra.mjs",
+    "db:setup": "node scripts/db-setup.mjs",
+    "db:apply": "node scripts/db-apply.mjs"
   },
   "dependencies": {
     "@bacons/apple-targets": "^5.0.0",
@@ -81,6 +83,7 @@
     "@types/react": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "^58.0.4",
+    "pg": "^8.23.1",
     "playwright-core": "^1.65.0",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
