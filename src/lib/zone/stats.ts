@@ -77,7 +77,10 @@ export function zoneStats(entries: readonly ZEntry[], today: string, myRole: "a"
   const starter = { me: 0, you: 0, both: 0 };
   for (const e of entries) {
     if (e.starter === "both") starter.both++;
-    else if (e.starter && myRole) e.starter === myRole ? starter.me++ : starter.you++;
+    else if (e.starter && myRole) {
+      if (e.starter === myRole) starter.me++;
+      else starter.you++;
+    }
   }
   return {
     total: entries.length,
