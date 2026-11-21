@@ -170,3 +170,4 @@
 - **Animazioni:** 5 varianti (fragola che fa l'occhiolino e salta, letto che traballa con vapore, ciliegie e panna, labbra che fanno smack, vapore e cuori), mai due uguali di fila; traguardi e match = versione più grande con scritta. Tutti disegni SVG, niente emoji. Suoni: riuso di `pop`, `tok`, `festa` (nessun suono nuovo).
 - **Screenshot:** NON salvati nel repository (pubblico).
 - **Cancella tutto** sta dentro la zona (non in Impostazioni, per non mostrarlo fuori), con doppia conferma; l'interruttore "Mostra la zona piccante" sta in Impostazioni come richiesto.
+- **Build sessione 10:** run #72 (id 44935470626), commit 203279f, verde in ~22 min; `Fragolina-release.ipa` 21 294 605 byte (22/11/2026). Verificato: `FragolinaWidget.appex`, MinimumOSVersion 16.4 (app e widget), build 72, `NSFaceIDUsageDescription` in italiano, URL Supabase nel bundle, nessun `service_role`.
