@@ -57,6 +57,8 @@ module.exports = {
       "expo-router",
       "expo-font",
       "expo-secure-store",
+      // Face ID / codice del telefono per aprire la zona privata (permesso in italiano).
+      ["expo-local-authentication", { faceIDPermission: "Fragolina usa Face ID per aprire la zona privata: solo per voi due." }],
       // Solo riproduzione di piccoli suoni: nessun microfono, nessun testo di permesso.
       ["expo-audio", { microphonePermission: false }],
       [
