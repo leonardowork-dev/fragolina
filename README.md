@@ -28,3 +28,10 @@ Vedi `MANUAL_TODO.md` (GitHub Actions → IPA non firmato → Sideloadly) e `scr
 
 ## Documenti
 `PRODUCT.md` · `DESIGN.md` · `CLAUDE.md` · `DECISIONS.md` · `KNOWN_ISSUES.md` · `docs/RESEARCH.md` · `docs/CRITIQUE.md`
+
+## Come si usa, si aggiorna e si rinnova (Leonardo e Nikole)
+- **Usare:** Fragolina è un'app privata per due persone. Collegarsi: Noi → crea il posto → l'altra persona scrive il codice di 6 lettere.
+- **Rinnovare (ogni 6 giorni, dal telefono):** Wi-Fi → LocalDevVPN → Connect → SideStore → tocca il contatore "7 DAYS" di Fragolina. Guida: `RINNOVO.md`.
+- **Aggiornare:** in Noi compare "Aggiornamento disponibile": tocca "Aggiorna con SideStore". Senza PC.
+- **Installare una volta sola:** `NIKOLE.md` (pagina leggibile dal telefono: `docs/nikole.html`).
+- **Cambiare telefono o installazione senza perdere il posto:** Noi → "Codice di recupero" (prima), poi nella nuova app "Ho un codice di recupero".

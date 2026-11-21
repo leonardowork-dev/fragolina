@@ -459,3 +459,30 @@ Senza Nikole entri in PROVA: la persona finta ha scelto ~30 desideri (i match co
 - [ ] Buoni e dadi.
 - [ ] Con "Meno movimento" le animazioni sono statiche.
 - [ ] Niente della zona nei widget, in Home, nei Ricordi, in "Il nostro mese".
+
+
+## Sessione 11 — Ultima: pet che cresce, SideStore per tutti, codice di recupero (passo-passo)
+
+### S11-0. Già fatto da Claude
+- Database: `sessione11-recupero.sql` e `sessione11-pet-livelli.sql` applicati; `backend:sqltest` 396/396; `backend:check` 162/162 (la prima volta c'è il solito ping realtime a volte rosso).
+- iloader installato sul PC (winget); canale aggiornamenti pronto nel workflow (release `latest-build`, appare dopo questa build).
+
+### S11-1. Installa la nuova app (Sideloadly, ULTIMA volta col cavo)
+Cavo, `Fragolina-release.ipa`, stesso Apple ID, "Remove extensions" spento. Claude apre Sideloadly con il file già caricato: tu premi **Start**.
+
+### S11-2. Passa a SideStore SENZA perdere il posto (nell'ordine!)
+1. Noi → **Codice di recupero** → **Crea il codice** → scrivilo/copialo ADESSO.
+2. Dì a Claude "ho il codice, passo a SideStore": apre iloader.
+3. Segui `NIKOLE.md` punto 1 (iloader sul tuo telefono, SideStore, poi Fragolina da SideStore).
+4. Nella nuova Fragolina: Noi → **Ho un codice di recupero** → scrivi il codice → il posto torna.
+5. Togli la vecchia Fragolina (quella di Sideloadly).
+
+### S11-3. Nikole (una volta sola, dal tuo PC)
+`NIKOLE.md` punto 2 (o `docs/nikole.html` sul telefono). Poi dì a Claude **"Nikole è entrata, chiudi la coppia"**.
+
+### S11-4. Checklist
+- [ ] Zona piccante → Buoni: riscatta un buono: la scritta sparisce da sola dopo 2-3 secondi, NON compare in Home/Pet/altre tab, il buono va in "Usati".
+- [ ] Pet: dai un frutto: vola verso la bocca, briciole, guance piene, poi faccia felice (ogni tanto "urp!"). 3 frutti riempiono la pancia (3 pallini), il 4° dice "Sono pieno!". Dopo qualche ora torna fame.
+- [ ] Pet: barra del livello sotto i bisogni; a ogni livello nuovo festa; **Guardaroba**: scegli un indumento (sbloccati dal livello 2). Lo vede anche l'altro.
+- [ ] Noi → "Aggiornamento disponibile" compare solo se c'è una build più nuova della tua.
+- [ ] Rinnovo da SideStore (LocalDevVPN → SideStore → 7 DAYS) e widget ancora vivi dopo.

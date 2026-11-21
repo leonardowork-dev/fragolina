@@ -73,3 +73,10 @@
 63. **Dadi personalizzati e testo dei dadi:** facce modificabili solo in memoria (si perdono alla chiusura). La fisica è molla + rotazione, non un motore fisico.
 64. **Stato sul disco:** la coda della zona (poche righe con note/idee) sta in AsyncStorage non cifrato finché non viene spedita; la fotografia non si salva mai.
 65. **Il contatore realtime può svegliare il telefono** per un "ho voglia" anche se l'altro non ha cambiato nulla di visibile (è voluto: è il segnale).
+
+66. **Sessione 11 — non verificato su telefono né nel browser:** animazione del pet che mangia, pancia a 3 pezzi, livello, disegno dei 14 indumenti (coordinate scritte a mano sul disegno del pet: possono non combaciare con tutti e 4 gli stadi), guardaroba, `UpdateCard`, `sidestore://install`, codice di recupero a schermo. Provate: regole, SQL (396), server vero (162), bundle.
+67. **Il widget del pet non mostra vestiti né livello** (solo la pancia con le nuove regole: `decayFood` 100 in Swift).
+68. **Guardaroba senza coda offline:** senza rete il cambio torna indietro.
+69. **e2e non eseguiti in sessione 11** (buoni, pet su due schede, recupero): coperti da test unitari e di server; screenshot e due giri di revisione non fatti.
+70. **Canale aggiornamenti pubblico:** chiunque può scaricare l'IPA da GitHub. Contiene solo la chiave pubblica; dopo `couple:close` nessuno può creare coppie.
+71. **Rinnovo SideStore in background non garantito** (vedi docs/RENEWAL.md); LocalDevVPN serve.

@@ -1,57 +1,62 @@
 <!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fragolina su iPhone</title>
+<title>Fragolina: SideStore una volta sola</title>
 <style>
 :root{--ink:#22121F;--paper:#FFF4F6;--straw:#FF2D55;--butter:#FFE08A;--leaf:#CDEBC5}
 body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Figtree",sans-serif;padding:20px 16px 60px;max-width:640px;margin-inline:auto}
-h1{font:800 34px/1.1 "Bagel Fat One",system-ui,sans-serif;background:var(--straw);color:#fff;padding:16px 18px;border:2.5px solid var(--ink);border-radius:20px;box-shadow:5px 5px 0 var(--ink);transform:rotate(-1deg)}
+h1{font:800 30px/1.15 "Bagel Fat One",system-ui,sans-serif;background:var(--straw);color:#fff;padding:16px 18px;border:2.5px solid var(--ink);border-radius:20px;box-shadow:5px 5px 0 var(--ink);transform:rotate(-1deg)}
 h2{display:inline-block;margin:28px 0 8px;padding:4px 14px;background:var(--butter);border:2.5px solid var(--ink);border-radius:999px;box-shadow:3px 3px 0 var(--ink);font-size:18px;transform:rotate(.8deg)}
 ol,ul{background:#fff;border:2.5px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--ink);padding:14px 16px 14px 36px}
 li{margin:8px 0} code{background:var(--leaf);padding:1px 6px;border-radius:6px;font-size:15px}
-table{border-collapse:collapse;width:100%;background:#fff;border:2.5px solid var(--ink);border-radius:14px;font-size:15px}
+table{border-collapse:collapse;width:100%;background:#fff;border:2.5px solid var(--ink);font-size:15px}
 th,td{border:1.5px solid var(--ink);padding:8px;text-align:left;vertical-align:top} th{background:var(--butter)}
 </style></head><body>
-<h1>Fragolina sul telefono di Nikole (sessione 11)</h1>
-<p>Si fa una volta sola, con il PC di Leonardo. Ci vogliono circa 30 minuti. <b>Non si installa niente prima.</b></p>
-<h2>Cosa serve</h2>
-<ul>
-<li>Il telefono di Nikole (iPhone con <b>iOS 16.4 o più nuovo</b>: Impostazioni → Generali → Info → Versione software; se è più vecchio, aggiorna iOS da Impostazioni → Generali → Aggiornamento software).</li>
-<li>Il suo <b>cavo</b> e il <b>PC di Leonardo</b>.</li>
-<li>Un <b>Apple ID gratuito suo</b>, diverso da quello di Leonardo (meglio uno secondario, creato su account.apple.com). Email e password a portata di mano.</li>
-<li>Il file <code>Fragolina-release.ipa</code> (Desktop → Fragolina-build) e il <b>codice di 6 lettere</b> di Leonardo (Noi → crea il posto).</li>
-</ul>
-<h2>Sul PC</h2>
+<h1>Fragolina: SideStore una volta sola, poi basta PC (sessione 11)</h1>
+<p>Idea: il telefono si collega al PC <b>una volta sola</b> per mettere <b>SideStore</b>. Poi il rinnovo ogni 7 giorni e gli aggiornamenti di Fragolina si fanno <b>dal telefono</b>.</p>
+<p>Ordine (importante, non cambiarlo):</p>
+<h2>0. Prima di tutto: Leonardo (sul SUO telefono, ancora con Sideloadly)</h2>
 <ol>
-<li>Servono <b>iTunes</b> e <b>iCloud</b> scaricati dal sito Apple (non dal Microsoft Store): vedi <code>scripts/SIDELOAD.md</code>, parte A.</li>
-<li>Metodo consigliato, <b>SideStore</b> (così rinnova da solo dal telefono): installa <b>iloader</b> (cerca &quot;iloader&quot; sul sito ufficiale), collega il telefono col cavo, sbloccalo, tocca <b>Autorizza</b>. In iloader accedi con l&#x27;<b>Apple ID di Nikole</b> e premi <b>Install SideStore (Stable)</b>.</li>
+<li>Apri Fragolina → <b>Noi</b> → scheda <b>Codice di recupero</b> → <b>Crea il codice</b>.</li>
+<li><b>Scrivilo o copialo subito</b> (es. nelle note del telefono). Vale 14 giorni e una volta sola.</li>
+<li>Dì a Claude: &quot;ho il codice di recupero, passo a SideStore&quot;.</li>
 </ol>
-<ul>
-<li>Piano B (più semplice, rinnovo a mano ogni settimana): <b>Sideloadly</b>, <code>scripts/SIDELOAD.md</code>, con l&#x27;Apple ID di Nikole e <b>&quot;Remove extensions&quot; SPENTO</b>.</li>
-</ul>
-<h2>Sul telefono</h2>
+<h2>1. Leonardo passa a SideStore (PC, una volta)</h2>
 <ol>
-<li><b>Impostazioni → Generali → VPN e gestione dispositivo</b> → sotto &quot;App sviluppatore&quot; tocca l&#x27;email → <b>Autorizza</b>.</li>
-<li><b>Impostazioni → Privacy e sicurezza → Modalità sviluppatore</b> → attiva → <b>Riavvia</b> → dopo il riavvio <b>Attiva</b> e metti il codice. (La voce compare solo dopo la prima installazione.)</li>
-<li>Con SideStore: apri <b>LocalDevVPN</b> → <b>Connect</b>; apri <b>SideStore</b>, accedi con lo stesso Apple ID; tocca <b>+</b> e scegli <code>Fragolina-release.ipa</code> (mandalo sul telefono con AirDrop/Dropbox/cavo).</li>
-<li>Apri <b>Fragolina</b>. Premi <b>Avanti</b> fino a <b>Entra</b>. Scrivi il <b>tuo nome</b>, premi <b>Ho un codice</b>, scrivi i 6 caratteri di Leonardo → <b>Entra</b>.</li>
-<li>Devi vedere: due fragole, coriandoli, &quot;Eccovi.&quot; (anche su quello di Leonardo).</li>
+<li>Collega il TUO iPhone, sbloccalo, tocca <b>Autorizza</b>.</li>
+<li>Apri <b>iloader</b> (già installato sul PC). Accedi con il TUO Apple ID → <b>Install SideStore (Stable)</b>.</li>
+<li>Sul telefono: <b>Impostazioni → Generali → VPN e gestione dispositivo</b> → tocca la tua email → <b>Autorizza</b>. <b>Impostazioni → Privacy e sicurezza → Modalità sviluppatore</b> → attiva → riavvia → <b>Attiva</b>.</li>
+<li>Apri <b>LocalDevVPN</b> → <b>Connect</b>. Apri <b>SideStore</b>, accedi con lo stesso Apple ID.</li>
+<li>Porta <code>Fragolina-release.ipa</code> sul telefono (AirDrop, o dalla cartella OneDrive → app <b>File</b>). In SideStore: <b>+</b> → scegli il file.</li>
+<li>Apri la <b>nuova</b> Fragolina → <b>Noi</b> (senza collegamento) → <b>Ho un codice di recupero</b> → scrivi il codice → <b>Riprendi il mio posto</b>. Fine: coppia, pet e ricordi sono tornati.</li>
+<li>Cancella la <b>vecchia</b> Fragolina (quella di Sideloadly): tieni premuta l&#x27;icona → Rimuovi app.</li>
 </ol>
+<h2>2. Nikole (PC di Leonardo, una volta)</h2>
+<p>Serve: il suo iPhone (iOS 16.4 o più nuovo), il cavo, il suo <b>Apple ID gratuito</b> (meglio uno secondario, diverso da quello di Leonardo; creane uno su account.apple.com).</p>
+<ol>
+<li>Collega il suo iPhone, sbloccalo, <b>Autorizza</b>. Apri <b>iloader</b>, accedi con il <b>suo</b> Apple ID → <b>Install SideStore (Stable)</b>.</li>
+<li>Sul suo telefono: stessi passi 3, 4 e 5 del punto 1 (Autorizza, Modalità sviluppatore, LocalDevVPN, SideStore, <code>+</code> → <code>Fragolina-release.ipa</code>).</li>
+<li>Apri Fragolina, scrivi il <b>suo nome</b>, <b>Ho un codice</b>, scrivi il codice di 6 lettere che Leonardo crea in <b>Noi</b>.</li>
+<li>Devi vedere: due fragole, coriandoli, &quot;Eccovi.&quot; (anche sul telefono di Leonardo).</li>
+</ol>
+<h2>3. Chiudere la coppia (Leonardo)</h2>
+<p>Quando Nikole è dentro, scrivi a Claude: <b>&quot;Nikole è entrata, chiudi la coppia&quot;</b>. Claude fa <code>npm run couple:close</code> e controlla con <code>npm run couple:status</code>.</p>
 <h2>I widget</h2>
 <ul>
-<li><b>Home:</b> tieni premuto 2 secondi su uno spazio vuoto finché le icone tremano → <b>+</b> in alto a sinistra → cerca <b>Fragolina</b> → scegli e <b>Aggiungi widget</b> → <b>Fine</b>.</li>
-<li><b>Blocco:</b> tieni premuto sulla schermata di blocco → <b>Personalizza</b> → tocca sotto l&#x27;ora → <b>Fragolina</b>.</li>
-<li>Prova: apri Fragolina, premi <b>Penso a te</b>, torna alla Home e guarda il widget (fino a 10 secondi).</li>
+<li><b>Home:</b> tieni premuto 2 secondi su uno spazio vuoto finché le icone tremano → <b>+</b> → <b>Fragolina</b> → <b>Aggiungi widget</b>.</li>
+<li><b>Blocco:</b> tieni premuto sulla schermata di blocco → <b>Personalizza</b> → sotto l&#x27;ora → <b>Fragolina</b>.</li>
 </ul>
-<h2>Se qualcosa va storto</h2>
+<h2>Da qui in poi, niente PC</h2>
+<ul>
+<li><b>Rinnovo</b> ogni 6 giorni e <b>aggiornamenti</b>: vedi <code>RINNOVO.md</code>.</li>
+<li>Se qualcosa va storto: sotto, e poi scrivi a Claude cosa vedi.</li>
+</ul>
 <table>
 <tr><th>Cosa vedi</th><th>Cosa fai</th></tr>
-<tr><td>iloader/Sideloadly non vede il telefono</td><td>Cavo diverso, sblocca, tocca &quot;Autorizza&quot;, riavvia iTunes.</td></tr>
-<tr><td>&quot;Impossibile verificare l&#x27;app&quot; / &quot;Sviluppatore non attendibile&quot;</td><td>Passo 3 (VPN e gestione dispositivo → Autorizza).</td></tr>
-<tr><td>L&#x27;app non parte, o manca la voce Modalità sviluppatore</td><td>Passo 4: prima prova a installare, poi la voce compare.</td></tr>
-<tr><td>Errore di login Apple / &quot;too many apps&quot;</td><td>Aspetta qualche ora e riprova; usa un Apple ID usato poco. Max 10 App ID a settimana.</td></tr>
+<tr><td>iloader non vede il telefono</td><td>Cavo diverso, sblocca, <b>Autorizza</b>, riapri iloader.</td></tr>
+<tr><td>&quot;Impossibile verificare l&#x27;app&quot;</td><td>Impostazioni → Generali → VPN e gestione dispositivo → Autorizza.</td></tr>
+<tr><td>SideStore non riesce ad accedere</td><td>Impostazioni di SideStore → cambia <b>Anisette URL</b> e riprova. Aspetta qualche ora se persiste.</td></tr>
+<tr><td>&quot;App non disponibile&quot; (scaduta)</td><td>Apri LocalDevVPN → Connect → SideStore → tocca <b>7 DAYS</b>. I dati restano.</td></tr>
 <tr><td>&quot;Il codice non esiste&quot; / &quot;scaduto&quot;</td><td>Leonardo: Noi → <b>Nuovo codice</b>.</td></tr>
-<tr><td>&quot;App non disponibile&quot; dopo 7 giorni</td><td>È scaduta: rinnova, vedi <code>RINNOVO.md</code>. I dati restano.</td></tr>
-<tr><td>Widget non c&#x27;è / dorme</td><td>Controlla che &quot;Remove extensions&quot; fosse spento, poi scrivi a Claude &quot;il widget dorme&quot;.</td></tr>
+<tr><td>Il widget non c&#x27;è / dorme</td><td>Scrivi a Claude &quot;il widget dorme&quot;.</td></tr>
 </table>
-<p>Rinnovo ogni 6 giorni: <code>RINNOVO.md</code> (+ promemoria <code>docs/rinnovo-fragolina.ics</code>).</p>
 </body></html>

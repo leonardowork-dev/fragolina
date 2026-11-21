@@ -21,12 +21,10 @@ Fonti lette oggi: [docs SideStore – install](https://docs.sidestore.io/docs/in
 ## c) Altro
 - AltStore classico: stessa idea di SideStore ma richiede un computer (AltServer) acceso in rete: peggio. Niente altro di gratuito e affidabile che io conosca per Apple ID gratuiti.
 
-## Scelta
-**SideStore per tutti e due**, perché è l'unico che non dipende da un PC acceso nella stessa rete: per Nikole (lontana dal PC di Leonardo) è l'unico modo realistico.
-- **Nikole:** nella sessione 11 si installa SideStore con iloader dal PC di Leonardo, poi Fragolina da dentro SideStore (stesso IPA). Da lì in poi rinnova da sola con il telefono.
-- **Leonardo:** **non migrare subito.** Resta con Sideloadly (con "Automatic Refresh" spuntato e iTunes Wi-Fi sync) finché SideStore non ha dimostrato, sul telefono di Nikole, che il widget funziona e che il rinnovo è semplice. Migrare dopo = app nuova se cambia il bundle id: nuovo codice di collegamento.
-- Piano B se SideStore dà problemi: Sideloadly via cavo ogni settimana, come oggi (`scripts/SIDELOAD.md`).
-- Per la scadenza l'app la mostra da sola (Noi, Home, widget "rinnovami") leggendo il profilo di firma: vale per entrambi i metodi.
-
-## Cosa resta da fare a mano (non si può dal PC)
-Installare SideStore sul telefono richiede il telefono collegato e la password Apple: sessione 11 per Nikole. Le guide sono pronte: `NIKOLE.md`, `docs/nikole.html`, `RINNOVO.md`, `docs/rinnovo-fragolina.ics`.
+## Scelta (aggiornata alla sessione 11, 22/11/2026)
+**SideStore per tutti e due** (decisione di Leonardo: non ricollegare il telefono al PC ogni 7 giorni, né lui né lei). Si installa **una volta** dal PC con iloader (già installato sul PC di Leonardo: `winget install nabdev.iloader --skip-dependencies`; il driver Apple c'è già), poi rinnovo e aggiornamenti dal telefono.
+- **Rinnovo in background: onesto.** La documentazione dice che SideStore "rinnova periodicamente in background", ma non dà frequenza né garanzie e il prerequisito dice che la VPN (LocalDevVPN) serve per rinnovare. In pratica: ogni ~6 giorni LocalDevVPN → Connect → SideStore → tocca il contatore. Esistono automazioni dell'app Comandi fatte dalla comunità (connettono la VPN e aprono SideStore a orari fissi) ma sono fonti non ufficiali e iOS può non eseguirle a telefono bloccato. Per questo restano il promemoria `.ics` e l'avviso dell'app.
+- **Aggiornamenti senza PC:** il workflow `build-ipa.yml` pubblica l'IPA e una sorgente SideStore (`source.json`) nella release fissa `latest-build`. L'app in Noi confronta il numero di build e offre "Aggiorna con SideStore" (`sidestore://install?url=…`, schema **NON VERIFICATO** nelle docs ufficiali: SideStore deriva da AltStore, che documenta `altstore://install?url=`; l'app prova entrambi). Il repository è pubblico, quindi l'IPA lo è: contiene solo l'URL e la chiave PUBBLICA di Supabase (già deducibili dal repo/dal bundle) e nessuna `service_role`; la coppia è protetta dal codice e da `couple:close`. Alternativa privata (Storage con link firmato) scartata: servirebbe la `service_role` nel workflow.
+- **Passaggio di Leonardo senza perdere il posto:** SideStore ri-firma l'app e può cambiare identificativi: se il bundle id o il Portachiavi cambiano, l'identità anonima si perde. Soluzione: **codice di recupero** (Noi → Codice di recupero, a uso singolo, hash, 14 giorni, 5 tentativi/10 min) che riassegna il posto al nuovo accesso (provato su Postgres locale e sul server vero con utenti finti). Se l'identità NON cambia, il codice non serve, ma va creato lo stesso prima.
+- **Non verificato sul telefono:** widget e App Group dopo la ri-firma di SideStore (il `GroupResolver` li cerca a runtime), conteggio App ID dell'estensione, frequenza del rinnovo in background, schema `sidestore://install`.
+- **Piano B:** Sideloadly via cavo (`scripts/SIDELOAD.md`).

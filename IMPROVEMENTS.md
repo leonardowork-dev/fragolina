@@ -92,3 +92,8 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - Mazzo dei desideri più grande a livelli stagionali; "mazzo vostro" scritto in due; cestino dei match "fatto!" con data.
 - Widget privato? NO (regola di privacy): mai.
 - Blocco della zona con timeout personalizzabile e con "panic": tre scosse = copertura immediata.
+
+## Idee dalla sessione 11 (ordinate per valore)
+**Alto:** vestiti e livello nel widget del pet (snapshot v8 + Swift); prova e2e a due schede di pet/guardaroba/recupero; notifica locale "scade domani"; esportazione JSON di sicurezza; Storage privato per l'IPA (se un giorno c'è la `service_role` in un posto sicuro).
+**Medio:** guardaroba nella coda offline; più vestiti per livello 10+; "stagioni" (cappello di Natale); sorgente SideStore con più versioni; rinnovo guidato dentro l'app (apre LocalDevVPN e SideStore).
+**Basso:** XP visibile nel log delle cure; frutti nuovi; rutto con suono dedicato (`make-sounds.mjs`).

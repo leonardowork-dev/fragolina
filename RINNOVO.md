@@ -1,23 +1,25 @@
-# Rinnovo di Fragolina (ogni 6 giorni)
+# Rinnovare e aggiornare Fragolina senza PC (SideStore)
 
-L'app con un Apple ID gratuito smette di aprirsi dopo 7 giorni. In **Noi** e in **Home** Fragolina ti dice quando scade. Il widget, l'ultimo giorno, mostra "rinnovami".
-Se è già scaduta: non si apre. Rinnova comunque con la stessa procedura, i dati restano.
+Con un Apple ID gratuito l'app smette di aprirsi dopo **7 giorni**. In **Noi** e in **Home** Fragolina dice quando scade; il widget, l'ultimo giorno, mostra "rinnovami". Se scade: non si apre, ma i dati restano; rinnova e riparte.
 
-## Se usi SideStore (consigliato, sul telefono, senza PC)
-1. Collega il telefono a una **Wi-Fi** (non i dati mobili).
-2. Apri **LocalDevVPN** e tocca **Connect**.
-3. Apri **SideStore** → **My Apps**.
-4. Tocca il contatore (**7 DAYS**) accanto a Fragolina. Aspetta il messaggio di fine.
-5. Fatto. Puoi spegnere la VPN.
+## Rinnovo (ogni 6 giorni, 30 secondi)
+1. **Wi-Fi** acceso (non i dati mobili).
+2. **LocalDevVPN** → **Connect**.
+3. **SideStore** → **My Apps** → tocca il contatore (**7 DAYS**) di Fragolina. Aspetta la fine.
+4. Puoi disconnettere la VPN.
 
-Se SideStore dice che non riesce ad accedere: Impostazioni di SideStore → cambia **Anisette URL** e riprova.
-Se dice che manca il file di abbinamento: serve il PC (chiedi a Leonardo / a Claude).
+**Quasi automatico (facoltativo):** SideStore prova a rinnovare da solo in background, ma **non è garantito** (iOS decide, e la VPN deve essere accesa). Un modo che molti usano: l'app **Comandi** → *Automazione* → ogni giorno alle 12:00 → *Apri app* **LocalDevVPN** (connetti) → *Apri* `sidestore://` → attendi. Funziona solo se il telefono è sbloccato e sulla Wi-Fi: fidati dei 6 giorni del promemoria (`docs/rinnovo-fragolina.ics`), non solo dell'automazione.
 
-## Se usi Sideloadly (PC di Leonardo)
-- **Automatico:** lascia il PC acceso, con il demone Sideloadly attivo (icona vicino all'orologio), e il telefono sulla stessa Wi-Fi.
-- **A mano (2 minuti):** cavo, sblocca il telefono, apri Sideloadly, trascina `Fragolina-release.ipa`, stesso Apple ID, **Start**. "Remove extensions" resta **spento**.
+## Aggiornare Fragolina
+Quando Claude fa una build nuova, la mette su GitHub (canale `latest-build`). In **Noi** compare **"Aggiornamento disponibile (build N)"** → **Aggiorna con SideStore**: si apre SideStore e installa sopra (i dati restano). Serve LocalDevVPN acceso. Se non si apre da solo: SideStore → **+** → scegli l'IPA scaricato da `https://github.com/leonardowork-dev/fragolina/releases/tag/latest-build` (file `Fragolina.ipa`).
+Nota: non ci sono notifiche; l'avviso si vede aprendo **Noi** (si controlla al massimo ogni 6 ore).
+
+## Se SideStore non va
+- **Accesso fallito** → Impostazioni di SideStore → **Anisette URL**: cambia server.
+- **File di abbinamento scaduto** (dopo un aggiornamento di iOS o "a caso") → serve il PC una volta: iloader → ricollega (chiedi a Claude).
+- **Piano B**: Sideloadly via cavo, come prima (`scripts/SIDELOAD.md`).
+- Limiti Apple gratuito: 3 app (SideStore + Fragolina = 2) e 10 App ID a settimana (Fragolina usa 2 per la sua estensione widget, SideStore 1).
 
 ## Promemoria
-Apri `docs/rinnovo-fragolina.ics` con un doppio clic (Windows) o mandalo a Nikole: aggiunge un promemoria ogni 6 giorni al calendario.
-Su iPhone: apri il file dal messaggio/mail → **Aggiungi tutto** → scegli il calendario.
-Dettagli e motivi della scelta: `docs/RENEWAL.md`.
+Apri `docs/rinnovo-fragolina.ics` (doppio clic su Windows, o mandalo a Nikole): promemoria ogni 6 giorni. Su iPhone: apri il file → **Aggiungi tutto**.
+Dettagli, fonti e rischi: `docs/RENEWAL.md`.
