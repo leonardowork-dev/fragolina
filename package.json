@@ -33,7 +33,10 @@
     "e2e:extra": "node scripts/e2e-extra.mjs",
     "e2e:s8": "node scripts/e2e-session8.mjs",
     "db:setup": "node scripts/db-setup.mjs",
-    "db:apply": "node scripts/db-apply.mjs"
+    "db:apply": "node scripts/db-apply.mjs",
+    "couple:close": "node scripts/couple.mjs close",
+    "couple:open": "node scripts/couple.mjs open",
+    "couple:status": "node scripts/couple.mjs status"
   },
   "dependencies": {
     "@bacons/apple-targets": "^5.0.0",

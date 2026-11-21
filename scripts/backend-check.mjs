@@ -74,6 +74,25 @@ async function signIn(label) {
   return { c, id: data.user.id };
 }
 
+// Se la coppia vera è chiusa (couple:close) la coppia di prova non si potrebbe creare: la riapro per il tempo del collaudo.
+let reopen = null;
+{
+  const dbUrl = env.SUPABASE_DB_URL;
+  if (dbUrl) {
+    try {
+      const pg = (await import("pg")).default;
+      const db = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 15000 });
+      await db.connect();
+      const r = await db.query("select value from public.app_settings where key='closed'");
+      if (r.rows[0]?.value === "true") {
+        await db.query("delete from public.app_settings where key='closed'");
+        reopen = async () => { await db.query("insert into public.app_settings(key,value) values ('closed','true') on conflict (key) do update set value='true'"); await db.end(); };
+        console.log("(coppia chiusa: la riapro per il collaudo e la richiudo alla fine)");
+      } else await db.end();
+    } catch (e) { console.log("(non riesco a leggere lo stato 'closed': " + String(e.message).slice(0, 80) + ")"); }
+  }
+}
+
 try {
   const A = await signIn("A");
   const B = await signIn("B");
@@ -593,6 +612,21 @@ try {
     }
   }
 
+  // sessione 9: scadenza dell'app
+  {
+    const exp = Date.now() + 5 * 86_400_000;
+    const sa = await rpc(A.c, "set_app_expiry", { p_at: exp });
+    if (sa.error && /set_app_expiry|PGRST202|Could not find/i.test(String(sa.error))) {
+      rows.push(["MANCA", "scadenza: migrazione sessione9-scadenza.sql non applicata", ""]);
+    } else {
+      check("scadenza: A scrive la propria", sa.ok === true, JSON.stringify(sa));
+      const pe = await rpc(B.c, "get_partner_expiry");
+      check("scadenza: B vede quella di A", pe.ok === true && pe.partner && Math.abs(pe.partner.expiresAt - exp) < 1000, JSON.stringify(pe));
+      check("scadenza: il terzo non legge nulla", (await rpc(C.c, "get_partner_expiry")).error === "not_paired");
+      check("scadenza: valore assurdo rifiutato", (await rpc(A.c, "set_app_expiry", { p_at: 5 })).error === "invalid_content");
+    }
+  }
+
   // pulizia: entrambi escono (la coppia si cancella da sola)
   await rpc(A.c, "leave_couple");
   await rpc(B.c, "leave_couple");
@@ -601,6 +635,8 @@ try {
 } catch (e) {
   check("esecuzione senza eccezioni", false, String(e.message ?? e));
 }
+
+if (reopen) { try { await reopen(); console.log("(coppia richiusa)"); } catch (e) { console.log("ATTENZIONE: non riesco a richiudere la coppia: " + e.message); } }
 
 const missing = rows.filter((r) => r[0] === "MANCA").length;
 const w = Math.max(...rows.map((r) => r[1].length));
