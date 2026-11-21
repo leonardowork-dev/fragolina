@@ -7,6 +7,8 @@ export type GroupResolverNative = {
   writePayload(json: string): string | null;
   readPayload(): string | null;
   reloadWidgets(): void;
+  /** Scadenza dell'app (data del provisioning profile embedded) in ms da epoch; null se non si legge (web, build non sideload). */
+  expirationDate(): number | null;
 };
 
 let cached: GroupResolverNative | null | undefined;

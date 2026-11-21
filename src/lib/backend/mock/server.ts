@@ -21,6 +21,7 @@ import type { LocationState, PartnerLocState } from "@/lib/geo/types";
 import type { Board } from "@/lib/note/wire";
 import type { PetLogEntry, PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
+import type { PartnerExpiry } from "../types";
 import { type ExtraState, MockExtra, emptyExtra } from "./extra";
 
 /**
@@ -68,6 +69,8 @@ export type MockState = {
   }[];
   locations?: Record<string, { coupleId: string; sharing: boolean; latE2: number | null; lonE2: number | null; at: number }>;
   widgetTokens?: Record<string, string>;
+  /** Scadenza dell'app per persona (sessione 9), ms. */
+  appExpiry?: Record<string, { at: number; reportedAt: number }>;
   /** Giochi (sessione 6): una "base dati" per coppia (le stesse funzioni pure del telefono e della prova SQL). */
   games?: Record<string, GamesDb>;
   /** Sessione 7: conto alla rovescia, domanda vera, ricordi, foto (Storage finto). Opzionale: i file salvati prima non lo hanno. */
@@ -255,6 +258,7 @@ export class MockServer {
     // chi esce perde posizione e token (come il trigger tg_member_cleanup)
     if (s.locations) delete s.locations[uid];
     if (s.widgetTokens) delete s.widgetTokens[uid];
+    if (s.appExpiry) delete s.appExpiry[uid];
     this.storage.write(s);
     // Come su Supabase: le cancellazioni non arrivano in tempo reale (la RLS non può valutarle). Nessun emit.
     return { ok: true };
@@ -645,6 +649,27 @@ export class MockServer {
     this.storage.write(s);
     this.emit({ coupleId: cid, actor: uid, event: { type: "location" } });
     return { ok: true };
+  }
+
+  setAppExpiry(uid: string, ms: number): Res<object> {
+    const s = this.storage.read();
+    if (!this.coupleOf(s, uid)) return { ok: false, error: "not_paired" };
+    const now = this.clock();
+    if (!Number.isFinite(ms) || ms < now - DAY || ms > now + 400 * DAY) return { ok: false, error: "invalid_content" };
+    s.appExpiry ??= {};
+    s.appExpiry[uid] = { at: Math.round(ms), reportedAt: now };
+    this.storage.write(s);
+    return { ok: true };
+  }
+
+  getPartnerExpiry(uid: string): Res<{ partner: PartnerExpiry | null }> {
+    const s = this.storage.read();
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return { ok: false, error: "not_paired" };
+    const other = s.members.find((m) => m.coupleId === cid && m.userId !== uid);
+    if (!other) return { ok: true, partner: null };
+    const e = s.appExpiry?.[other.userId];
+    return { ok: true, partner: { name: other.displayName, expiresAt: e?.at ?? null, reportedAt: e?.reportedAt ?? null } };
   }
 
   rotateWidgetToken(uid: string): Res<{ token: string }> {

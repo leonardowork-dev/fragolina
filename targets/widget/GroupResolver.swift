@@ -29,19 +29,31 @@ enum GroupResolver {
         return out
     }
 
-    static func provisionGroups() -> [String] {
+    /// Il plist del provisioning profile embedded (la parte XML in mezzo alla firma). `nil` se manca (build non sideload).
+    static func provisionPlist() -> [String: Any]? {
         guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
               let data = try? Data(contentsOf: url),
               let start = data.range(of: Data("<?xml".utf8)),
               let end = data.range(of: Data("</plist>".utf8)),
               start.lowerBound < end.upperBound
-        else { return [] }
+        else { return nil }
         let plistData = data.subdata(in: start.lowerBound..<end.upperBound)
-        guard let obj = try? PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any],
+        return try? PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any]
+    }
+
+    static func provisionGroups() -> [String] {
+        guard let obj = provisionPlist(),
               let ent = obj["Entitlements"] as? [String: Any],
               let groups = ent["com.apple.security.application-groups"] as? [String]
         else { return [] }
         return groups
+    }
+
+    /// Scadenza del provisioning profile (con un Apple ID gratuito: 7 giorni dopo la firma), in millisecondi da epoch.
+    /// `nil` se non c'è il profilo o non si legge la data. Nessuna API iOS 17+.
+    static func provisionExpiryMs() -> Double? {
+        guard let d = provisionPlist()?["ExpirationDate"] as? Date else { return nil }
+        return d.timeIntervalSince1970 * 1000
     }
 
     static func candidates() -> [String] {

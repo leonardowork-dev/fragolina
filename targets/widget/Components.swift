@@ -8,10 +8,14 @@ import WidgetKit
 /// `confetti`: coriandoli statici dietro al contenuto (giorno di festa).
 struct StickerWidgetBackground: ViewModifier {
     var confetti: Bool = false
+    /// Ultimo giorno prima della scadenza dell'app: un piccolo "rinnovami" in un angolo.
+    var renew: Bool = false
 
     func body(content: Content) -> some View {
         if #available(iOS 17.0, *) {
-            content.containerBackground(for: .widget) {
+            content
+                .overlay(alignment: .topLeading) { RenewPill(show: renew) }
+                .containerBackground(for: .widget) {
                 ZStack {
                     P.paper
                     if confetti { ConfettiBackdrop() }
@@ -21,6 +25,7 @@ struct StickerWidgetBackground: ViewModifier {
             content
                 .padding(16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .topLeading) { RenewPill(show: renew).padding(6) }
                 .background(
                     ZStack {
                         P.paper
@@ -29,6 +34,34 @@ struct StickerWidgetBackground: ViewModifier {
                 )
         }
     }
+}
+
+/// Piccolo adesivo "rinnovami" (ultimo giorno prima della scadenza). Nessuna API iOS 17+.
+struct RenewPill: View {
+    let show: Bool
+    var body: some View {
+        if show {
+            StickerPill(text: WS.renewMe, fill: P.butter, size: 9, symbol: "arrow.clockwise", rotation: -2)
+        }
+    }
+}
+
+/// Scadenza del PROPRIO profilo del widget (letta una volta sola per processo). `nil` se non c'è (build non sideload).
+enum OwnExpiry {
+    static let ms: Double? = GroupResolver.provisionExpiryMs()
+}
+
+extension FragolinaEntry {
+    /// Scadenza dell'app: la più lontana fra il profilo del widget e lo snapshot.
+    var expiresMs: Double? { effectiveExpiry(own: OwnExpiry.ms, snap: snapshot?.appExpiresAt) }
+    /// Vero nell'ultimo giorno prima della scadenza (rispetto alla data di QUESTA voce della timeline).
+    var renewLastDay: Bool { isRenewLastDay(expiresMs: expiresMs, now: date) }
+}
+
+/// Aggiunge alla timeline l'istante in cui comincia l'ultimo giorno, così "rinnovami" compare anche con l'app chiusa.
+func withRenewDate(_ dates: [Date], now: Date, snapshot: Snapshot?) -> [Date] {
+    guard let t = renewTimelineDate(expiresMs: effectiveExpiry(own: OwnExpiry.ms, snap: snapshot?.appExpiresAt), now: now) else { return dates }
+    return (dates + [t]).sorted()
 }
 
 /// Schermata di blocco: iOS 17+ pretende comunque `containerBackground` (altrimenti mostra un segnaposto);
@@ -45,7 +78,9 @@ struct AccessoryBackgroundCompat: ViewModifier {
 
 extension View {
     func accessoryWidgetBackgroundCompat() -> some View { modifier(AccessoryBackgroundCompat()) }
-    func stickerWidgetBackground(confetti: Bool = false) -> some View { modifier(StickerWidgetBackground(confetti: confetti)) }
+    func stickerWidgetBackground(confetti: Bool = false, renew: Bool = false) -> some View {
+        modifier(StickerWidgetBackground(confetti: confetti, renew: renew))
+    }
 }
 
 /// Fragola che dorme + due righe: vuoto, non collegato, fermo da più di 48 h. Tocco: apre "Noi".

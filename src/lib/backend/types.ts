@@ -132,8 +132,15 @@ export interface Backend {
   setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void>;
   /** Crea (o cambia) il token con cui il widget legge il feed. Il token in chiaro esiste solo qui e nel container del widget. */
   rotateWidgetToken(): Promise<string>;
+  /** Scrive la scadenza della MIA app (provisioning profile, ms). Server senza la migrazione = non fa nulla. */
+  setAppExpiry(ms: number): Promise<void>;
+  /** La scadenza dell'altra persona. `null` = nessuna altra persona o server senza la migrazione. */
+  getPartnerExpiry(): Promise<PartnerExpiry | null>;
   /** App in primo piano o no (rinnovo del token). Facoltativo. */
   setForeground?(active: boolean): void;
 }
+
+/** Scadenza dell'app dell'altra persona, come l'ha scritta lei (ms); `expiresAt` null = non l'ha ancora scritta. */
+export type PartnerExpiry = { name: string; expiresAt: number | null; reportedAt: number | null };
 
 export type { Member };

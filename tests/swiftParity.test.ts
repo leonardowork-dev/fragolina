@@ -13,6 +13,7 @@ import { distanceTimelineMs, distanceWidgetModel, feedFromJson, noteTimelineMs, 
 import { petTimelineMs, petWidgetModel } from "@/lib/pet/widgetModel";
 import { countdownDisplay, eventsForWidget, feedEventsFromJson } from "@/lib/countdown/widgetModel";
 import { countdownTimelineMs, countdownView, minutesOf } from "@/lib/countdown/rules";
+import { cleanExpiry, effectiveExpiry, expiryView, renewTimelineMs } from "@/lib/expiry";
 import { type WidgetSnapshot, decodeSnapshot } from "@/lib/widgetPayload";
 
 /**
@@ -48,7 +49,8 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
   const ago = [0, 1, 44, 45, 59, 60, 89, 90, 3599, 3600, 5399, 5400, 7200, 86399, 86400, 129599, 129600, 172800, 518400];
   const fx = (n: string) => fs.readFileSync(path.join(root, "tests/fixtures", n), "utf8");
   const snapshots: Record<string, string> = {
-    v6: fx("widget-snapshot.json"),
+    v7: fx("widget-snapshot.json"),
+    v6: fx("widget-snapshot-v6.json"),
     v5: fx("widget-snapshot-v5.json"),
     v4: fx("widget-snapshot-v4.json"),
     v3: fx("widget-snapshot-v3.json"),
@@ -215,6 +217,27 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
   // confini dell'ultimo giorno: 61, 60, 59, 1, 0, -1, -59, -60 minuti dall'ora
   for (const left of [180, 121, 120, 119, 61, 60, 59, 1, 0, -1, -59, -60, -61]) cdViewCases.push({ date: "2026-12-20", time: "18:30", today: "2026-12-20", nowMin: 18 * 60 + 30 - left });
   cdViewCases.push({ date: "2026-12-20", time: null, today: "2026-12-20", nowMin: 700 }, { date: "2026-12-21", time: null, today: "2026-12-20", nowMin: 700 }, { date: "2026-02-30", time: null, today: "2026-12-20", nowMin: 0 });
+  // scadenza dell'app: confini dell'ultimo giorno (24 h, 1 ms prima/dopo), profili del widget e dello snapshot, valori assurdi
+  const renewCases: { nowMs: number; own: number | null; snap: number | null }[] = [];
+  const E = nowMs + 3 * 86_400_000;
+  for (const d of [-1, 0, 1, 1000, 3_600_000, 86_399_999, 86_400_000, 86_400_001, 2 * 86_400_000, 5 * 86_400_000, 7 * 86_400_000])
+    for (const kind of ["own", "snap", "both", "none"] as const)
+      renewCases.push({ nowMs: E - d, own: kind === "own" || kind === "both" ? E : null, snap: kind === "snap" || kind === "both" ? E : null });
+  renewCases.push(
+    { nowMs, own: E, snap: E + 7 * 86_400_000 }, // rinnovato: il profilo del widget è più lontano dello snapshot
+    { nowMs, own: E - 86_400_000, snap: E },
+    { nowMs, own: 1, snap: null },
+    { nowMs, own: null, snap: 9e15 },
+    { nowMs, own: 1_577_836_800_000, snap: null },
+    { nowMs, own: 4_102_444_800_000, snap: null },
+    { nowMs, own: 4_102_444_800_001, snap: null },
+  );
+  for (let i = 0; i < 300; i++) {
+    const t = nowMs + Math.floor((rnd() - 0.5) * 6 * 86_400_000);
+    const own = rnd() < 0.3 ? null : t + Math.floor((rnd() - 0.2) * 3 * 86_400_000);
+    const snap = rnd() < 0.3 ? null : t + Math.floor((rnd() - 0.2) * 3 * 86_400_000);
+    renewCases.push({ nowMs: t, own, snap });
+  }
   const cdTlCases = Array.from({ length: 400 }, () => {
     const t = nowMs + Math.floor((rnd() - 0.3) * 4 * 86_400_000);
     const e = randEvent(t, 1);
@@ -267,6 +290,7 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
         countdown: cdCases.map((c) => ({ snapshot: JSON.stringify(c.snap), feed: c.feed, revoked: c.revoked, nowMs: c.nowMs })),
         countdownView: cdViewCases,
         countdownTimeline: cdTlCases,
+        renew: renewCases,
       }),
     );
     // TZ=UTC: il "giorno di oggi" del widget (calendario locale) e quello di TypeScript sono lo stesso
@@ -463,6 +487,24 @@ describe.skipIf(!available)("Swift ↔ TypeScript (compilatore Swift reale)", ()
     expect(minutesOf("18:30")).toBe(1110);
     const withTime = cdTlCases.findIndex((c) => c.date && c.time && out.countdownTimeline[cdTlCases.indexOf(c)].length > 5);
     expect(withTime).toBeGreaterThanOrEqual(0);
+  });
+  it("scadenza dell'app: stessa scadenza valida, stesso ultimo giorno, stessa voce di timeline", () => {
+    const diffs = renewCases.flatMap((c, i) => {
+      const eff = effectiveExpiry(c.own, c.snap);
+      const last = expiryView(eff, c.nowMs).state === "last";
+      const tl = renewTimelineMs(eff, c.nowMs);
+      const sw = out.renew[i];
+      return sw.eff === eff && sw.last === last && sw.tl === tl ? [] : [`#${i} ${JSON.stringify(c)} TS=${JSON.stringify({ eff, last, tl })} Swift=${JSON.stringify(sw)}`];
+    });
+    expect(diffs.slice(0, 3)).toEqual([]);
+    expect(renewCases.length).toBeGreaterThan(350);
+    expect(renewCases.some((c, i) => out.renew[i].last)).toBe(true);
+    expect(renewCases.some((c, i) => out.renew[i].tl !== null)).toBe(true);
+    expect(cleanExpiry(9e15)).toBeNull();
+  });
+  it("snapshot v7 (appExpiresAt) letto da Swift; il v6 non lo ha", () => {
+    expect(out.snapshots.v7.appExpiresAt).toBe(1795003200000);
+    expect(out.snapshots.v6.appExpiresAt).toBeUndefined();
   });
   it("snapshot v6 (cdEvents) letto uguale da Swift e TypeScript; il v5 non ha eventi", () => {
     expect(out.snapshots.v6.cdEvents).toHaveLength(2);

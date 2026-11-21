@@ -91,7 +91,7 @@ struct PingWidgetView: View {
                 PingSmallView(entry: entry)
             }
         }
-        .stickerWidgetBackground()
+        .stickerWidgetBackground(renew: entry.renewLastDay)
     }
 }
 

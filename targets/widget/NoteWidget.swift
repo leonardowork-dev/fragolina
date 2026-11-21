@@ -248,7 +248,7 @@ struct NoteWidgetView: View {
                     NoteEmptyHome(compact: family != .systemMedium)
                 }
             }
-            .stickerWidgetBackground()
+            .stickerWidgetBackground(renew: entry.renewLastDay)
         }
     }
 }

@@ -792,6 +792,19 @@ check(
   check("anon non legge notes/locations/widget_tokens", (await anonTry("select * from notes")) === null && (await anonTry("select * from locations")) === null && (await anonTry("select * from widget_tokens")) === null);
   check("le funzioni interne non sono chiamabili", (await anonTry("select public._set_location('" + N1 + "', 1, 1, 1)")) === null && (await tryq(N1, "select public._note_latest($1,$2,false)", [mk.couple_id, N1])).ok === false);
 
+  // ---- scadenza dell'app (sessione 9) ----
+  const expMs = Date.now() + 5 * 86_400_000;
+  check("scadenza: uno sconosciuto non la scrive (not_paired)", (await rpc(S, `public.set_app_expiry(${expMs})`)).error === "not_paired");
+  check("scadenza: N1 la scrive", (await rpc(N1, `public.set_app_expiry(${expMs})`)).ok === true);
+  check("scadenza: fuori finestra rifiutata (passato remoto, futuro lontano, zero)", (await rpc(N1, `public.set_app_expiry(${Date.now() - 5 * 86_400_000})`)).error === "invalid_content" && (await rpc(N1, `public.set_app_expiry(${Date.now() + 500 * 86_400_000})`)).error === "invalid_content" && (await rpc(N1, "public.set_app_expiry(0)")).error === "invalid_content");
+  const pe = await rpc(N2, "public.get_partner_expiry()");
+  check("scadenza: N2 vede quella di N1 (arrotondata al ms)", pe.ok && pe.partner && Math.abs(pe.partner.expiresAt - expMs) < 1000 && typeof pe.partner.name === "string", JSON.stringify(pe));
+  const pe1 = await rpc(N1, "public.get_partner_expiry()");
+  check("scadenza: N1 vede quella di N2 = non ancora scritta (null)", pe1.ok && pe1.partner && pe1.partner.expiresAt === null, JSON.stringify(pe1));
+  check("scadenza: lo sconosciuto e l'altra coppia non leggono nulla", (await rpc(S, "public.get_partner_expiry()")).error === "not_paired");
+  check("scadenza: ognuno scrive solo la propria riga", (await db.query("select count(*)::int n from couple_members where app_expires_at is not null")).rows[0].n === 1);
+  check("scadenza: anon non può chiamare le due funzioni", (await (async () => { try { await asAnon(() => db.query("select public.get_partner_expiry()")); return false; } catch { return true; } })()) && (await (async () => { try { await asAnon(() => db.query("select public.set_app_expiry(1)")); return false; } catch { return true; } })()));
+
   // uscire dalla coppia: token e posizione spariscono
   await rpc(N2, "public.leave_couple()");
   check("chi esce perde il token: il suo widget non legge più", (await feed(k2.token)).error === "invalid_token");
@@ -1218,6 +1231,14 @@ check(
       why = "";
     } catch (e) { ok = false; why = String(e.message); }
     check("sessione8-rifinitura.sql da solo, sopra le migrazioni 1-7 (e rieseguibile)", ok, why);
+    try {
+      const solo9 = fs.readFileSync(path.join(root, "supabase", "sessione9-scadenza.sql"), "utf8");
+      await dbs.exec(solo9); await dbs.exec(solo9);
+      ok = (await dbs.query("select count(*)::int n from pg_proc where proname in ('set_app_expiry','get_partner_expiry')")).rows[0].n === 2
+        && (await dbs.query("select count(*)::int n from information_schema.columns where table_name='couple_members' and column_name in ('app_expires_at','app_expires_reported_at')")).rows[0].n === 2;
+      why = "";
+    } catch (e) { ok = false; why = String(e.message); }
+    check("sessione9-scadenza.sql da solo (e rieseguibile)", ok, why);
   }
 }
 

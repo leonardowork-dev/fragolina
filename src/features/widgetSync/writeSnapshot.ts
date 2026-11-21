@@ -8,6 +8,7 @@ import { localDayKey, romeDayKey } from "@/lib/time";
 import { widgetBridge } from "@/lib/widgetBridge";
 import { buildSnapshot, snapshotSignature } from "@/lib/widgetPayload";
 import { useCouple } from "@/state/coupleStore";
+import { useExpiry } from "@/state/expiryStore";
 
 /** Se non cambia nulla, si riscrive solo per aggiornare "aggiornato X fa", al massimo ogni 5 minuti. */
 const HEARTBEAT_MS = 5 * 60_000;
@@ -39,6 +40,7 @@ export function writeWidgetSnapshot(force: boolean) {
       myUserId: st.userId,
       note,
       loc: st.loc,
+      appExpiresAt: useExpiry.getState().mine,
       feed: base && st.widgetToken ? { url: base.url, key: base.key, token: st.widgetToken } : null,
     },
     now,

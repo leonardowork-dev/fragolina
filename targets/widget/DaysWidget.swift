@@ -98,11 +98,11 @@ struct DaysWidgetView: View {
         let medium = family == .systemMedium
         Group {
             if entry.state != .ok {
-                SleepyView(entry: entry, compact: !medium).stickerWidgetBackground()
+                SleepyView(entry: entry, compact: !medium).stickerWidgetBackground(renew: entry.renewLastDay)
             } else if medium {
-                DaysMediumView(entry: entry).stickerWidgetBackground(confetti: entry.isParty)
+                DaysMediumView(entry: entry).stickerWidgetBackground(confetti: entry.isParty, renew: entry.renewLastDay)
             } else {
-                DaysSmallView(entry: entry).stickerWidgetBackground(confetti: entry.isParty)
+                DaysSmallView(entry: entry).stickerWidgetBackground(confetti: entry.isParty, renew: entry.renewLastDay)
             }
         }
     }

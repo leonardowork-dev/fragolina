@@ -245,7 +245,7 @@ struct CountdownWidgetView: View {
                     CountdownMediumView(entry: entry)
                 }
             }
-            .stickerWidgetBackground(confetti: entry.cdParty)
+            .stickerWidgetBackground(confetti: entry.cdParty, renew: entry.renewLastDay)
         default:
             Group {
                 if entry.state == .empty || entry.state == .unpaired {
@@ -256,7 +256,7 @@ struct CountdownWidgetView: View {
                     CountdownSmallView(entry: entry)
                 }
             }
-            .stickerWidgetBackground(confetti: entry.cdParty)
+            .stickerWidgetBackground(confetti: entry.cdParty, renew: entry.renewLastDay)
         }
     }
 }

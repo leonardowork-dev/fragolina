@@ -23,6 +23,7 @@ import type {
   CodeRenewed,
   CoupleCreated,
   CoupleJoined,
+  PartnerExpiry,
   PetActInput,
   SubscriptionHandlers,
 } from "../types";
@@ -306,6 +307,12 @@ export class MockBackend implements Backend {
   }
   setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void> {
     return this.wire(() => void this.ok(this.server.setLocation(this.uid, p)));
+  }
+  setAppExpiry(ms: number): Promise<void> {
+    return this.wire(() => void this.ok(this.server.setAppExpiry(this.uid, ms)));
+  }
+  getPartnerExpiry(): Promise<PartnerExpiry | null> {
+    return this.wire(() => this.ok(this.server.getPartnerExpiry(this.uid)).partner);
   }
   rotateWidgetToken(): Promise<string> {
     return this.wire(() => this.ok(this.server.rotateWidgetToken(this.uid)).token);

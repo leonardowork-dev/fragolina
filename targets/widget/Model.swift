@@ -31,7 +31,7 @@ struct CountdownEvent: Codable, Equatable {
 
 /// Tutti i campi sono opzionali e si leggono uno per uno: un payload v1, v2, v3 o incompleto si legge comunque,
 /// mai un crash; un campo del tipo sbagliato vale `nil` ma non butta via gli altri.
-/// NOTA: i campi si AGGIUNGONO in fondo (v2 = prima parte, v3 = seconda, v4 = il pet, v5 = biglietto, distanza e accesso al feed, v6 = conto alla rovescia). tests/widgetPayload.test.ts controlla
+/// NOTA: i campi si AGGIUNGONO in fondo (v2 = prima parte, v3 = seconda, v4 = il pet, v5 = biglietto, distanza e accesso al feed, v6 = conto alla rovescia, v7 = scadenza dell'app). tests/widgetPayload.test.ts controlla
 /// che nomi, tipi e ordine coincidano con la fixture.
 struct Snapshot: Codable {
     var v: Int?
@@ -85,6 +85,7 @@ struct Snapshot: Codable {
     var feedKey: String?
     var feedToken: String?
     var cdEvents: [CountdownEvent]? // v6: i prossimi eventi di "Manca poco" (il widget sceglie e calcola da solo)
+    var appExpiresAt: Double?   // v7: scadenza dell'app (ms, dal provisioning profile); il widget usa anche la PROPRIA se più lontana
 }
 
 extension Snapshot {
@@ -98,6 +99,7 @@ extension Snapshot {
         case shareMine, myLatE2, myLonE2, myLocAt, partnerLocState, partnerLatE2, partnerLonE2, partnerLocAt
         case feedUrl, feedKey, feedToken
         case cdEvents
+        case appExpiresAt
     }
 
     init(from decoder: Decoder) throws {
@@ -156,7 +158,8 @@ extension Snapshot {
             feedUrl: get(String.self, .feedUrl),
             feedKey: get(String.self, .feedKey),
             feedToken: get(String.self, .feedToken),
-            cdEvents: get([CountdownEvent].self, .cdEvents)
+            cdEvents: get([CountdownEvent].self, .cdEvents),
+            appExpiresAt: get(Double.self, .appExpiresAt)
         )
     }
 
@@ -327,6 +330,44 @@ func ageShortIt(_ seconds: TimeInterval) -> String {
     if a < 3600 { return "\(Int(a / 60)) min" }
     if a < 86400 { return "\(Int(a / 3600)) h" }
     return "\(Int(a / 86400)) g"
+}
+
+// MARK: - Scadenza dell'app (specchio di src/lib/expiry.ts)
+
+/// Nell'ultimo giorno (meno di 24 ore alla scadenza) il widget mostra "rinnovami".
+let renewLastWindow: TimeInterval = 24 * 3600
+private let expiryMinMs: Double = 1_577_836_800_000   // 2020-01-01
+private let expiryMaxMs: Double = 4_102_444_800_000   // 2100-01-01
+
+/// `nil` se non è una data credibile (orologio sballato, profilo strano).
+func cleanExpiry(_ ms: Double?) -> Double? {
+    guard let ms, ms.isFinite, ms >= expiryMinMs, ms <= expiryMaxMs else { return nil }
+    return ms.rounded()
+}
+
+/// Fra la scadenza del PROPRIO profilo del widget e quella dello snapshot vale la più lontana: un rinnovo sposta la data
+/// solo in avanti, quindi dopo un rinnovo il widget smette di dire "rinnovami" anche se l'app non è stata riaperta.
+func effectiveExpiry(own: Double?, snap: Double?) -> Double? {
+    let a = cleanExpiry(own)
+    let b = cleanExpiry(snap)
+    guard let a else { return b }
+    guard let b else { return a }
+    return max(a, b)
+}
+
+/// Vero nell'ultimo giorno: la scadenza è nel futuro e manca al massimo un giorno.
+func isRenewLastDay(expiresMs: Double?, now: Date) -> Bool {
+    guard let e = cleanExpiry(expiresMs) else { return false }
+    let left = e - now.timeIntervalSince1970 * 1000
+    return left > 0 && left <= renewLastWindow * 1000
+}
+
+/// L'istante in cui il widget deve avere una voce in più (entra l'ultimo giorno), se è nel futuro entro `horizon`.
+func renewTimelineDate(expiresMs: Double?, now: Date, horizon: TimeInterval = 24 * 3600) -> Date? {
+    guard let e = cleanExpiry(expiresMs) else { return nil }
+    let t = (e - renewLastWindow * 1000) / 1000
+    let nowS = now.timeIntervalSince1970
+    return (t > nowS && t <= nowS + horizon) ? Date(timeIntervalSince1970: t) : nil
 }
 
 // MARK: - Voce della timeline

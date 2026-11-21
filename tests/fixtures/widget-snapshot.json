@@ -1,5 +1,5 @@
 {
-  "v": 6,
+  "v": 7,
   "updatedAt": 1794571200000,
   "paired": true,
   "partnerName": "Nikole",
@@ -129,5 +129,6 @@
       "icon": "ticket",
       "featured": false
     }
-  ]
+  ],
+  "appExpiresAt": 1795003200000
 }

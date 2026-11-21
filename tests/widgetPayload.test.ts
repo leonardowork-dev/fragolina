@@ -53,6 +53,7 @@ const baseSource = {
     partner: { name: "Nikole", state: "ok" as const, latE2: 4546, lonE2: 919, at: fixture.partnerLocAt! },
   },
   feed: { url: fixture.feedUrl, key: fixture.feedKey, token: fixture.feedToken },
+  appExpiresAt: fixture.appExpiresAt,
   // gli eventi della fixture v6 (il primo è "in evidenza")
   events: fixture.cdEvents.map((e, i) => ({ ...e, icon: e.icon as "heart" | "ticket", at: 1000 + i })),
   // il pet della fixture v4: germoglio "Bacca", curato da lei (ub) con una mora, oggi in due

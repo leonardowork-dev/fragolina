@@ -27,6 +27,7 @@ import type {
   CodeRenewed,
   CoupleCreated,
   CoupleJoined,
+  PartnerExpiry,
   PetActInput,
   SubscriptionHandlers,
 } from "../types";
@@ -508,6 +509,28 @@ export class SupabaseBackend implements Backend {
   }
   async setLocation(p: { latE2: number; lonE2: number; at: number }) {
     await this.rpc("set_location", { p_lat_e2: p.latE2, p_lon_e2: p.lonE2, p_at: Math.round(p.at) });
+  }
+  async setAppExpiry(ms: number) {
+    try {
+      await this.rpc("set_app_expiry", { p_at: Math.round(ms) });
+    } catch (e) {
+      if (isMissing(e, "set_app_expiry")) return; // migrazione della sessione 9 non ancora sul server
+      throw e;
+    }
+  }
+  async getPartnerExpiry(): Promise<PartnerExpiry | null> {
+    try {
+      const d = await this.rpc<{ partner?: { name?: unknown; expiresAt?: unknown; reportedAt?: unknown } | null }>(
+        "get_partner_expiry",
+      );
+      const p = d.partner;
+      if (!p || typeof p.name !== "string") return null;
+      const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+      return { name: p.name, expiresAt: n(p.expiresAt), reportedAt: n(p.reportedAt) };
+    } catch (e) {
+      if (isMissing(e, "get_partner_expiry")) return null;
+      throw e;
+    }
   }
   async rotateWidgetToken() {
     const d = await this.rpc<{ token?: string }>("rotate_widget_token");

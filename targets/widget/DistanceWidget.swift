@@ -156,9 +156,9 @@ struct DistanceWidgetView: View {
         case .accessoryCircular, .accessoryInline:
             DistanceLockView(entry: entry)
         case .systemMedium:
-            DistanceMediumView(entry: entry).stickerWidgetBackground()
+            DistanceMediumView(entry: entry).stickerWidgetBackground(renew: entry.renewLastDay)
         default:
-            DistanceSmallView(entry: entry).stickerWidgetBackground()
+            DistanceSmallView(entry: entry).stickerWidgetBackground(renew: entry.renewLastDay)
         }
     }
 }

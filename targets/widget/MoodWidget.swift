@@ -92,7 +92,7 @@ struct MoodWidgetView: View {
                 MoodSmallView(entry: entry)
             }
         }
-        .stickerWidgetBackground()
+        .stickerWidgetBackground(renew: entry.renewLastDay)
     }
 }
 

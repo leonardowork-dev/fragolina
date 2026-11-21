@@ -74,3 +74,13 @@ if (rifFile) {
   fs.writeFileSync(path.join(root, "supabase", "sessione8-rifinitura.sql"), head + "\n" + fs.readFileSync(path.join(dir, rifFile), "utf8"));
   console.log("supabase/sessione8-rifinitura.sql: solo la migrazione della sessione 8");
 }
+
+// Solo la migrazione della sessione 9 (scadenza dell'app, visibile anche all'altra persona).
+const scadFile = files.find((f) => f.includes("_scadenza"));
+if (scadFile) {
+  const head = `-- Fragolina · SOLO LA MIGRAZIONE DELLA SESSIONE 9: scadenza dell'app (Apple ID gratuito, 7 giorni), scritta da ciascuno e letta dall'altro.
+-- Generato da scripts/build-sql.mjs: non modificarlo a mano. Due colonne nuove su couple_members e due funzioni. Rieseguibile.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione9-scadenza.sql"), head + "\n" + fs.readFileSync(path.join(dir, scadFile), "utf8"));
+  console.log("supabase/sessione9-scadenza.sql: solo la migrazione della sessione 9");
+}

@@ -1,0 +1,133 @@
+{
+  "v": 6,
+  "updatedAt": 1794571200000,
+  "paired": true,
+  "partnerName": "Nikole",
+  "moodId": "innamorata",
+  "moodLabel": "Innamorata",
+  "moodAt": 1794567600000,
+  "thinkingToday": 3,
+  "pingsReceived": 41,
+  "lastPingAt": 1794564000000,
+  "startDate": "2025-02-14",
+  "myName": "Leonardo",
+  "myMoodId": "carica",
+  "myMoodLabel": "Carica",
+  "myMoodAt": 1794560400000,
+  "questionText": "Cena di sabato: cosa vince?",
+  "questionMineDone": true,
+  "questionBothDone": false,
+  "petHatched": true,
+  "petStage": "sprout",
+  "petName": "Bacca",
+  "petFood": 640,
+  "petLove": 820,
+  "petEnergy": 410,
+  "petAt": 1794569400000,
+  "petSleepUntil": 0,
+  "petLastAt": 1794569400000,
+  "petDay": "2026-11-12",
+  "petBoth": true,
+  "petLastBy": "partner",
+  "petLastKind": "feed",
+  "petLastItem": "mora",
+  "noteId": "4f0c7a52-6d49-4a43-9c1b-2d7f0b9e1a11",
+  "noteKind": "draw",
+  "noteContent": {
+    "strokes": [
+      {
+        "c": "strawberry",
+        "w": 2,
+        "p": [
+          [
+            500,
+            860
+          ],
+          [
+            300,
+            700
+          ],
+          [
+            240,
+            520
+          ],
+          [
+            330,
+            380
+          ],
+          [
+            500,
+            470
+          ],
+          [
+            670,
+            380
+          ],
+          [
+            760,
+            520
+          ],
+          [
+            700,
+            700
+          ],
+          [
+            500,
+            860
+          ]
+        ]
+      },
+      {
+        "c": "leaf",
+        "w": 1,
+        "p": [
+          [
+            500,
+            470
+          ],
+          [
+            470,
+            380
+          ],
+          [
+            420,
+            320
+          ]
+        ]
+      }
+    ]
+  },
+  "noteBy": "partner",
+  "noteByName": "Nikole",
+  "noteAt": 1794570480000,
+  "noteExpiresAt": 1794574080000,
+  "shareMine": true,
+  "myLatE2": 4190,
+  "myLonE2": 1250,
+  "myLocAt": 1794570600000,
+  "partnerLocState": "ok",
+  "partnerLatE2": 4546,
+  "partnerLonE2": 919,
+  "partnerLocAt": 1794569400000,
+  "feedUrl": "https://example.supabase.co",
+  "feedKey": "sb_publishable_example",
+  "feedToken": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "cdEvents": [
+    {
+      "id": "6c1f0f0e-3b7a-4d5a-9a5e-7d2f7b1c0a11",
+      "title": "Ci vediamo",
+      "date": "2026-12-20",
+      "time": "18:30",
+      "icon": "heart",
+      "featured": true
+    },
+    {
+      "id": "0b9d9a52-1a43-4a1f-8d58-2f6f4c0e7b22",
+      "title": "Concerto",
+      "date": "2027-02-05",
+      "time": null,
+      "icon": "ticket",
+      "featured": false
+    }
+  ]
+}

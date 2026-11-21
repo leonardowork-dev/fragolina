@@ -1,6 +1,7 @@
 import { WIDGET_SCHEMA_VERSION } from "@/config/couple";
 import type { LocationState } from "@/lib/geo/types";
 import { type CountdownEvent, WIDGET_EVENTS, isValidDate, minutesOf, widgetEvents } from "@/lib/countdown/rules";
+import { cleanExpiry } from "@/lib/expiry";
 import { type EventIconId, isEventIcon } from "@/lib/countdown/icons";
 import { type Note, type NoteContent, noteState } from "@/lib/note/rules";
 import { type PetState, stageOf } from "@/lib/pet/rules";
@@ -94,6 +95,9 @@ export type WidgetSnapshot = {
    * calcola da solo i giorni dalla data (come "Giorni insieme"): così scatta a mezzanotte anche con l'app chiusa.
    */
   cdEvents: WidgetEvent[];
+  // ---- v7 (scadenza) ----
+  /** Scadenza dell'app (provisioning profile, ms). `null` = sconosciuta. Il widget la confronta con la PROPRIA se più lontana. */
+  appExpiresAt: number | null;
 };
 
 /** Un evento come lo vede il widget (stesso JSON del feed `widget_feed.events`, senza `at` né `by`). */
@@ -126,6 +130,8 @@ export type WidgetSource = {
   feed?: { url: string; key: string; token: string } | null;
   /** Gli eventi del conto alla rovescia come li vede questo telefono (con quelli in coda). */
   events?: readonly CountdownEvent[] | null;
+  /** Scadenza dell'app (ms) dal provisioning profile, se si legge. */
+  appExpiresAt?: number | null;
 };
 
 const CARE_KINDS = ["feed", "cuddle", "play", "sleep", "hatch"];
@@ -164,6 +170,7 @@ export function buildSnapshot(s: WidgetSource, now: number, today: string): Widg
     feedKey: s.feed && s.coupleId ? s.feed.key : "",
     feedToken: s.feed && s.coupleId ? s.feed.token : "",
     cdEvents: paired ? widgetEvents(s.events ?? [], today).map(toWidgetEvent) : [],
+    appExpiresAt: cleanExpiry(s.appExpiresAt),
   };
 }
 
@@ -334,6 +341,7 @@ const KEYS: (keyof WidgetSnapshot)[] = [
   "feedKey",
   "feedToken",
   "cdEvents",
+  "appExpiresAt",
 ];
 
 /** JSON con l'ordine delle chiavi fisso (diff leggibili, firma stabile). */
@@ -403,6 +411,7 @@ export function decodeSnapshot(raw: string): WidgetSnapshot | null {
       feedKey: str(o.feedKey) ?? "",
       feedToken: str(o.feedToken) ?? "",
       cdEvents: decodeEvents(o.cdEvents),
+      appExpiresAt: cleanExpiry(o.appExpiresAt),
     };
   } catch {
     return null;

@@ -10,6 +10,7 @@ import { countdownDisplay } from "@/lib/countdown/widgetModel";
 import { wallClock } from "@/lib/countdown/rules";
 import * as CD from "./widgets/countdownViews";
 import { PreviewEntry } from "./widgets/model";
+import { expiryView } from "@/lib/expiry";
 import { Confetti, Frame } from "./widgets/kit-exports";
 import * as NV from "./widgets/noteViews";
 import * as PV from "./widgets/petViews";
@@ -88,6 +89,7 @@ const base: WidgetSnapshot = {
   feedKey: "",
   feedToken: "",
   cdEvents: [],
+  appExpiresAt: null,
 };
 
 const squiggle = (k: number) => ({
@@ -128,6 +130,7 @@ const CASES: Case[] = [
   { id: "festa-100", title: "Giorno di festa: 100 giorni", snap: { ...base, startDate: iso(-100) } },
   { id: "tra-12", title: "Tra 12 giorni: 6 mesi", snap: { ...base, startDate: "2026-05-24" } },
   { id: "un-giorno", title: "1 giorno insieme", snap: { ...base, startDate: iso(-1) } },
+  { id: "rinnovami", title: "Ultimo giorno prima della scadenza: adesivo \"rinnovami\"", snap: { ...base, appExpiresAt: NOW + 5 * H } },
   { id: "senza-data", title: "Data non scelta", snap: { ...base, startDate: null } },
   { id: "senza-umore", title: "Nessun umore (né suo né mio), nessun pensiero", snap: { ...base, moodId: null, moodLabel: "", moodAt: null, myMoodId: null, myMoodLabel: "", myMoodAt: null, pingsReceived: 0, lastPingAt: null, thinkingToday: 0 } },
   { id: "pet-fame", title: "Pet: ha fame (pancia bassa), germoglio", snap: { ...base, petFood: 200, petLove: 700, petEnergy: 700, petAt: NOW } },
@@ -187,16 +190,17 @@ function CaseView({ c, report }: { c: Case; report: (m: string) => void }) {
   const e = useMemo(() => new PreviewEntry(c.snap, NOW, TODAY), [c.snap]);
   const r = useCallback((m: string) => report(`[${c.id}] ${m}`), [report, c.id]);
   const sleepy = e.state !== "ok";
+  const renewNow = expiryView(c.snap?.appExpiresAt ?? null, NOW).state === "last";
   const sm = (label: string, body: React.ReactNode, confetti = false) => (
     <Wrap label={label}>
-      <Frame label={`${c.id}-${label}`} report={r} confetti={confetti ? <Confetti w={148} h={148} /> : undefined}>
+      <Frame label={`${c.id}-${label}`} report={r} renew={renewNow} confetti={confetti ? <Confetti w={148} h={148} /> : undefined}>
         {sleepy ? <V.Sleepy e={e} compact report={r} /> : body}
       </Frame>
     </Wrap>
   );
   const md = (label: string, body: React.ReactNode, confetti = false) => (
     <Wrap label={label}>
-      <Frame w={321} label={`${c.id}-${label}`} report={r} confetti={confetti ? <Confetti w={321} h={148} /> : undefined}>
+      <Frame w={321} label={`${c.id}-${label}`} report={r} renew={renewNow} confetti={confetti ? <Confetti w={321} h={148} /> : undefined}>
         {sleepy ? <V.Sleepy e={e} compact={false} report={r} /> : body}
       </Frame>
     </Wrap>

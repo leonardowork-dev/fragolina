@@ -15,6 +15,7 @@ import {
 } from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { DistanceCard } from "@/features/distance/DistanceCard";
+import { ExpiryCard } from "@/features/expiry/ExpiryCard";
 import { PairingPanel } from "@/features/pairing/PairingPanel";
 import { appVersionLabel } from "@/lib/appInfo";
 import { S } from "@/lib/strings.it";
@@ -177,6 +178,7 @@ export function UsScreen() {
         </View>
       </Sticker>
 
+      <ExpiryCard />
       {coupleId ? <DistanceCard /> : null}
       {coupleId ? <TogetherLinks /> : null}
 

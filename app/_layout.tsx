@@ -24,6 +24,7 @@ import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { useLocationSync } from "@/features/distance/useLocationSync";
 import { useNetworkRecovery, useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useSyncLifecycle";
 import { useDeepLinks } from "@/features/widgetSync/useDeepLinks";
+import { useExpirySync } from "@/features/expiry/useExpirySync";
 import { useWidgetSync } from "@/features/widgetSync/useWidgetSync";
 import { preloadSounds } from "@/lib/sound";
 import { useCelebrated } from "@/state/celebratedStore";
@@ -39,6 +40,7 @@ function Shell() {
   const hydrated = useSettings((s) => s.hydrated);
   const onboardingDone = useSettings((s) => s.onboardingDone);
   useWidgetSync();
+  useExpirySync();
   useLocationSync();
   useSyncLifecycle();
   useNetworkRecovery();

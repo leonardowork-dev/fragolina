@@ -27,7 +27,7 @@ struct FragolinaProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<FragolinaEntry>) -> Void) {
         let now = Date()
         let base = load(at: now)
-        let entries = timelineDates(now: now, updatedAtMs: base.snapshot?.updatedAt).map {
+        let entries = withRenewDate(timelineDates(now: now, updatedAtMs: base.snapshot?.updatedAt), now: now, snapshot: base.snapshot).map {
             FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group)
         }
         // Rilegge il JSON ogni ora anche senza che l'app lo chieda (l'app comunque ricarica a ogni cambio).
@@ -79,7 +79,7 @@ struct PetProvider: TimelineProvider {
             }
             dates.sort()
         }
-        let entries = dates.map { FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group) }
+        let entries = withRenewDate(dates, now: now, snapshot: base.snapshot).map { FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group) }
         completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(60 * 60))))
     }
 }
@@ -134,7 +134,7 @@ struct NoteProvider: TimelineProvider {
         let now = Date()
         loadWithFeed(now: now) { base in
             let expires = base.noteDisplay?.expiresAt
-            let entries = noteTimelineDates(now: now, expiresAtMs: expires).map {
+            let entries = withRenewDate(noteTimelineDates(now: now, expiresAtMs: expires), now: now, snapshot: base.snapshot).map {
                 FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group, feed: base.feed, feedRevoked: base.feedRevoked)
             }
             completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(feedRefresh))))
@@ -154,7 +154,7 @@ struct DistanceProvider: TimelineProvider {
         let now = Date()
         loadWithFeed(now: now) { base in
             let partnerAt = base.partnerLoc?.at
-            let entries = distanceTimelineDates(now: now, partnerAtMs: partnerAt).map {
+            let entries = withRenewDate(distanceTimelineDates(now: now, partnerAtMs: partnerAt), now: now, snapshot: base.snapshot).map {
                 FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group, feed: base.feed, feedRevoked: base.feedRevoked)
             }
             completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(feedRefresh))))
@@ -192,7 +192,7 @@ struct CountdownProvider: TimelineProvider {
             // le voci si ricalcolano per l'evento che sarà in primo piano adesso; a mezzanotte e all'ora dell'evento si rifà tutto
             let first = base.countdown
             let dates = countdownTimelineDates(now: now, eventDate: first?.event.date, eventTime: first?.event.time)
-            let entries = dates.map {
+            let entries = withRenewDate(dates, now: now, snapshot: base.snapshot).map {
                 FragolinaEntry(date: $0, snapshot: base.snapshot, group: base.group, feed: base.feed, feedRevoked: base.feedRevoked)
             }
             completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(feedRefresh))))

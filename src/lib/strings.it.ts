@@ -69,6 +69,36 @@ export const S = {
     yourAnswer: "La tua risposta",
     loadingMood: "Cerco il suo umore…",
   },
+  expiry: {
+    title: "Rinnovo",
+    mine: (v: { state: string; days: number; dayLabel: string }) =>
+      v.state === "expired"
+        ? "Fragolina è scaduta: va rinnovata."
+        : v.days <= 0
+          ? `Fragolina scade oggi (${v.dayLabel})`
+          : v.days === 1
+            ? `Fragolina scade domani (${v.dayLabel})`
+            : `Fragolina scade tra ${v.days} giorni (${v.dayLabel})`,
+    partner: (name: string, v: { state: string; days: number; dayLabel: string }) =>
+      v.state === "expired"
+        ? `La Fragolina di ${name} è scaduta.`
+        : v.days <= 0
+          ? `Quella di ${name} scade oggi (${v.dayLabel})`
+          : v.days === 1
+            ? `Quella di ${name} scade domani (${v.dayLabel})`
+            : `Quella di ${name} scade tra ${v.days} giorni (${v.dayLabel})`,
+    hint: "Con l'Apple ID gratuito l'app dura 7 giorni. Si rinnova dal PC (o con SideStore).",
+    guide: "Come si rinnova",
+    guideLabel: "Apri la guida al rinnovo",
+    nudge: (days: number) =>
+      days <= 0
+        ? "Rinnova Fragolina oggi"
+        : days === 1
+          ? "Rinnova Fragolina entro domani"
+          : "Rinnova Fragolina entro dopodomani",
+    nudgeSub: "Altrimenti l'app smette di aprirsi. Tocca per la guida.",
+    guideUrl: "https://github.com/leonardowork-dev/fragolina/blob/main/RINNOVO.md",
+  },
   pairing: {
     person: "la tua persona",
     yourName: "Il tuo nome",

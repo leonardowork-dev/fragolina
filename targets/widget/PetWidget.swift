@@ -178,7 +178,7 @@ struct PetHomeView: View {
                 PetSmallView(entry: entry)
             }
         }
-        .stickerWidgetBackground()
+        .stickerWidgetBackground(renew: entry.renewLastDay)
     }
 }
 

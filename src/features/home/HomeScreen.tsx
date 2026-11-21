@@ -1,3 +1,4 @@
+import { RenewNudge } from "@/features/expiry/RenewNudge";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { type GestureResponderEvent, Pressable, View } from "react-native";
@@ -459,6 +460,7 @@ export function HomeScreen() {
           <Text variant="title">{S.home.title}</Text>
         </Pressable>
       </View>
+      <RenewNudge />
       {pairing === "paired" ? <ThinkHero /> : <ConnectHero />}
       {pairing === "paired" ? <GameInvite /> : null}
       <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>

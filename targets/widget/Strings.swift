@@ -153,6 +153,9 @@ enum WS {
     static func cdInline(_ big: String, _ unit: String, _ title: String) -> String { "\(big) \(unit): \(title)" }
     static func cdInlinePlain(_ unit: String, _ title: String) -> String { "\(unit.prefix(1).uppercased() + unit.dropFirst()): \(title)" }
 
+    // ---- Scadenza dell'app (stesse parole di src/lib/strings.it.ts, sezione expiry) ----
+    static let renewMe = "rinnovami"
+
     // ---- "aggiornato" ----
     static func updated(_ ago: String) -> String { "aggiornato " + ago }
 

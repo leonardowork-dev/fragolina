@@ -30,6 +30,11 @@ public class GroupResolverModule: Module {
             return defaults.string(forKey: GroupResolver.payloadKey)
         }
 
+        // Scadenza dell'app (provisioning profile embedded), ms da epoch; nil se non c'è (build non sideload).
+        Function("expirationDate") { () -> Double? in
+            GroupResolver.provisionExpiryMs()
+        }
+
         Function("reloadWidgets") { () in
             if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
         }

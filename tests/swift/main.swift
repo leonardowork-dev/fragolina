@@ -182,5 +182,20 @@ for item in (input["countdownTimeline"] as? [[String: Any]]) ?? [] {
 }
 out["countdownTimeline"] = cdTl
 
+ // Scadenza dell'app
+var renewOut: [Any] = []
+for item in (input["renew"] as? [[String: Any]]) ?? [] {
+    let nowMs = (item["nowMs"] as? Double) ?? 0
+    let now = Date(timeIntervalSince1970: nowMs / 1000)
+    let own = item["own"] as? Double
+    let snap = item["snap"] as? Double
+    let eff = effectiveExpiry(own: own, snap: snap)
+    var row: [String: Any] = ["last": isRenewLastDay(expiresMs: eff, now: now)]
+    row["eff"] = eff.map { Int($0) } ?? NSNull()
+    if let t = renewTimelineDate(expiresMs: eff, now: now) { row["tl"] = Int((t.timeIntervalSince1970 * 1000).rounded()) } else { row["tl"] = NSNull() }
+    renewOut.append(row)
+}
+out["renew"] = renewOut
+
 let data = try! JSONSerialization.data(withJSONObject: out, options: [.sortedKeys])
 try! data.write(to: URL(fileURLWithPath: args[2]))

@@ -147,11 +147,14 @@ export function Frame({
   children,
   report,
   label,
+  renew,
 }: {
   w?: number;
   h?: number;
   pad?: number;
   confetti?: React.ReactNode;
+  /** Ultimo giorno prima della scadenza dell'app: adesivo "rinnovami" in alto a sinistra (come `RenewPill` in Components.swift). */
+  renew?: boolean;
   children: React.ReactNode;
   report?: (msg: string) => void;
   label: string;
@@ -176,6 +179,11 @@ export function Frame({
       <View ref={ref as never} style={{ position: "absolute", left: pad - 1, top: pad - 1, right: pad - 1, bottom: pad - 1, overflow: "hidden" }}>
         {children}
       </View>
+      {renew ? (
+        <View style={{ position: "absolute", left: 6, top: 6 }}>
+          <Pill text="rinnovami" size={9} rotation={-2} />
+        </View>
+      ) : null}
     </View>
   );
 }
