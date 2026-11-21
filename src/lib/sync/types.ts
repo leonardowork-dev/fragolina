@@ -56,6 +56,8 @@ export type RemoteEvent =
   | { type: "member-joined"; member: Member }
   | { type: "member-left"; userId: string }
   | { type: "member-renamed"; userId: string; displayName: string }
+  /** La zona privata è cambiata: SOLO un segnale, nessun contenuto (il telefono rilegge con `zoneGet`). */
+  | { type: "zone" }
   /** La riga del pet è cambiata (qualcuno l'ha curato, nome, schiusa). */
   | { type: "pet"; pet: PetState }
   /** Un biglietto è nato o è stato pulito (riga della tabella notes). */

@@ -206,6 +206,7 @@ export function applyEvent(
     case "location":
     case "game":
     case "extra":
+    case "zone":
       return base; // li gestisce lo store (fette del pet e della lavagna), non lo stato condiviso base
     case "member-renamed": {
       const members = base.members.map((m) =>

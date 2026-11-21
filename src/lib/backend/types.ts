@@ -1,3 +1,4 @@
+import type { ZOp, ZSnapshot } from "@/lib/zone/types";
 import type { MoodId } from "@/features/home/moods";
 import type { GameKind, GameMove, GameParams, GameRow, GamesSnapshot } from "@/lib/games/types";
 import type { Board } from "@/lib/note/wire";
@@ -132,6 +133,10 @@ export interface Backend {
   setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void>;
   /** Crea (o cambia) il token con cui il widget legge il feed. Il token in chiaro esiste solo qui e nel container del widget. */
   rotateWidgetToken(): Promise<string>;
+  /** Zona privata: fotografia (null = il server non ha la migrazione), una operazione, e il segnale "è cambiato qualcosa" (solo un contatore). */
+  zoneGet(): Promise<ZSnapshot | null>;
+  zoneApply(op: ZOp): Promise<void>;
+  subscribeZone(coupleId: string, onPulse: () => void): () => void;
   /** Scrive la scadenza della MIA app (provisioning profile, ms). Server senza la migrazione = non fa nulla. */
   setAppExpiry(ms: number): Promise<void>;
   /** La scadenza dell'altra persona. `null` = nessuna altra persona o server senza la migrazione. */

@@ -10,6 +10,8 @@ import { boardFromJson, noteFromJson, noteRowFromRecord } from "@/lib/note/wire"
 import { petFromRow, petSnapshotFromJson } from "@/lib/pet/wire";
 import type { CountdownEvent, EventInput } from "@/lib/countdown/rules";
 import { eventsFromJson } from "@/lib/countdown/sync";
+import type { ZOp, ZSnapshot } from "@/lib/zone/types";
+import { zoneSnapshotFromJson } from "@/lib/zone/wire";
 import { type MonthRaw, monthRawFromJson } from "@/lib/memories/month";
 import { readPhotoBytes } from "@/lib/memories/photoDevice";
 import { type Memory, type MemoryKind, type MemorySource, memoriesFromJson, memoryFromJson } from "@/lib/memories/types";
@@ -509,6 +511,53 @@ export class SupabaseBackend implements Backend {
   }
   async setLocation(p: { latE2: number; lonE2: number; at: number }) {
     await this.rpc("set_location", { p_lat_e2: p.latE2, p_lon_e2: p.lonE2, p_at: Math.round(p.at) });
+  }
+  async zoneGet(): Promise<ZSnapshot | null> {
+    try {
+      return zoneSnapshotFromJson(await this.rpc<object>("z_get"));
+    } catch (e) {
+      if (isMissing(e, "z_get")) return null;
+      throw e;
+    }
+  }
+  async zoneApply(op: ZOp): Promise<void> {
+    const call = (fn: string, args?: Record<string, unknown>) => this.rpc(fn, args);
+    switch (op.kind) {
+      case "log":
+        return void (await call("z_log", { p_id: op.id, p_day: op.day, p_at: Math.round(op.at), p_place: op.place, p_starter: op.starter, p_rating: op.rating, p_note: op.note }));
+      case "logDelete":
+        return void (await call("z_log_delete", { p_id: op.id }));
+      case "wish":
+        return void (await call("z_wish", { p_idea: op.idea, p_on: op.on }));
+      case "ideaAdd":
+        return void (await call("z_idea_add", { p_id: op.id, p_text: op.text, p_level: op.level }));
+      case "ideaDelete":
+        return void (await call("z_idea_delete", { p_id: op.id }));
+      case "tonight":
+        return void (await call("z_tonight", { p_answer: op.answer }));
+      case "signal":
+        return void (await call("z_signal", { p_level: op.level }));
+      case "signalClear":
+        return void (await call("z_signal_clear"));
+      case "voucherAdd":
+        return void (await call("z_voucher_add", { p_id: op.id, p_title: op.title, p_expires: op.expires }));
+      case "voucherRedeem":
+        return void (await call("z_voucher_redeem", { p_id: op.id }));
+      case "voucherDelete":
+        return void (await call("z_voucher_delete", { p_id: op.id }));
+      case "wipe":
+        return void (await call("z_wipe"));
+    }
+  }
+  /** Tempo reale: SOLO il contatore `z_pulse` (nessun contenuto). Quando cambia, il telefono rilegge con z_get. */
+  subscribeZone(coupleId: string, onPulse: () => void): () => void {
+    const ch: RealtimeChannel = this.client
+      .channel(`zone-${coupleId}-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "z_pulse", filter: `couple_id=eq.${coupleId}` }, () => onPulse());
+    ch.subscribe();
+    return () => {
+      void this.client.removeChannel(ch);
+    };
   }
   async setAppExpiry(ms: number) {
     try {

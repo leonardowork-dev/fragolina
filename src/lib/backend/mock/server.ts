@@ -21,6 +21,9 @@ import type { LocationState, PartnerLocState } from "@/lib/geo/types";
 import type { Board } from "@/lib/note/wire";
 import type { PetLogEntry, PetSnapshot } from "@/lib/pet/sync";
 import type { DailyAnswer, Member, RemoteEvent, RemoteState } from "@/lib/sync/types";
+import { type ZoneCtx, type ZoneDb, emptyZoneDb, zoneApply, zoneSnapshot } from "@/lib/zone/engine";
+import type { ZOp, ZSnapshot } from "@/lib/zone/types";
+import { romeDayKey } from "@/lib/time";
 import type { PartnerExpiry } from "../types";
 import { type ExtraState, MockExtra, emptyExtra } from "./extra";
 
@@ -69,6 +72,8 @@ export type MockState = {
   }[];
   locations?: Record<string, { coupleId: string; sharing: boolean; latE2: number | null; lonE2: number | null; at: number }>;
   widgetTokens?: Record<string, string>;
+  /** Zona privata (sessione 10): una base dati per coppia. */
+  zone?: Record<string, ZoneDb>;
   /** Scadenza dell'app per persona (sessione 9), ms. */
   appExpiry?: Record<string, { at: number; reportedAt: number }>;
   /** Giochi (sessione 6): una "base dati" per coppia (le stesse funzioni pure del telefono e della prova SQL). */
@@ -259,6 +264,11 @@ export class MockServer {
     if (s.locations) delete s.locations[uid];
     if (s.widgetTokens) delete s.widgetTokens[uid];
     if (s.appExpiry) delete s.appExpiry[uid];
+    for (const zdb of Object.values(s.zone ?? {})) {
+      zdb.wishes = zdb.wishes.filter((w) => w.userId !== uid);
+      zdb.tonight = zdb.tonight.filter((t) => t.userId !== uid);
+      zdb.signals = zdb.signals.filter((x) => x.userId !== uid);
+    }
     this.storage.write(s);
     // Come su Supabase: le cancellazioni non arrivano in tempo reale (la RLS non può valutarle). Nessun emit.
     return { ok: true };
@@ -648,6 +658,31 @@ export class MockServer {
     s.locations![uid] = { ...cur, latE2: p.latE2, lonE2: p.lonE2, at: t };
     this.storage.write(s);
     this.emit({ coupleId: cid, actor: uid, event: { type: "location" } });
+    return { ok: true };
+  }
+
+  private zoneCtx(s: MockState, uid: string): { cid: string; ctx: ZoneCtx } | null {
+    const cid = this.coupleOf(s, uid);
+    if (!cid) return null;
+    const now = this.clock();
+    return { cid, ctx: { uid, members: s.members.filter((m) => m.coupleId === cid).map((m) => ({ userId: m.userId, role: m.role })), now, today: romeDayKey(now) } };
+  }
+  zoneGet(uid: string): Res<{ snapshot: ZSnapshot }> {
+    const s = this.storage.read();
+    const z = this.zoneCtx(s, uid);
+    if (!z) return { ok: false, error: "not_paired" };
+    return { ok: true, snapshot: zoneSnapshot(s.zone?.[z.cid] ?? emptyZoneDb(), z.ctx) };
+  }
+  zoneApply(uid: string, op: ZOp): Res<object> {
+    const s = this.storage.read();
+    const z = this.zoneCtx(s, uid);
+    if (!z) return { ok: false, error: "not_paired" };
+    s.zone ??= {};
+    const db = (s.zone[z.cid] ??= emptyZoneDb());
+    const r = zoneApply(db, z.ctx, op);
+    if (!r.ok) return { ok: false, error: r.error };
+    this.storage.write(s);
+    this.emit({ coupleId: z.cid, actor: uid, event: { type: "zone" } });
     return { ok: true };
   }
 

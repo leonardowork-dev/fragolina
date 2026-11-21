@@ -18,6 +18,7 @@ import {
 } from "@/lib/sync/types";
 import { uuid } from "@/lib/uuid";
 
+import type { ZOp, ZSnapshot } from "@/lib/zone/types";
 import type {
   Backend,
   CodeRenewed,
@@ -308,6 +309,18 @@ export class MockBackend implements Backend {
   setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void> {
     return this.wire(() => void this.ok(this.server.setLocation(this.uid, p)));
   }
+  zoneGet(): Promise<ZSnapshot | null> {
+    return this.wire(() => this.ok(this.server.zoneGet(this.uid)).snapshot);
+  }
+  zoneApply(op: ZOp): Promise<void> {
+    return this.wire(() => void this.ok(this.server.zoneApply(this.uid, op)));
+  }
+  subscribeZone(coupleId: string, onPulse: () => void): () => void {
+    return this.bus.listen((c) => {
+      if (this.offline || c.coupleId !== coupleId || c.event.type !== "zone") return;
+      void this.sleep(0).then(() => !this.offline && onPulse());
+    });
+  }
   setAppExpiry(ms: number): Promise<void> {
     return this.wire(() => void this.ok(this.server.setAppExpiry(this.uid, ms)));
   }
@@ -321,7 +334,7 @@ export class MockBackend implements Backend {
   subscribe(coupleId: string, h: SubscriptionHandlers): () => void {
     let alive = true;
     const off = this.bus.listen((c) => {
-      if (!alive || this.offline || c.coupleId !== coupleId) return;
+      if (!alive || this.offline || c.coupleId !== coupleId || c.event.type === "zone") return;
       if (c.actor === this.uid && c.event.type !== "couple" && c.event.type !== "member-joined") {
         // Anche il proprio inserimento torna indietro in tempo reale (come su Supabase): serve a provare la deduplica.
       }
