@@ -612,6 +612,48 @@ try {
     }
   }
 
+  // sessione 10: zona privata
+  {
+    const zg = await rpc(A.c, "z_get");
+    if (zg.error && /z_get|PGRST202|Could not find/i.test(String(zg.error))) {
+      rows.push(["MANCA", "zona: migrazione sessione10-piccante.sql non applicata", ""]);
+    } else {
+      const u = () => crypto.randomUUID();
+      let pulses = 0;
+      const zch = B.c.channel("z-" + u()).on("postgres_changes", { event: "*", schema: "public", table: "z_pulse" }, () => pulses++);
+      await new Promise((res) => zch.subscribe((st) => (st === "SUBSCRIBED" || st === "CHANNEL_ERROR" || st === "TIMED_OUT") && res()));
+      for (let i = 0; i < 3; i++) await rpc(A.c, "z_log", { p_id: u(), p_day: day, p_at: Date.now(), p_place: "letto", p_starter: "a", p_rating: 4, p_note: null });
+      const zb = await rpc(B.c, "z_get");
+      check("zona: A segna 3 volte, B vede 3 cuoricini", zb.ok && zb.entries.filter((e) => e.day === day).length === 3, JSON.stringify(zb).slice(0, 120));
+      check("zona: il terzo non vede niente", (await rpc(C.c, "z_get")).error === "not_paired");
+      const rd = await C.c.from("z_entries").select("*");
+      check("zona: le tabelle non si leggono dai client", !!rd.error || (rd.data ?? []).length === 0, JSON.stringify(rd.data)?.slice(0, 80));
+      await rpc(A.c, "z_wish", { p_idea: "d001", p_on: true });
+      await rpc(A.c, "z_wish", { p_idea: "d002", p_on: true });
+      await rpc(B.c, "z_wish", { p_idea: "d001", p_on: true });
+      const m1 = await rpc(A.c, "z_get");
+      const m2 = await rpc(B.c, "z_get");
+      check("desideri: d001 è un match per entrambi", m1.matches?.includes("d001") && m2.matches?.includes("d001"));
+      check("desideri: d002 (scelto da uno solo) resta segreto", !JSON.stringify(m2).includes("d002") && !m1.matches.includes("d002"));
+      await rpc(A.c, "z_tonight", { p_answer: "yes" });
+      const t1 = await rpc(B.c, "z_get");
+      check("stasera: B vede solo che A ha risposto", t1.tonight.otherAnswered === true && t1.tonight.result === null && t1.tonight.mine === null);
+      await rpc(B.c, "z_tonight", { p_answer: "maybe" });
+      check("stasera: sì + forse = match", (await rpc(A.c, "z_get")).tonight.result === "match");
+      await rpc(A.c, "z_signal", { p_level: 2 });
+      check("ho voglia: B lo vede", (await rpc(B.c, "z_get")).signal.incoming?.level === 2);
+      const vid = u();
+      await rpc(A.c, "z_voucher_add", { p_id: vid, p_title: "Un massaggio", p_expires: null });
+      check("buono: B lo riscatta", (await rpc(B.c, "z_voucher_redeem", { p_id: vid })).ok === true);
+      await new Promise((r) => setTimeout(r, 2500));
+      check("zona realtime: B riceve il contatore (nessun contenuto)", pulses > 0, "nessun evento");
+      const wf = await rpc(A.c, "widget_feed", { p_token: "x".repeat(64) });
+      check("zona: widget_feed non porta niente della zona", !/z_|piccant|desider|massaggio/i.test(JSON.stringify(wf)));
+      check("zona: cancella tutto svuota per entrambi", (await rpc(B.c, "z_wipe")).ok === true && (await rpc(A.c, "z_get")).entries.length === 0 && (await rpc(A.c, "z_get")).vouchers.length === 0);
+      await B.c.removeChannel(zch);
+    }
+  }
+
   // sessione 9: scadenza dell'app
   {
     const exp = Date.now() + 5 * 86_400_000;
