@@ -24,6 +24,9 @@ import { LinkBadge } from "@/features/pairing/LinkBadge";
 import { useLocationSync } from "@/features/distance/useLocationSync";
 import { useNetworkRecovery, useSyncLifecycle, useRealtimeEffects } from "@/features/widgetSync/useSyncLifecycle";
 import { useDeepLinks } from "@/features/widgetSync/useDeepLinks";
+import { useZoneNotice } from "@/features/zone/useZoneNotice";
+import { HeatBurstLayer } from "@/features/zone/HeatBurst";
+import { ZoneCover } from "@/features/zone/ZoneCover";
 import { useExpirySync } from "@/features/expiry/useExpirySync";
 import { useWidgetSync } from "@/features/widgetSync/useWidgetSync";
 import { preloadSounds } from "@/lib/sound";
@@ -41,6 +44,7 @@ function Shell() {
   const onboardingDone = useSettings((s) => s.onboardingDone);
   useWidgetSync();
   useExpirySync();
+  useZoneNotice();
   useLocationSync();
   useSyncLifecycle();
   useNetworkRecovery();
@@ -75,10 +79,13 @@ function Shell() {
         <Stack.Screen name="question" />
         <Stack.Screen name="memories" />
         <Stack.Screen name="month" />
+        <Stack.Screen name="zone" options={{ animation: "fade" }} />
       </Stack>
       <Grain />
       <HeartBurstLayer />
       <ConfettiLayer />
+      <HeatBurstLayer />
+      <ZoneCover />
       <LinkBadge />
     </View>
   );

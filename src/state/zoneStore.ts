@@ -4,7 +4,11 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { getBackend } from "@/lib/backend";
 import { safeStorage } from "@/lib/storage";
 import { uuid } from "@/lib/uuid";
+import { DECK } from "@/lib/zone/deck";
+import { type ZoneCtx, type ZoneDb, emptyZoneDb, zoneApply, zoneSnapshot } from "@/lib/zone/engine";
 import { RELOCK_MS } from "@/lib/zone/gate";
+import { romeDayKey } from "@/lib/time";
+import { hashString, seeded } from "@/lib/hash";
 import { replayZone } from "@/lib/zone/replay";
 import { type ZOp, type ZSnapshot, emptyZSnapshot } from "@/lib/zone/types";
 
@@ -30,6 +34,9 @@ type ZoneState = {
   /** Errore leggibile dell'ultima operazione rifiutata (per la zona, mai fuori). */
   rejected: string | null;
   hydrated: boolean;
+  /** Prova da solo (non siete ancora in due): partner finto, tutto locale. */
+  practice: boolean;
+  setPractice: (on: boolean) => void;
   unlock: () => void;
   lock: () => void;
   touch: (now?: number) => void;
@@ -47,6 +54,37 @@ const FINAL = new Set(["invalid_content", "not_found", "expired", "already_answe
 
 let flushing: Promise<void> | null = null;
 
+// ---- Prova da solo: un'altra persona FINTA, solo su questo telefono (mai sul server) ----
+let pdb: ZoneDb = emptyZoneDb();
+let botReady = false;
+const pctx = (uid: "me" | "bot"): ZoneCtx => {
+  const now = Date.now();
+  return { uid, members: [{ userId: "me", role: "a" }, { userId: "bot", role: "b" }], now, today: romeDayKey(now) };
+};
+function botStart() {
+  if (botReady) return;
+  botReady = true;
+  // la persona finta sceglie una trentina di idee a caso (stesso seme: sempre le stesse) e ti regala un buono
+  DECK.forEach((d) => {
+    if (seeded(hashString(`bot-${d.id}`)) < 0.35) zoneApply(pdb, pctx("bot"), { kind: "wish", key: "b", idea: d.id, on: true });
+  });
+  zoneApply(pdb, pctx("bot"), { kind: "voucherAdd", key: "b", id: "00000000-0000-4000-8000-000000000001", title: "Un bacio a richiesta", expires: null });
+  // (il buono parte da "bot" verso "me": il motore usa l'altro membro come destinatario)
+}
+const practiceBackend = {
+  zoneGet: async () => {
+    botStart();
+    return zoneSnapshot(pdb, pctx("me"));
+  },
+  zoneApply: async (op: ZOp) => {
+    const r = zoneApply(pdb, pctx("me"), op);
+    if (!r.ok) throw new Error(r.error);
+    // la persona finta risponde a "stasera?" (sì) e, se mandi "ho voglia", non fa niente
+    if (op.kind === "tonight") zoneApply(pdb, pctx("bot"), { kind: "tonight", key: "b", answer: "yes" });
+  },
+};
+const backendFor = (practice: boolean) => (practice ? practiceBackend : getBackend());
+
 export const useZone = create<ZoneState>()(
   persist(
     (set, get) => ({
@@ -59,12 +97,25 @@ export const useZone = create<ZoneState>()(
       busy: false,
       rejected: null,
       hydrated: false,
+      practice: false,
+      setPractice: (on) => {
+        if (get().practice === on) return;
+        pdb = emptyZoneDb();
+        botReady = false;
+        set({ practice: on, snapshot: emptyZSnapshot(), loaded: false, queue: on ? [] : get().queue });
+      },
       unlock: () => set({ unlocked: true, lastActiveAt: Date.now() }),
-      lock: () => set({ unlocked: false, snapshot: emptyZSnapshot(), loaded: false, lastActiveAt: null }),
+      lock: () => {
+        if (get().practice) {
+          pdb = emptyZoneDb();
+          botReady = false;
+        }
+        set({ unlocked: false, snapshot: emptyZSnapshot(), loaded: false, lastActiveAt: null });
+      },
       touch: (now = Date.now()) => set({ lastActiveAt: now }),
       refresh: async () => {
         try {
-          const snap = await getBackend().zoneGet();
+          const snap = await backendFor(get().practice).zoneGet();
           if (snap === null) set({ available: false, loaded: true });
           else set({ available: true, snapshot: snap, loaded: true });
         } catch {
@@ -80,7 +131,7 @@ export const useZone = create<ZoneState>()(
         flushing = (async () => {
           try {
             set({ busy: true });
-            const backend = getBackend();
+            const backend = backendFor(get().practice);
             for (let guard = 0; guard < 200; guard++) {
               const op = get().queue[0];
               if (!op) break;
@@ -106,7 +157,7 @@ export const useZone = create<ZoneState>()(
       wipeAll: async () => {
         try {
           set({ queue: [] });
-          await getBackend().zoneApply({ kind: "wipe", key: uuid() });
+          await backendFor(get().practice).zoneApply({ kind: "wipe", key: uuid() });
           set({ snapshot: emptyZSnapshot() });
           await get().refresh();
           return true;

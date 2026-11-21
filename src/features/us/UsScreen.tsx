@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { View } from "react-native";
 
 import {
@@ -18,6 +18,7 @@ import { DistanceCard } from "@/features/distance/DistanceCard";
 import { ExpiryCard } from "@/features/expiry/ExpiryCard";
 import { PairingPanel } from "@/features/pairing/PairingPanel";
 import { appVersionLabel } from "@/lib/appInfo";
+import { GESTURE_TAPS, nextTapCount } from "@/lib/zone/gate";
 import { S } from "@/lib/strings.it";
 import { daysSince, formatLongDate } from "@/lib/time";
 import { useCouple } from "@/state/coupleStore";
@@ -93,6 +94,19 @@ export function UsScreen() {
   const dismissLost = useCouple((s) => s.dismissSessionLost);
   const days = daysSince(start);
   const versionLabel = appVersionLabel();
+  // Il gesto segreto: 3 tocchi rapidi sul cuoricino accanto al titolo (e solo se "Mostra la zona piccante" è acceso).
+  const zoneEnabled = useSettings((s) => s.zoneEnabled);
+  const setZoneEnabled = useSettings((s) => s.setZoneEnabled);
+  const heartTaps = useRef({ n: 0, at: 0 });
+  const onHeart = () => {
+    if (!useSettings.getState().zoneEnabled) return;
+    const now = Date.now();
+    heartTaps.current = { n: nextTapCount(heartTaps.current.n, heartTaps.current.at, now), at: now };
+    if (heartTaps.current.n >= GESTURE_TAPS) {
+      heartTaps.current = { n: 0, at: 0 };
+      router.push("/zone" as unknown as Parameters<typeof router.push>[0]); // rotta nuova: i tipi si rigenerano con expo start
+    }
+  };
 
   return (
     <Screen>
@@ -107,6 +121,14 @@ export function UsScreen() {
         <Text variant="display" accessibilityRole="header">
           {S.us.title}
         </Text>
+        <StickerPressable
+          accessibilityLabel={S.zone.heartLabel}
+          haptic="tick"
+          onPress={onHeart}
+          style={{ width: 48, height: 48, alignItems: "center", justifyContent: "center" }}
+        >
+          <Icon name="heart" size={28} fill={colors.blush} />
+        </StickerPressable>
       </View>
       {serverDown ? (
         <Sticker id="server-dorme" fill={colors.butterSoft} radius={24} offset={4} padding={16} tiltMax={1}>
@@ -219,6 +241,13 @@ export function UsScreen() {
               onChange={(v) => setReduce(v ? true : null)}
               label={S.us.reduceMotion}
             />
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text variant="bodyStrong">{S.zone.settingsShow}</Text>
+              <Text variant="caption">{S.zone.settingsShowHint}</Text>
+            </View>
+            <StickerSwitch value={zoneEnabled} onChange={setZoneEnabled} label={S.zone.settingsShow} />
           </View>
           <StickerPressable
             accessibilityLabel={S.us.replayIntro}

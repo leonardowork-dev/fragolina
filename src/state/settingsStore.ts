@@ -17,6 +17,9 @@ type SettingsState = {
   darkOverride: boolean;
   /** Aggiornare la posizione anche ad app chiusa (permesso "Sempre", solo iOS). */
   locationAlways: boolean;
+  /** "Mostra la zona piccante": se spento il gesto segreto non fa niente. */
+  zoneEnabled: boolean;
+  setZoneEnabled: (v: boolean) => void;
   setOnboardingDone: (v: boolean) => void;
   setHaptics: (v: boolean) => void;
   setSounds: (v: boolean) => void;
@@ -26,12 +29,13 @@ type SettingsState = {
 };
 
 /** v0 = prima della sessione 8 (senza `sounds`). v1 = con `sounds`. */
-export const SETTINGS_VERSION = 1;
+export const SETTINGS_VERSION = 2;
 
 export function migrateSettings(old: unknown, version: number): Partial<SettingsState> {
   const s = (old && typeof old === "object" ? old : {}) as Record<string, unknown>;
   const out: Record<string, unknown> = { ...s };
   if (version < 1 && typeof out.sounds !== "boolean") out.sounds = true;
+  if (typeof out.zoneEnabled !== "boolean") out.zoneEnabled = true;
   return out as Partial<SettingsState>;
 }
 
@@ -45,6 +49,8 @@ export const useSettings = create<SettingsState>()(
       reduceMotionOverride: null,
       darkOverride: false,
       locationAlways: false,
+      zoneEnabled: true,
+      setZoneEnabled: (zoneEnabled) => set({ zoneEnabled }),
       setOnboardingDone: (onboardingDone) => set({ onboardingDone }),
       setHaptics: (haptics) => set({ haptics }),
       setSounds: (sounds) => set({ sounds }),
@@ -64,6 +70,7 @@ export const useSettings = create<SettingsState>()(
         reduceMotionOverride: s.reduceMotionOverride,
         darkOverride: s.darkOverride,
         locationAlways: s.locationAlways,
+        zoneEnabled: s.zoneEnabled,
       }),
       onRehydrateStorage: () => () => {
         useSettings.setState({ hydrated: true });

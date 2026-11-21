@@ -118,10 +118,11 @@ describe("store persistiti: versione e migrazione", () => {
   });
   it("impostazioni: migrate è puro e ignora spazzatura", () => {
     expect(SETTINGS_VERSION).toBeGreaterThanOrEqual(1);
-    expect(migrateSettings({ haptics: false }, 0)).toEqual({ haptics: false, sounds: true });
-    expect(migrateSettings({ sounds: false }, 0)).toEqual({ sounds: false });
-    expect(migrateSettings(null, 0)).toEqual({ sounds: true });
-    expect(migrateSettings("???", 0)).toEqual({ sounds: true });
+    expect(migrateSettings({ haptics: false }, 0)).toEqual({ haptics: false, sounds: true, zoneEnabled: true });
+    expect(migrateSettings({ sounds: false }, 0)).toEqual({ sounds: false, zoneEnabled: true });
+    expect(migrateSettings({ zoneEnabled: false }, 1)).toEqual({ zoneEnabled: false });
+    expect(migrateSettings(null, 0)).toEqual({ sounds: true, zoneEnabled: true });
+    expect(migrateSettings("???", 0)).toEqual({ sounds: true, zoneEnabled: true });
   });
   it("feste già viste: stato vecchio/rotto non crasha, il massimo è 60 chiavi, una chiave scatta una volta", () => {
     expect(migrateCelebrated({ keys: ["a", 3, "b"] })).toEqual({ keys: ["a", "b"] });
