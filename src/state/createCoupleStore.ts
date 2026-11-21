@@ -6,8 +6,10 @@ import type { MoodId } from "@/features/home/moods";
 import type { Backend } from "@/lib/backend/types";
 import {
   type FoodId,
+  type Outfit,
   type PetKind,
   type PetState,
+  applyOutfit,
   cleanPetName,
   cooldownLeft,
 } from "@/lib/pet/rules";
@@ -214,6 +216,8 @@ export type CoupleState = SyncedState &
     /** Un tocco all'uovo. */
     touchEgg: () => void;
     setPetName: (name: string) => void;
+    /** Cambia cosa indossa il pet (solo indumenti sbloccati); si vede subito, poi si manda al server. */
+    setPetOutfit: (outfit: Outfit) => void;
     applyRemote: (input: RemoteInput) => void;
     createCouple: () => Promise<ActionResult>;
     joinCouple: (code: string) => Promise<ActionResult>;
@@ -1086,6 +1090,21 @@ export function createCoupleStore(deps: CoupleDeps) {
               if (touchTimer) clearTimeout(touchTimer);
               touchTimer = setTimeout(flushTouches, 600);
             }
+          },
+          setPetOutfit: (outfit) => {
+            const cur = get();
+            const pet = cur.petServer;
+            if (!pet || !cur.coupleId) return;
+            const at = now();
+            const next = applyOutfit(pet, outfit, at, uuid(), cur.userId);
+            if (next.rev === pet.rev) return;
+            set({ petServer: next });
+            backend
+              .setPetOutfit(outfit as Record<string, string | null>, at, uuid())
+              .then((p) => {
+                if (p) ingestPetEvent(p);
+              })
+              .catch(() => set({ petServer: pet }));
           },
           setPetName: (name) => {
             const nm = cleanPetName(name);

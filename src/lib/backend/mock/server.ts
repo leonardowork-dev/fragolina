@@ -12,6 +12,9 @@ import {
   type PetState,
   applyAction,
   applyName,
+  applyOutfit,
+  cleanOutfit,
+  levelOf,
   cleanPetName,
   emptyPet,
 } from "@/lib/pet/rules";
@@ -441,6 +444,23 @@ export class MockServer {
     this.storage.write(s);
     this.emit({ coupleId: cid, actor: uid, event: { type: "pet", pet: r.pet } });
     return { ok: true, pet: r.pet };
+  }
+
+  setPetOutfit(uid: string, outfit: Record<string, string | null>, at: number, key: string): Res<{ pet: PetState }> {
+    const s = this.storage.read();
+    const m = s.members.find((x) => x.userId === uid);
+    if (!m) return { ok: false, error: "not_paired" };
+    const cur = s.pets?.[m.coupleId];
+    if (!cur || cur.hatchedAt === null) return { ok: false, error: "not_hatched" };
+    if (!cleanOutfit(outfit, levelOf(cur.xp))) return { ok: false, error: "locked" };
+    const now = this.clock();
+    const t = Math.max(Math.min(at, now), now - 172_800_000);
+    const next = applyOutfit(cur, outfit, t, key, uid);
+    if (next.rev === cur.rev) return { ok: true, pet: cur };
+    s.pets![m.coupleId] = next;
+    this.storage.write(s);
+    this.emit({ coupleId: m.coupleId, actor: uid, event: { type: "pet", pet: next } });
+    return { ok: true, pet: next };
   }
 
   setPetName(uid: string, name: string, at: number, key: string): Res<{ pet: PetState }> {

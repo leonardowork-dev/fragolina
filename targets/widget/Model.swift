@@ -496,7 +496,7 @@ func timelineDates(now: Date, updatedAtMs: Double?, calendar: Calendar = .curren
 
 /// Tutto in interi (bisogni 0...1000, tempi in millisecondi): gli stessi numeri di TypeScript e di SQL.
 enum PetRules {
-    static let decayFood = 45
+    static let decayFood = 100
     static let decayLove = 30
     static let decayEnergy = 20
     static let lowNeed = 350

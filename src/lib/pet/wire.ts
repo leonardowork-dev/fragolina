@@ -1,4 +1,4 @@
-import type { FoodId, PetKind, PetState } from "./rules";
+import { type FoodId, type PetKind, type PetState, cleanOutfit } from "./rules";
 import type { PetLogEntry, PetSnapshot } from "./sync";
 
 /** Dal JSON del server (SQL `_pet_json` o riga del tempo reale: stesse chiavi in snake_case) allo stato dell'app. */
@@ -32,6 +32,9 @@ export function petFromRow(r: Record<string, unknown>): PetState {
     lastKind: strOrNull(r.last_kind) as PetKind | "hatch" | null,
     lastItem: strOrNull(r.last_item) as FoodId | null,
     lastKey: strOrNull(r.last_key),
+    xp: num(r.xp),
+    outfit: cleanOutfit(r.outfit, 10) ?? {},
+    outfitAt: num(r.outfit_at),
   };
 }
 

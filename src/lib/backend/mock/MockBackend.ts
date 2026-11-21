@@ -221,6 +221,9 @@ export class MockBackend implements Backend {
   petAct(a: PetActInput): Promise<PetState | null> {
     return this.wire(() => this.ok(this.server.petAct(this.uid, a)).pet);
   }
+  setPetOutfit(outfit: Record<string, string | null>, at: number, key: string): Promise<PetState | null> {
+    return this.wire(() => this.ok(this.server.setPetOutfit(this.uid, outfit, at, key)).pet);
+  }
   setPetName(name: string, at: number, key: string): Promise<PetState | null> {
     return this.wire(() => this.ok(this.server.setPetName(this.uid, name, at, key)).pet);
   }

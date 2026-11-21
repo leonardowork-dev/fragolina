@@ -315,6 +315,14 @@ export class SupabaseBackend implements Backend {
     });
     return d.pet ? petFromRow(d.pet) : null;
   }
+  async setPetOutfit(outfit: Record<string, string | null>, at: number, key: string) {
+    const d = await this.rpc<{ pet?: Record<string, unknown> | null }>("set_pet_outfit", {
+      p_outfit: outfit,
+      p_client_at: Math.round(at),
+      p_client_key: key,
+    });
+    return d.pet ? petFromRow(d.pet) : null;
+  }
   async setPetName(name: string, at: number, key: string) {
     const d = await this.rpc<{ pet?: Record<string, unknown> | null }>("set_pet_name", {
       p_name: name,

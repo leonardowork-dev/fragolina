@@ -23,6 +23,17 @@ import {
   petPoints,
   stageOf,
   stageProgress,
+  foodPieces,
+  isFull,
+  XP_FOR,
+  XP_BOTH_BONUS,
+  levelOf,
+  levelProgress,
+  LEVEL_AT,
+  OUTFIT_ITEMS,
+  OUTFIT_SLOTS,
+  cleanOutfit,
+  applyOutfit,
 } from "@/lib/pet/rules";
 
 const H = 3_600_000;
@@ -60,10 +71,10 @@ describe("pet: bisogni", () => {
   });
   it("si calcolano da (valore, istante): niente server che gira", () => {
     const n = needsAt(born(1000), T0 + 10 * H);
-    expect(n).toEqual({ food: 550, love: 700, energy: 800 });
+    expect(n).toEqual({ food: 0, love: 700, energy: 800 }); // la pancia scende di 100 l'ora
   });
-  it("tassi: pancia vuota in ~22 h, coccole in ~33 h, energia in ~50 h", () => {
-    expect(1000 / DECAY_PER_HOUR.food).toBeCloseTo(22.2, 1);
+  it("tassi: pancia vuota in ~10 h, coccole in ~33 h, energia in ~50 h", () => {
+    expect(1000 / DECAY_PER_HOUR.food).toBe(10);
     expect(1000 / DECAY_PER_HOUR.love).toBeCloseTo(33.3, 1);
     expect(1000 / DECAY_PER_HOUR.energy).toBe(50);
   });
@@ -105,13 +116,14 @@ describe("pet: azioni", () => {
   it("ogni cibo ha il suo effetto", () => {
     const f = (item: (typeof FOOD_IDS)[number]) =>
       apply(born(500), act({ kind: "feed", item }));
-    expect(f("mora")).toMatchObject({ food: 800, love: 500, energy: 500 });
-    expect(f("lampone")).toMatchObject({ food: 750, love: 550 });
-    expect(f("mirtillo")).toMatchObject({ food: 700, energy: 600 });
-    expect(f("pesca").food).toBe(900);
+    // ogni frutto vale 1/3 di pancia (334)
+    expect(f("mora")).toMatchObject({ food: 834, love: 500, energy: 500 });
+    expect(f("lampone")).toMatchObject({ food: 834, love: 550 });
+    expect(f("mirtillo")).toMatchObject({ food: 834, energy: 600 });
+    expect(f("pesca").food).toBe(834);
   });
   it("i valori restano fra 0 e 1000", () => {
-    expect(apply(born(900), act({ kind: "feed", item: "pesca" })).food).toBe(1000);
+    expect(apply(born(668), act({ kind: "feed", item: "pesca" })).food).toBe(1000);
     expect(apply(born(50), act({ kind: "play" })).energy).toBe(0);
   });
   it("cibo mancante o sconosciuto = azione non valida", () => {
@@ -131,10 +143,10 @@ describe("pet: azioni", () => {
     expect(w.sleepUntil).toBe(0);
   });
   it("applica il decadimento PRIMA di sommare", () => {
-    // dopo 10 h la pancia è 800-450=350; +300 = 650
-    const p = apply(born(800), act({ kind: "feed", item: "mora", at: T0 + 10 * H }));
-    expect(p.food).toBe(650);
-    expect(p.at).toBe(T0 + 10 * H);
+    // dopo 5 h la pancia è 800-500=300; +334 = 634
+    const p = apply(born(800), act({ kind: "feed", item: "mora", at: T0 + 5 * H }));
+    expect(p.food).toBe(634);
+    expect(p.at).toBe(T0 + 5 * H);
   });
   it("il tempo dello stato non torna indietro: un'azione vecchia conta 'adesso'", () => {
     const p = apply(born(), act({ kind: "cuddle", at: T0 - 5 * H }));
@@ -142,7 +154,7 @@ describe("pet: azioni", () => {
     expect(p.lastAt).toBe(T0);
   });
   it("registra chi ha fatto cosa (per il registro e il toast)", () => {
-    const p = apply(born(), act({ kind: "feed", item: "mora", userId: "ub", role: "b", key: "k1" }));
+    const p = apply(born(300), act({ kind: "feed", item: "mora", userId: "ub", role: "b", key: "k1" }));
     expect(p).toMatchObject({ lastBy: "ub", lastKind: "feed", lastItem: "mora", lastKey: "k1" });
   });
   it("pause per persona e azione", () => {
@@ -304,6 +316,54 @@ describe("pet: sequenza di riferimento (parità TS ↔ SQL ↔ Swift)", () => {
     const stages = new Set(steps.map((s) => stageOf(s.after)));
     expect(stages.has("seed")).toBe(true);
     expect(steps.some((s) => s.after.bothDays > 0)).toBe(true);
-    expect(steps.some((s) => s.after.food === 1000)).toBe(true);
+    expect(steps.some((s) => s.after.food >= 900)).toBe(true);
+  });
+});
+
+describe("pet: tre pezzi, esperienza, livelli, guardaroba (sessione 11)", () => {
+  it("la pancia ha 3 pezzi: tre frutti la riempiono, il quarto si rifiuta", () => {
+    expect([0, 1, 334, 335, 668, 669, 1000].map(foodPieces)).toEqual([0, 1, 1, 2, 2, 3, 3]);
+    let p = born(0);
+    for (let i = 0; i < 3; i++) p = apply(p, act({ kind: "feed", item: "mora", at: T0 + i * 1000 }));
+    expect(p.food).toBe(1000);
+    const r = applyAction(p, act({ kind: "feed", item: "pesca", at: T0 + 4000 }));
+    expect(r.outcome).toBe("ignored");
+    expect(r.pet).toBe(p);
+    expect(isFull(p.food)).toBe(true);
+  });
+  it("dopo qualche ora torna ad avere fame", () => {
+    const p = born(1000);
+    expect(petMood(p, T0 + 7 * H, "2026-11-13")).toBe("hungry");
+    expect(isFull(needsAt(p, T0 + 4 * H).food)).toBe(false);
+  });
+  it("ogni cura dà esperienza, con bonus se curate entrambi lo stesso giorno", () => {
+    let p = born(300);
+    p = apply(p, act({ kind: "feed", item: "mora", at: T0 + 1000 }));
+    expect(p.xp).toBe(XP_FOR.feed);
+    p = apply(p, act({ kind: "cuddle", role: "b", userId: "ub", at: T0 + 2000 }));
+    expect(p.xp).toBe(XP_FOR.feed + XP_FOR.cuddle + XP_BOTH_BONUS);
+    expect(applyAction(born(1000), act({ kind: "feed", item: "mora" })).pet.xp).toBe(0); // rifiutato: niente punti
+  });
+  it("livelli con soglie crescenti", () => {
+    expect([0, 39, 40, 99, 100, 1179, 1180, 99999].map(levelOf)).toEqual([1, 1, 2, 2, 3, 9, 10, 10]);
+    expect(levelProgress(50)).toEqual({ level: 2, xp: 50, from: 40, to: 100 });
+    expect(levelProgress(5000).to).toBeNull();
+    for (let i = 1; i < LEVEL_AT.length; i++) expect(LEVEL_AT[i]! - LEVEL_AT[i - 1]!).toBeGreaterThan(i > 1 ? LEVEL_AT[i - 1]! - LEVEL_AT[i - 2]! - 1 : 0);
+  });
+  it("guardaroba: almeno 12 indumenti in 4 posti; si indossa solo ciò che il livello sblocca; vince l'ultima modifica", () => {
+    expect(OUTFIT_ITEMS.length).toBeGreaterThanOrEqual(12);
+    expect(new Set(OUTFIT_ITEMS.map((i) => i.slot))).toEqual(new Set(OUTFIT_SLOTS));
+    expect(new Set(OUTFIT_ITEMS.map((i) => `${i.slot}:${i.id}`)).size).toBe(OUTFIT_ITEMS.length);
+    expect(cleanOutfit({ head: "halo" }, 3)).toBeNull(); // livello 8
+    expect(cleanOutfit({ head: "cap", neck: null }, 2)).toEqual({ head: "cap" });
+    expect(cleanOutfit({ hand: "cap" }, 10)).toBeNull();
+    expect(cleanOutfit({ head: "tutu" }, 10)).toBeNull(); // posto sbagliato
+    let p: PetState = { ...born(), xp: 100 };
+    p = applyOutfit(p, { head: "cap" }, 500);
+    expect(p.outfit).toEqual({ head: "cap" });
+    const rev = p.rev;
+    expect(applyOutfit(p, { head: "bow" }, 400).rev).toBe(rev); // più vecchia: perde
+    expect(applyOutfit(p, { head: "halo" }, 900).rev).toBe(rev); // non sbloccato
+    expect(applyOutfit(p, { head: "bow", eyes: "shades" }, 600).outfit).toEqual({ head: "bow", eyes: "shades" });
   });
 });

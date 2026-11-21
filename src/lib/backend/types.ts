@@ -69,6 +69,8 @@ export interface Backend {
   petAct(a: PetActInput): Promise<PetState | null>;
   /** Last-write-wins sul server. */
   setPetName(name: string, at: number, key: string): Promise<PetState | null>;
+  /** Guardaroba del pet: ultima modifica vince; solo indumenti già sbloccati dal livello. */
+  setPetOutfit(outfit: Record<string, string | null>, at: number, key: string): Promise<PetState | null>;
   /**
    * La lavagna: ultimo biglietto + posizioni. `null` = il server non ha la migrazione dei biglietti (sessione 5):
    * l'app resta usabile e la scheda Disegna dice che manca un passo.

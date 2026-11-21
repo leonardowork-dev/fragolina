@@ -22,8 +22,8 @@ export const NEED_IDS: readonly NeedId[] = ["food", "love", "energy"];
 
 export const NEED_MAX = 1000;
 const HOUR = 3_600_000;
-/** Unità perse ogni ora (su 1000): pancia vuota in ~22 h, coccole in ~33 h, energia in ~50 h. */
-export const DECAY_PER_HOUR: Record<NeedId, number> = { food: 45, love: 30, energy: 20 };
+/** Unità perse ogni ora (su 1000): pancia vuota in ~10 h (di nuovo fame dopo ~6 h), coccole in ~33 h, energia in ~50 h. */
+export const DECAY_PER_HOUR: Record<NeedId, number> = { food: 100, love: 30, energy: 20 };
 export const START_NEED = 800;
 /** Sotto questa soglia un bisogno "si fa sentire" (faccia di fame, attesa, sonno). */
 export const LOW_NEED = 350;
@@ -76,6 +76,11 @@ export type PetState = {
   lastItem: FoodId | null;
   /** Chiave di idempotenza dell'ultima azione (serve a non contarla due volte fra coda ed evento). */
   lastKey: string | null;
+  /** Punti esperienza (cure) → livello. */
+  xp: number;
+  /** Guardaroba: cosa indossa (testa, occhi, collo, corpo). Vince l'ultima modifica. */
+  outfit: Outfit;
+  outfitAt: number;
 };
 
 export const emptyPet = (): PetState => ({
@@ -101,6 +106,9 @@ export const emptyPet = (): PetState => ({
   lastKind: null,
   lastItem: null,
   lastKey: null,
+  xp: 0,
+  outfit: {},
+  outfitAt: 0,
 });
 
 export type PetAction = {
@@ -187,13 +195,68 @@ export function cooldownLeft(kind: PetKind, lastAt: number | null | undefined, n
 
 export const cleanPetName = (s: string) => s.trim().slice(0, NAME_MAX);
 
+/** Un frutto = 1/3 di pancia. */
+export const FOOD_PIECE = 334;
+/** Da questa pancia in su il pet è pieno (3 pezzi): il quarto frutto si rifiuta. */
+export const FULL_AT = 669;
+/** Quanti pezzi (0-3) ci sono nella pancia con questo valore. */
+export const foodPieces = (food: number) => Math.min(3, Math.ceil(Math.max(food, 0) / FOOD_PIECE));
+export const isFull = (food: number) => food >= FULL_AT;
+
 /** Effetto di ogni cibo: [pancia, coccole, energia]. */
 export const FOOD_EFFECT: Record<FoodId, [number, number, number]> = {
-  mora: [300, 0, 0],
-  lampone: [250, 50, 0],
-  mirtillo: [200, 0, 100],
-  pesca: [400, 0, 0],
+  mora: [FOOD_PIECE, 0, 0],
+  lampone: [FOOD_PIECE, 50, 0],
+  mirtillo: [FOOD_PIECE, 0, 100],
+  pesca: [FOOD_PIECE, 0, 0],
 };
+
+/** Punti esperienza per ogni cura; +5 quando curate entrambi lo stesso giorno. */
+export const XP_FOR: Record<"feed" | "cuddle" | "play" | "sleep", number> = { feed: 10, cuddle: 8, play: 8, sleep: 10 };
+export const XP_BOTH_BONUS = 5;
+/** Soglie di esperienza per i livelli 1-10 (cumulative). */
+export const LEVEL_AT: readonly number[] = [0, 40, 100, 180, 280, 400, 550, 730, 940, 1180];
+export const levelOf = (xp: number) => LEVEL_AT.filter((t) => xp >= t).length;
+export function levelProgress(xp: number): { level: number; xp: number; from: number; to: number | null } {
+  const level = levelOf(xp);
+  return { level, xp, from: LEVEL_AT[level - 1] ?? 0, to: LEVEL_AT[level] ?? null };
+}
+
+export type OutfitSlot = "head" | "eyes" | "neck" | "body";
+export const OUTFIT_SLOTS: readonly OutfitSlot[] = ["head", "eyes", "neck", "body"];
+export type Outfit = Partial<Record<OutfitSlot, string | null>>;
+/** Indumenti originali: id, posto e livello che li sblocca (specchio di `_pet_item_level` in SQL). */
+export const OUTFIT_ITEMS: readonly { id: string; slot: OutfitSlot; level: number }[] = [
+  { id: "cap", slot: "head", level: 2 },
+  { id: "bow", slot: "head", level: 3 },
+  { id: "phones", slot: "head", level: 4 },
+  { id: "flowers", slot: "head", level: 5 },
+  { id: "chef", slot: "head", level: 6 },
+  { id: "halo", slot: "head", level: 8 },
+  { id: "shades", slot: "eyes", level: 3 },
+  { id: "round", slot: "eyes", level: 5 },
+  { id: "scarf", slot: "neck", level: 2 },
+  { id: "bowtie", slot: "neck", level: 4 },
+  { id: "pearls", slot: "neck", level: 7 },
+  { id: "sweater", slot: "body", level: 3 },
+  { id: "cape", slot: "body", level: 6 },
+  { id: "tutu", slot: "body", level: 9 },
+];
+export const itemLevel = (slot: OutfitSlot, id: string) => OUTFIT_ITEMS.find((i) => i.slot === slot && i.id === id)?.level ?? null;
+/** Ripulisce un guardaroba: solo posti e indumenti veri e già sbloccati dal livello. */
+export function cleanOutfit(o: unknown, level: number): Outfit | null {
+  if (!o || typeof o !== "object") return null;
+  const out: Outfit = {};
+  for (const [slot, id] of Object.entries(o as Record<string, unknown>)) {
+    if (!(OUTFIT_SLOTS as readonly string[]).includes(slot)) return null;
+    if (id === null) continue;
+    if (typeof id !== "string") return null;
+    const lv = itemLevel(slot as OutfitSlot, id);
+    if (lv === null || lv > level) return null;
+    out[slot as OutfitSlot] = id;
+  }
+  return out;
+}
 
 function registerDay(p: PetState, role: "a" | "b", day: string): PetState {
   if (p.day === null || day > p.day)
@@ -247,6 +310,9 @@ export function applyAction(p: PetState, a: PetAction): { pet: PetState; outcome
   const n = needsAt(p, t);
   let { food, love, energy } = n;
   let sleepUntil = 0;
+  // pieno (3 pezzi): il quarto frutto si rifiuta, niente cambia
+  if (a.kind === "feed" && isFull(food)) return { pet: p, outcome: "ignored" };
+  const xp = p.xp + XP_FOR[a.kind as keyof typeof XP_FOR];
   if (a.kind === "feed") {
     const [f, l, e] = FOOD_EFFECT[a.item as FoodId];
     food += f;
@@ -262,6 +328,7 @@ export function applyAction(p: PetState, a: PetAction): { pet: PetState; outcome
   }
   let q: PetState = {
     ...p,
+    xp,
     rev: p.rev + 1,
     food: clamp(food, 0, NEED_MAX),
     love: clamp(love, 0, NEED_MAX),
@@ -275,7 +342,16 @@ export function applyAction(p: PetState, a: PetAction): { pet: PetState; outcome
     lastKey: a.key ?? null,
   };
   q = registerDay(q, a.role, a.day);
+  if (q.bothDays > p.bothDays) q = { ...q, xp: q.xp + XP_BOTH_BONUS };
   return { pet: q, outcome: "applied" };
+}
+
+/** Guardaroba: vince l'ultima modifica (LWW), solo a pet schiuso e solo con indumenti già sbloccati. */
+export function applyOutfit(p: PetState, outfit: unknown, at: number, key?: string | null, by?: string | null): PetState {
+  const o = cleanOutfit(outfit, levelOf(p.xp));
+  if (!o || p.hatchedAt === null) return p;
+  if (at < p.outfitAt) return p;
+  return { ...p, outfit: o, outfitAt: at, rev: p.rev + 1, lastBy: by ?? p.lastBy, lastKind: "name", lastItem: null, lastKey: key ?? null };
 }
 
 /** Cambio nome: vince l'ultima modifica (last-write-wins). Solo a pet schiuso. */

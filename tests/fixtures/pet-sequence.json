@@ -21,7 +21,10 @@
   "lastBy": null,
   "lastKind": null,
   "lastItem": null,
-  "lastKey": null
+  "lastKey": null,
+  "xp": 0,
+  "outfit": {},
+  "outfitAt": 0
  },
  "steps": [
   {
@@ -57,7 +60,10 @@
     "lastBy": null,
     "lastKind": null,
     "lastItem": null,
-    "lastKey": "k-0000001"
+    "lastKey": "k-0000001",
+    "xp": 0,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -93,7 +99,10 @@
     "lastBy": null,
     "lastKind": null,
     "lastItem": null,
-    "lastKey": "k-0000001"
+    "lastKey": "k-0000001",
+    "xp": 0,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -129,7 +138,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "hatch",
     "lastItem": null,
-    "lastKey": "k-0000003"
+    "lastKey": "k-0000003",
+    "xp": 0,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -165,7 +177,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "hatch",
     "lastItem": null,
-    "lastKey": "k-0000003"
+    "lastKey": "k-0000003",
+    "xp": 0,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -188,7 +203,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 797,
+    "food": 792,
     "love": 948,
     "energy": 699,
     "at": 1794564308438,
@@ -202,7 +217,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000010"
+    "lastKey": "k-0000010",
+    "xp": 13,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -225,7 +243,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 795,
+    "food": 787,
     "love": 1000,
     "energy": 698,
     "at": 1794564502865,
@@ -239,7 +257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000011"
+    "lastKey": "k-0000011",
+    "xp": 21,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -262,7 +283,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 611,
+    "food": 378,
     "love": 1000,
     "energy": 517,
     "at": 1794579261938,
@@ -276,7 +297,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000012"
+    "lastKey": "k-0000012",
+    "xp": 29,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -299,7 +323,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 611,
+    "food": 378,
     "love": 1000,
     "energy": 517,
     "at": 1794579261938,
@@ -313,7 +337,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000012"
+    "lastKey": "k-0000012",
+    "xp": 29,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -350,7 +377,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000014"
+    "lastKey": "k-0000014",
+    "xp": 37,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -373,7 +403,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 149,
     "energy": 100,
     "at": 1794856832820,
@@ -387,7 +417,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000015"
+    "lastKey": "k-0000015",
+    "xp": 47,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -410,7 +443,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 394,
+    "food": 655,
     "love": 145,
     "energy": 198,
     "at": 1794857327372,
@@ -424,7 +457,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000016"
+    "lastKey": "k-0000016",
+    "xp": 57,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -447,7 +483,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 366,
+    "food": 592,
     "love": 376,
     "energy": 186,
     "at": 1794859630152,
@@ -461,7 +497,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000017"
+    "lastKey": "k-0000017",
+    "xp": 70,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -484,7 +523,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 366,
+    "food": 592,
     "love": 376,
     "energy": 186,
     "at": 1794859630152,
@@ -498,7 +537,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000017"
+    "lastKey": "k-0000017",
+    "xp": 70,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -521,7 +563,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 0,
     "energy": 100,
     "at": 1796749016263,
@@ -535,7 +577,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000019"
+    "lastKey": "k-0000019",
+    "xp": 80,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -558,7 +603,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 194,
+    "food": 320,
     "love": 150,
     "energy": 0,
     "at": 1796749547066,
@@ -572,7 +617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000020"
+    "lastKey": "k-0000020",
+    "xp": 93,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -595,7 +643,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 194,
+    "food": 320,
     "love": 400,
     "energy": 0,
     "at": 1796749562268,
@@ -609,7 +657,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000021"
+    "lastKey": "k-0000021",
+    "xp": 101,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -646,7 +697,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000022"
+    "lastKey": "k-0000022",
+    "xp": 111,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -683,7 +737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000023"
+    "lastKey": "k-0000023",
+    "xp": 119,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -706,7 +763,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1797362470595,
@@ -720,7 +777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000024"
+    "lastKey": "k-0000024",
+    "xp": 129,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -743,7 +803,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 678,
+    "food": 618,
     "love": 0,
     "energy": 0,
     "at": 1797364287941,
@@ -757,7 +817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000025"
+    "lastKey": "k-0000025",
+    "xp": 139,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -780,7 +843,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 675,
+    "food": 610,
     "love": 250,
     "energy": 0,
     "at": 1797364607447,
@@ -794,7 +857,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000026"
+    "lastKey": "k-0000026",
+    "xp": 152,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -817,7 +883,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 675,
+    "food": 610,
     "love": 250,
     "energy": 0,
     "at": 1797364607447,
@@ -831,7 +897,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000026"
+    "lastKey": "k-0000026",
+    "xp": 152,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -854,7 +923,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 135,
+    "food": 0,
     "love": 150,
     "energy": 0,
     "at": 1797407823443,
@@ -868,7 +937,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000028"
+    "lastKey": "k-0000028",
+    "xp": 160,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -891,7 +963,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 135,
+    "food": 0,
     "love": 300,
     "energy": 0,
     "at": 1797407823443,
@@ -905,7 +977,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000029"
+    "lastKey": "k-0000029",
+    "xp": 173,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -928,7 +1003,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 135,
+    "food": 0,
     "love": 300,
     "energy": 0,
     "at": 1797407823443,
@@ -942,7 +1017,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000029"
+    "lastKey": "k-0000029",
+    "xp": 173,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -965,7 +1043,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 127,
     "energy": 0,
     "at": 1797434683604,
@@ -979,7 +1057,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000031"
+    "lastKey": "k-0000031",
+    "xp": 183,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1002,7 +1083,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 127,
     "energy": 0,
     "at": 1797434683604,
@@ -1016,7 +1097,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000031"
+    "lastKey": "k-0000031",
+    "xp": 183,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1053,7 +1137,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000033"
+    "lastKey": "k-0000033",
+    "xp": 191,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1076,7 +1163,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 50,
     "energy": 0,
     "at": 1797492803289,
@@ -1090,7 +1177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000034"
+    "lastKey": "k-0000034",
+    "xp": 201,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1113,7 +1203,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 245,
+    "food": 322,
     "love": 197,
     "energy": 0,
     "at": 1797493237759,
@@ -1127,7 +1217,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000035"
+    "lastKey": "k-0000035",
+    "xp": 209,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1150,7 +1243,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 22,
     "energy": 0,
     "at": 1797514329105,
@@ -1164,7 +1257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000036"
+    "lastKey": "k-0000036",
+    "xp": 219,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1187,7 +1283,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 397,
+    "food": 326,
     "love": 270,
     "energy": 0,
     "at": 1797514634477,
@@ -1201,7 +1297,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000037"
+    "lastKey": "k-0000037",
+    "xp": 227,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1224,7 +1323,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 397,
+    "food": 326,
     "love": 270,
     "energy": 0,
     "at": 1797514634477,
@@ -1238,7 +1337,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000037"
+    "lastKey": "k-0000037",
+    "xp": 227,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1275,7 +1377,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000039"
+    "lastKey": "k-0000039",
+    "xp": 235,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1298,7 +1403,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 247,
     "energy": 100,
     "at": 1797563322089,
@@ -1312,7 +1417,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000040"
+    "lastKey": "k-0000040",
+    "xp": 245,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1349,7 +1457,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000041"
+    "lastKey": "k-0000041",
+    "xp": 255,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1386,7 +1497,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000041"
+    "lastKey": "k-0000041",
+    "xp": 255,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1423,7 +1537,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000043"
+    "lastKey": "k-0000043",
+    "xp": 263,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1460,7 +1577,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000044"
+    "lastKey": "k-0000044",
+    "xp": 276,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1497,7 +1617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000045"
+    "lastKey": "k-0000045",
+    "xp": 286,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1520,7 +1643,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 165,
     "energy": 707,
     "at": 1797800741917,
@@ -1534,7 +1657,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000046"
+    "lastKey": "k-0000046",
+    "xp": 296,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1557,7 +1683,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 246,
+    "food": 324,
     "love": 162,
     "energy": 1000,
     "at": 1797801115964,
@@ -1571,7 +1697,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000047"
+    "lastKey": "k-0000047",
+    "xp": 306,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1594,7 +1723,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 246,
+    "food": 324,
     "love": 162,
     "energy": 1000,
     "at": 1797801115964,
@@ -1608,7 +1737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000047"
+    "lastKey": "k-0000047",
+    "xp": 306,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1631,7 +1763,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 246,
+    "food": 324,
     "love": 162,
     "energy": 1000,
     "at": 1797801115964,
@@ -1645,7 +1777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000047"
+    "lastKey": "k-0000047",
+    "xp": 306,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1668,7 +1803,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1798261168338,
@@ -1682,7 +1817,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000050"
+    "lastKey": "k-0000050",
+    "xp": 316,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1705,7 +1843,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 488,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1798278172154,
@@ -1719,7 +1857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000051"
+    "lastKey": "k-0000051",
+    "xp": 331,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1742,7 +1883,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 488,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1798278172154,
@@ -1756,7 +1897,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000051"
+    "lastKey": "k-0000051",
+    "xp": 331,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1779,7 +1923,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 738,
+    "food": 668,
     "love": 50,
     "energy": 0,
     "at": 1798278172154,
@@ -1793,7 +1937,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000053"
+    "lastKey": "k-0000053",
+    "xp": 341,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1816,7 +1963,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 735,
+    "food": 660,
     "love": 198,
     "energy": 0,
     "at": 1798278467905,
@@ -1830,7 +1977,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000054"
+    "lastKey": "k-0000054",
+    "xp": 349,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1853,7 +2003,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 931,
+    "food": 984,
     "love": 195,
     "energy": 100,
     "at": 1798278834529,
@@ -1867,7 +2017,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000055"
+    "lastKey": "k-0000055",
+    "xp": 359,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1890,7 +2043,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 362,
+    "food": 0,
     "love": 150,
     "energy": 0,
     "at": 1798324398206,
@@ -1904,7 +2057,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000056"
+    "lastKey": "k-0000056",
+    "xp": 367,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1927,7 +2083,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 560,
+    "food": 334,
     "love": 149,
     "energy": 100,
     "at": 1798324623513,
@@ -1941,7 +2097,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000057"
+    "lastKey": "k-0000057",
+    "xp": 377,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -1964,7 +2123,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 559,
+    "food": 332,
     "love": 299,
     "energy": 0,
     "at": 1798324725092,
@@ -1978,7 +2137,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000058"
+    "lastKey": "k-0000058",
+    "xp": 385,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2001,7 +2163,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 559,
+    "food": 332,
     "love": 299,
     "energy": 0,
     "at": 1798324725092,
@@ -2015,7 +2177,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000058"
+    "lastKey": "k-0000058",
+    "xp": 385,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2038,7 +2203,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 553,
+    "food": 319,
     "love": 295,
     "energy": 500,
     "at": 1798325220663,
@@ -2052,7 +2217,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000060"
+    "lastKey": "k-0000060",
+    "xp": 395,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2075,7 +2243,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 553,
+    "food": 319,
     "love": 545,
     "energy": 500,
     "at": 1798325240146,
@@ -2089,7 +2257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000061"
+    "lastKey": "k-0000061",
+    "xp": 403,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2112,7 +2283,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 144,
     "energy": 233,
     "at": 1798373428494,
@@ -2126,7 +2297,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000062"
+    "lastKey": "k-0000062",
+    "xp": 413,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2149,7 +2323,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1798434689057,
@@ -2163,7 +2337,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000063"
+    "lastKey": "k-0000063",
+    "xp": 423,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2186,7 +2363,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 795,
+    "food": 655,
     "love": 0,
     "energy": 0,
     "at": 1798435157918,
@@ -2200,7 +2377,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000064"
+    "lastKey": "k-0000064",
+    "xp": 433,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2223,7 +2403,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 551,
+    "food": 111,
     "love": 150,
     "energy": 0,
     "at": 1798454748172,
@@ -2237,7 +2417,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000065"
+    "lastKey": "k-0000065",
+    "xp": 441,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2260,7 +2443,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 368,
+    "food": 334,
     "love": 50,
     "energy": 0,
     "at": 1798489461407,
@@ -2274,7 +2457,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000066"
+    "lastKey": "k-0000066",
+    "xp": 456,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2297,7 +2483,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 365,
+    "food": 327,
     "love": 298,
     "energy": 0,
     "at": 1798489721733,
@@ -2311,7 +2497,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000067"
+    "lastKey": "k-0000067",
+    "xp": 464,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2334,7 +2523,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 363,
+    "food": 322,
     "love": 447,
     "energy": 0,
     "at": 1798489913773,
@@ -2348,7 +2537,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000068"
+    "lastKey": "k-0000068",
+    "xp": 472,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2385,7 +2577,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000069"
+    "lastKey": "k-0000069",
+    "xp": 480,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2408,7 +2603,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1799388710878,
@@ -2422,7 +2617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000070"
+    "lastKey": "k-0000070",
+    "xp": 490,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2445,7 +2643,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 224,
+    "food": 0,
     "love": 150,
     "energy": 0,
     "at": 1799402822240,
@@ -2459,7 +2657,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000071"
+    "lastKey": "k-0000071",
+    "xp": 503,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2482,7 +2683,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 224,
+    "food": 0,
     "love": 150,
     "energy": 0,
     "at": 1799402822240,
@@ -2496,7 +2697,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000071"
+    "lastKey": "k-0000071",
+    "xp": 503,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2519,7 +2723,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 0,
     "energy": 100,
     "at": 1799780479457,
@@ -2533,7 +2737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000073"
+    "lastKey": "k-0000073",
+    "xp": 513,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2570,7 +2777,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000074"
+    "lastKey": "k-0000074",
+    "xp": 528,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2607,7 +2817,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000075"
+    "lastKey": "k-0000075",
+    "xp": 538,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2644,7 +2857,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000076"
+    "lastKey": "k-0000076",
+    "xp": 546,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2667,7 +2883,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1801006938325,
@@ -2681,7 +2897,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000077"
+    "lastKey": "k-0000077",
+    "xp": 556,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2704,7 +2923,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 770,
+    "food": 601,
     "love": 0,
     "energy": 0,
     "at": 1801009375128,
@@ -2718,7 +2937,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000078"
+    "lastKey": "k-0000078",
+    "xp": 566,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2741,7 +2963,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 1000,
+    "food": 925,
     "love": 50,
     "energy": 0,
     "at": 1801009756353,
@@ -2755,7 +2977,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000079"
+    "lastKey": "k-0000079",
+    "xp": 576,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2778,7 +3003,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 866,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1801044483253,
@@ -2792,7 +3017,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000080"
+    "lastKey": "k-0000080",
+    "xp": 586,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2815,7 +3043,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 859,
+    "food": 319,
     "love": 0,
     "energy": 500,
     "at": 1801045045632,
@@ -2829,7 +3057,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000081"
+    "lastKey": "k-0000081",
+    "xp": 601,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2852,7 +3083,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 859,
+    "food": 319,
     "love": 150,
     "energy": 400,
     "at": 1801045059560,
@@ -2866,7 +3097,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000082"
+    "lastKey": "k-0000082",
+    "xp": 609,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2903,7 +3137,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000083"
+    "lastKey": "k-0000083",
+    "xp": 619,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2926,7 +3163,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 498,
     "at": 1801186464265,
@@ -2940,7 +3177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000084"
+    "lastKey": "k-0000084",
+    "xp": 629,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -2963,7 +3203,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 219,
+    "food": 334,
     "love": 0,
     "energy": 429,
     "at": 1801217020010,
@@ -2977,7 +3217,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000085"
+    "lastKey": "k-0000085",
+    "xp": 644,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3000,7 +3243,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 415,
+    "food": 659,
     "love": 0,
     "energy": 528,
     "at": 1801217354645,
@@ -3014,7 +3257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000086"
+    "lastKey": "k-0000086",
+    "xp": 654,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3037,7 +3283,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 413,
+    "food": 654,
     "love": 0,
     "energy": 1000,
     "at": 1801217557556,
@@ -3051,7 +3297,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000087"
+    "lastKey": "k-0000087",
+    "xp": 664,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3074,7 +3323,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 709,
+    "food": 979,
     "love": 0,
     "energy": 999,
     "at": 1801217911880,
@@ -3088,7 +3337,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000088"
+    "lastKey": "k-0000088",
+    "xp": 674,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3111,7 +3363,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 705,
+    "food": 969,
     "love": 150,
     "energy": 897,
     "at": 1801218281125,
@@ -3125,7 +3377,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000089"
+    "lastKey": "k-0000089",
+    "xp": 682,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3148,7 +3403,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 519,
+    "food": 445,
     "love": 0,
     "energy": 826,
     "at": 1801249197604,
@@ -3162,7 +3417,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000090"
+    "lastKey": "k-0000090",
+    "xp": 692,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3185,7 +3443,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 513,
+    "food": 430,
     "love": 250,
     "energy": 823,
     "at": 1801249746554,
@@ -3199,7 +3457,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000091"
+    "lastKey": "k-0000091",
+    "xp": 700,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3222,7 +3483,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 509,
+    "food": 419,
     "love": 397,
     "energy": 721,
     "at": 1801250145509,
@@ -3236,7 +3497,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000092"
+    "lastKey": "k-0000092",
+    "xp": 708,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3259,7 +3523,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 505,
+    "food": 410,
     "love": 395,
     "energy": 1000,
     "at": 1801250469585,
@@ -3273,7 +3537,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000093"
+    "lastKey": "k-0000093",
+    "xp": 718,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3296,7 +3563,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 502,
+    "food": 402,
     "love": 543,
     "energy": 899,
     "at": 1801250780969,
@@ -3310,7 +3577,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000094"
+    "lastKey": "k-0000094",
+    "xp": 726,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3333,7 +3603,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 696,
+    "food": 722,
     "love": 539,
     "energy": 997,
     "at": 1801251317801,
@@ -3347,7 +3617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000095"
+    "lastKey": "k-0000095",
+    "xp": 736,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3370,7 +3643,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 690,
+    "food": 708,
     "love": 535,
     "energy": 1000,
     "at": 1801251822743,
@@ -3384,7 +3657,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000096"
+    "lastKey": "k-0000096",
+    "xp": 746,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3421,7 +3697,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000097"
+    "lastKey": "k-0000097",
+    "xp": 754,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3458,7 +3737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000098"
+    "lastKey": "k-0000098",
+    "xp": 764,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3481,7 +3763,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 98,
     "energy": 656,
     "at": 1801385997417,
@@ -3495,7 +3777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000099"
+    "lastKey": "k-0000099",
+    "xp": 774,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3518,7 +3803,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 50,
     "energy": 415,
     "at": 1801429387258,
@@ -3532,7 +3817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000100"
+    "lastKey": "k-0000100",
+    "xp": 784,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3555,7 +3843,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 244,
+    "food": 319,
     "love": 46,
     "energy": 912,
     "at": 1801429932977,
@@ -3569,7 +3857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000101"
+    "lastKey": "k-0000101",
+    "xp": 794,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3592,7 +3883,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1801737280061,
@@ -3606,7 +3897,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000102"
+    "lastKey": "k-0000102",
+    "xp": 804,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3629,7 +3923,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 294,
+    "food": 320,
     "love": 150,
     "energy": 0,
     "at": 1801737798404,
@@ -3643,7 +3937,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000103"
+    "lastKey": "k-0000103",
+    "xp": 812,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3666,7 +3963,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 490,
+    "food": 645,
     "love": 148,
     "energy": 100,
     "at": 1801738146374,
@@ -3680,7 +3977,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000104"
+    "lastKey": "k-0000104",
+    "xp": 827,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3703,7 +4003,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 487,
+    "food": 638,
     "love": 396,
     "energy": 99,
     "at": 1801738419611,
@@ -3717,7 +4017,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000105"
+    "lastKey": "k-0000105",
+    "xp": 835,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3740,7 +4043,7 @@
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 736,
+    "food": 968,
     "love": 445,
     "energy": 99,
     "at": 1801738578964,
@@ -3754,7 +4057,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000106"
+    "lastKey": "k-0000106",
+    "xp": 845,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3768,30 +4074,33 @@
     "day": "2027-02-04",
     "key": "k-0000107"
    },
-   "outcome": "applied",
+   "outcome": "ignored",
    "after": {
-    "rev": 88,
+    "rev": 87,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 906,
-    "love": 358,
-    "energy": 41,
-    "at": 1801749035848,
+    "food": 968,
+    "love": 445,
+    "energy": 99,
+    "at": 1801738578964,
     "sleepUntil": 0,
-    "lastAt": 1801749035848,
+    "lastAt": 1801738578964,
     "careDays": 23,
     "bothDays": 13,
     "day": "2027-02-04",
     "dayA": true,
     "dayB": true,
-    "lastBy": "11111111-1111-1111-1111-111111111111",
+    "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
-    "lastItem": "mora",
-    "lastKey": "k-0000107"
+    "lastItem": "lampone",
+    "lastKey": "k-0000106",
+    "xp": 845,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3805,21 +4114,21 @@
     "day": "2027-02-04",
     "key": "k-0000108"
    },
-   "outcome": "applied",
+   "outcome": "ignored",
    "after": {
-    "rev": 89,
+    "rev": 87,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 1000,
-    "love": 358,
-    "energy": 41,
-    "at": 1801749143144,
+    "food": 968,
+    "love": 445,
+    "energy": 99,
+    "at": 1801738578964,
     "sleepUntil": 0,
-    "lastAt": 1801749143144,
+    "lastAt": 1801738578964,
     "careDays": 23,
     "bothDays": 13,
     "day": "2027-02-04",
@@ -3827,8 +4136,11 @@
     "dayB": true,
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
-    "lastItem": "pesca",
-    "lastKey": "k-0000108"
+    "lastItem": "lampone",
+    "lastKey": "k-0000106",
+    "xp": 845,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3844,15 +4156,15 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 90,
+    "rev": 88,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 994,
-    "love": 504,
+    "food": 661,
+    "love": 503,
     "energy": 0,
     "at": 1801749657026,
     "sleepUntil": 0,
@@ -3865,7 +4177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000109"
+    "lastKey": "k-0000109",
+    "xp": 853,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3881,15 +4196,15 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 91,
+    "rev": 89,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 666,
-    "love": 152,
+    "food": 334,
+    "love": 151,
     "energy": 100,
     "at": 1801791924290,
     "sleepUntil": 0,
@@ -3902,7 +4217,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000110"
+    "lastKey": "k-0000110",
+    "xp": 863,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3918,15 +4236,15 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 92,
+    "rev": 90,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 505,
-    "love": 295,
+    "food": 0,
+    "love": 294,
     "energy": 29,
     "at": 1801804805943,
     "sleepUntil": 0,
@@ -3939,7 +4257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000111"
+    "lastKey": "k-0000111",
+    "xp": 876,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3955,14 +4276,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 93,
+    "rev": 91,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1801845818014,
@@ -3976,7 +4297,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000112"
+    "lastKey": "k-0000112",
+    "xp": 886,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -3992,14 +4316,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 94,
+    "rev": 92,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 293,
+    "food": 319,
     "love": 150,
     "energy": 0,
     "at": 1801846384379,
@@ -4013,7 +4337,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000113"
+    "lastKey": "k-0000113",
+    "xp": 894,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4029,14 +4356,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 95,
+    "rev": 93,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 287,
+    "food": 305,
     "love": 396,
     "energy": 0,
     "at": 1801846920648,
@@ -4050,7 +4377,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000114"
+    "lastKey": "k-0000114",
+    "xp": 902,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4066,14 +4396,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 96,
+    "rev": 94,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 124,
     "energy": 0,
     "at": 1801885664030,
@@ -4087,7 +4417,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000115"
+    "lastKey": "k-0000115",
+    "xp": 912,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4103,14 +4436,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 97,
+    "rev": 95,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 245,
+    "food": 321,
     "love": 271,
     "energy": 0,
     "at": 1801886132589,
@@ -4124,7 +4457,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000116"
+    "lastKey": "k-0000116",
+    "xp": 920,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4140,14 +4476,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 98,
+    "rev": 96,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 205,
+    "food": 232,
     "love": 245,
     "energy": 500,
     "at": 1801889359270,
@@ -4161,7 +4497,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000117"
+    "lastKey": "k-0000117",
+    "xp": 935,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4177,14 +4516,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 98,
+    "rev": 96,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 205,
+    "food": 232,
     "love": 245,
     "energy": 500,
     "at": 1801889359270,
@@ -4198,7 +4537,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000117"
+    "lastKey": "k-0000117",
+    "xp": 935,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4214,14 +4556,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 99,
+    "rev": 97,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 0,
     "energy": 100,
     "at": 1802066900499,
@@ -4235,7 +4577,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000119"
+    "lastKey": "k-0000119",
+    "xp": 945,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4251,14 +4596,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 100,
+    "rev": 98,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 399,
+    "food": 665,
     "love": 0,
     "energy": 200,
     "at": 1802067029760,
@@ -4272,7 +4617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000120"
+    "lastKey": "k-0000120",
+    "xp": 955,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4288,14 +4636,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 101,
+    "rev": 99,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 645,
+    "food": 990,
     "love": 50,
     "energy": 199,
     "at": 1802067362938,
@@ -4309,7 +4657,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000121"
+    "lastKey": "k-0000121",
+    "xp": 970,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4325,14 +4676,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 102,
+    "rev": 100,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 242,
+    "food": 93,
     "love": 150,
     "energy": 0,
     "at": 1802099663934,
@@ -4346,7 +4697,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000122"
+    "lastKey": "k-0000122",
+    "xp": 978,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4362,7 +4716,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 103,
+    "rev": 101,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -4383,7 +4737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000123"
+    "lastKey": "k-0000123",
+    "xp": 988,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4399,7 +4756,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 104,
+    "rev": 102,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -4420,7 +4777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000124"
+    "lastKey": "k-0000124",
+    "xp": 998,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4436,7 +4796,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 105,
+    "rev": 103,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -4457,7 +4817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000125"
+    "lastKey": "k-0000125",
+    "xp": 1006,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4473,14 +4836,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 106,
+    "rev": 104,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 147,
     "energy": 825,
     "at": 1802164066227,
@@ -4494,7 +4857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000126"
+    "lastKey": "k-0000126",
+    "xp": 1016,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4510,7 +4876,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 107,
+    "rev": 105,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -4531,7 +4897,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000127"
+    "lastKey": "k-0000127",
+    "xp": 1031,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4547,7 +4916,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 108,
+    "rev": 106,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -4568,7 +4937,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000128"
+    "lastKey": "k-0000128",
+    "xp": 1039,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4584,14 +4956,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 109,
+    "rev": 107,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 197,
     "energy": 638,
     "at": 1802243407267,
@@ -4605,7 +4977,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000129"
+    "lastKey": "k-0000129",
+    "xp": 1054,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4621,14 +4996,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 110,
+    "rev": 108,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 461,
+    "food": 334,
     "love": 71,
     "energy": 554,
     "at": 1802258586954,
@@ -4642,7 +5017,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000130"
+    "lastKey": "k-0000130",
+    "xp": 1064,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4658,14 +5036,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 111,
+    "rev": 109,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 706,
+    "food": 656,
     "love": 118,
     "energy": 552,
     "at": 1802259051190,
@@ -4679,7 +5057,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000131"
+    "lastKey": "k-0000131",
+    "xp": 1074,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4695,7 +5076,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 112,
+    "rev": 110,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -4716,7 +5097,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000132"
+    "lastKey": "k-0000132",
+    "xp": 1082,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4732,7 +5116,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 113,
+    "rev": 111,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -4753,7 +5137,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000133"
+    "lastKey": "k-0000133",
+    "xp": 1092,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4769,7 +5156,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 114,
+    "rev": 112,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -4790,7 +5177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000134"
+    "lastKey": "k-0000134",
+    "xp": 1100,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4806,14 +5196,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 115,
+    "rev": 113,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1803603980739,
@@ -4827,7 +5217,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000135"
+    "lastKey": "k-0000135",
+    "xp": 1110,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4843,14 +5236,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 115,
+    "rev": 113,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1803603980739,
@@ -4864,7 +5257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000135"
+    "lastKey": "k-0000135",
+    "xp": 1110,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4880,14 +5276,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 116,
+    "rev": 114,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 397,
+    "food": 326,
     "love": 0,
     "energy": 500,
     "at": 1803604271843,
@@ -4901,7 +5297,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000137"
+    "lastKey": "k-0000137",
+    "xp": 1120,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4917,14 +5316,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 117,
+    "rev": 115,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 394,
+    "food": 319,
     "love": 250,
     "energy": 499,
     "at": 1803604546154,
@@ -4938,7 +5337,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000138"
+    "lastKey": "k-0000138",
+    "xp": 1133,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4954,14 +5356,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 118,
+    "rev": 116,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 390,
+    "food": 309,
     "love": 497,
     "energy": 497,
     "at": 1803604924737,
@@ -4975,7 +5377,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000139"
+    "lastKey": "k-0000139",
+    "xp": 1141,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -4991,14 +5396,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 119,
+    "rev": 117,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 590,
+    "food": 641,
     "love": 497,
     "energy": 597,
     "at": 1803605000141,
@@ -5012,7 +5417,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000140"
+    "lastKey": "k-0000140",
+    "xp": 1151,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5028,14 +5436,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 120,
+    "rev": 118,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 123,
+    "food": 0,
     "love": 436,
     "energy": 390,
     "at": 1803642405749,
@@ -5049,7 +5457,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000141"
+    "lastKey": "k-0000141",
+    "xp": 1159,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5065,14 +5476,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 121,
+    "rev": 119,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 522,
+    "food": 334,
     "love": 435,
     "energy": 390,
     "at": 1803642556625,
@@ -5086,7 +5497,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000142"
+    "lastKey": "k-0000142",
+    "xp": 1169,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5102,14 +5516,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 121,
+    "rev": 119,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 522,
+    "food": 334,
     "love": 435,
     "energy": 390,
     "at": 1803642556625,
@@ -5123,7 +5537,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000142"
+    "lastKey": "k-0000142",
+    "xp": 1169,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5139,14 +5556,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 122,
+    "rev": 120,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1803754691474,
@@ -5160,7 +5577,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000144"
+    "lastKey": "k-0000144",
+    "xp": 1179,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5176,14 +5596,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 123,
+    "rev": 121,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 697,
+    "food": 661,
     "love": 0,
     "energy": 0,
     "at": 1803754977463,
@@ -5197,7 +5617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000145"
+    "lastKey": "k-0000145",
+    "xp": 1194,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5213,14 +5636,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 123,
+    "rev": 121,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 697,
+    "food": 661,
     "love": 0,
     "energy": 0,
     "at": 1803754977463,
@@ -5234,7 +5657,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000145"
+    "lastKey": "k-0000145",
+    "xp": 1194,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5250,14 +5676,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 124,
+    "rev": 122,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 260,
+    "food": 0,
     "love": 150,
     "energy": 0,
     "at": 1803789977788,
@@ -5271,7 +5697,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000147"
+    "lastKey": "k-0000147",
+    "xp": 1202,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5287,14 +5716,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 125,
+    "rev": 123,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 257,
+    "food": 0,
     "love": 398,
     "energy": 0,
     "at": 1803790234163,
@@ -5308,7 +5737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000148"
+    "lastKey": "k-0000148",
+    "xp": 1210,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5324,14 +5756,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 125,
+    "rev": 123,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 257,
+    "food": 0,
     "love": 398,
     "energy": 0,
     "at": 1803790234163,
@@ -5345,7 +5777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000148"
+    "lastKey": "k-0000148",
+    "xp": 1210,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5361,7 +5796,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 126,
+    "rev": 124,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -5382,7 +5817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000150"
+    "lastKey": "k-0000150",
+    "xp": 1218,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5398,7 +5836,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 127,
+    "rev": 125,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -5419,7 +5857,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000151"
+    "lastKey": "k-0000151",
+    "xp": 1231,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5435,7 +5876,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 128,
+    "rev": 126,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -5456,7 +5897,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000152"
+    "lastKey": "k-0000152",
+    "xp": 1239,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5472,7 +5916,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 129,
+    "rev": 127,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -5493,7 +5937,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000153"
+    "lastKey": "k-0000153",
+    "xp": 1254,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5509,14 +5956,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 130,
+    "rev": 128,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1806315444249,
@@ -5530,7 +5977,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000154"
+    "lastKey": "k-0000154",
+    "xp": 1264,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5546,14 +5996,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 131,
+    "rev": 129,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 7,
+    "food": 0,
     "love": 250,
     "energy": 0,
     "at": 1806346893015,
@@ -5567,7 +6017,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000155"
+    "lastKey": "k-0000155",
+    "xp": 1277,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5583,14 +6036,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 132,
+    "rev": 130,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 205,
+    "food": 334,
     "love": 249,
     "energy": 100,
     "at": 1806347063848,
@@ -5604,7 +6057,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000156"
+    "lastKey": "k-0000156",
+    "xp": 1287,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5620,14 +6076,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 132,
+    "rev": 130,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 205,
+    "food": 334,
     "love": 249,
     "energy": 100,
     "at": 1806347063848,
@@ -5641,7 +6097,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000156"
+    "lastKey": "k-0000156",
+    "xp": 1287,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5657,14 +6116,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 133,
+    "rev": 131,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 396,
+    "food": 648,
     "love": 243,
     "energy": 196,
     "at": 1806347803056,
@@ -5678,7 +6137,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000158"
+    "lastKey": "k-0000158",
+    "xp": 1297,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5694,14 +6156,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 134,
+    "rev": 132,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 390,
+    "food": 635,
     "love": 389,
     "energy": 94,
     "at": 1806348299242,
@@ -5715,7 +6177,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000159"
+    "lastKey": "k-0000159",
+    "xp": 1305,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5731,14 +6196,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 135,
+    "rev": 133,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 387,
+    "food": 629,
     "love": 387,
     "energy": 593,
     "at": 1806348542175,
@@ -5752,7 +6217,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000160"
+    "lastKey": "k-0000160",
+    "xp": 1315,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5768,14 +6236,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 136,
+    "rev": 134,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 584,
+    "food": 956,
     "love": 385,
     "energy": 692,
     "at": 1806348819686,
@@ -5789,7 +6257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000161"
+    "lastKey": "k-0000161",
+    "xp": 1325,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5805,14 +6276,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 137,
+    "rev": 135,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 583,
+    "food": 953,
     "love": 534,
     "energy": 592,
     "at": 1806348946012,
@@ -5826,7 +6297,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000162"
+    "lastKey": "k-0000162",
+    "xp": 1333,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5842,14 +6316,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 138,
+    "rev": 136,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 141,
     "energy": 330,
     "at": 1806396169980,
@@ -5863,7 +6337,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000163"
+    "lastKey": "k-0000163",
+    "xp": 1343,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5879,14 +6356,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 139,
+    "rev": 137,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1806610540021,
@@ -5900,7 +6377,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000164"
+    "lastKey": "k-0000164",
+    "xp": 1353,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5916,14 +6396,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 140,
+    "rev": 138,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 393,
+    "food": 318,
     "love": 150,
     "energy": 0,
     "at": 1806611126037,
@@ -5937,7 +6417,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000165"
+    "lastKey": "k-0000165",
+    "xp": 1361,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5953,14 +6436,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 141,
+    "rev": 139,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 387,
+    "food": 304,
     "love": 396,
     "energy": 0,
     "at": 1806611639745,
@@ -5974,7 +6457,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000166"
+    "lastKey": "k-0000166",
+    "xp": 1369,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -5990,14 +6476,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 142,
+    "rev": 140,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 150,
     "energy": 0,
     "at": 1806647202183,
@@ -6011,7 +6497,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000167"
+    "lastKey": "k-0000167",
+    "xp": 1384,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6027,14 +6516,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 143,
+    "rev": 141,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 0,
     "energy": 100,
     "at": 1806692585481,
@@ -6048,7 +6537,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000168"
+    "lastKey": "k-0000168",
+    "xp": 1394,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6064,14 +6556,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 144,
+    "rev": 142,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 590,
+    "food": 646,
     "love": 0,
     "energy": 96,
     "at": 1806693396159,
@@ -6085,7 +6577,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000169"
+    "lastKey": "k-0000169",
+    "xp": 1409,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6101,14 +6596,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 145,
+    "rev": 143,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 367,
+    "food": 151,
     "love": 150,
     "energy": 0,
     "at": 1806711245580,
@@ -6122,7 +6617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000170"
+    "lastKey": "k-0000170",
+    "xp": 1417,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6138,14 +6636,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 146,
+    "rev": 144,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 305,
+    "food": 334,
     "love": 0,
     "energy": 100,
     "at": 1806732212522,
@@ -6159,7 +6657,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000171"
+    "lastKey": "k-0000171",
+    "xp": 1427,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6175,14 +6676,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 147,
+    "rev": 145,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 499,
+    "food": 655,
     "love": 0,
     "energy": 198,
     "at": 1806732697364,
@@ -6196,7 +6697,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000172"
+    "lastKey": "k-0000172",
+    "xp": 1442,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6212,14 +6716,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 148,
+    "rev": 146,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 53,
+    "food": 0,
     "love": 250,
     "energy": 0,
     "at": 1806768408078,
@@ -6233,7 +6737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000173"
+    "lastKey": "k-0000173",
+    "xp": 1450,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6249,14 +6756,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 149,
+    "rev": 147,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 53,
+    "food": 0,
     "love": 400,
     "energy": 0,
     "at": 1806768474285,
@@ -6270,7 +6777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000174"
+    "lastKey": "k-0000174",
+    "xp": 1458,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6286,14 +6796,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 150,
+    "rev": 148,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 46,
+    "food": 0,
     "love": 546,
     "energy": 0,
     "at": 1806769070734,
@@ -6307,7 +6817,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000175"
+    "lastKey": "k-0000175",
+    "xp": 1466,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6323,14 +6836,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 151,
+    "rev": 149,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 46,
+    "food": 0,
     "love": 546,
     "energy": 500,
     "at": 1806769070734,
@@ -6344,7 +6857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000176"
+    "lastKey": "k-0000176",
+    "xp": 1476,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6360,14 +6876,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 152,
+    "rev": 150,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 50,
     "energy": 0,
     "at": 1807223527339,
@@ -6381,7 +6897,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000177"
+    "lastKey": "k-0000177",
+    "xp": 1486,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6397,7 +6916,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 153,
+    "rev": 151,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6418,7 +6937,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000178"
+    "lastKey": "k-0000178",
+    "xp": 1494,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6434,7 +6956,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 154,
+    "rev": 152,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6455,7 +6977,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000179"
+    "lastKey": "k-0000179",
+    "xp": 1502,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6471,7 +6996,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 154,
+    "rev": 152,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6492,7 +7017,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000179"
+    "lastKey": "k-0000179",
+    "xp": 1502,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6508,7 +7036,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 154,
+    "rev": 152,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6529,7 +7057,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000179"
+    "lastKey": "k-0000179",
+    "xp": 1502,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6545,7 +7076,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 155,
+    "rev": 153,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6566,7 +7097,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000182"
+    "lastKey": "k-0000182",
+    "xp": 1510,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6582,7 +7116,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 156,
+    "rev": 154,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6603,7 +7137,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000183"
+    "lastKey": "k-0000183",
+    "xp": 1518,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6619,7 +7156,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 157,
+    "rev": 155,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6640,7 +7177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000184"
+    "lastKey": "k-0000184",
+    "xp": 1526,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6656,7 +7196,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 157,
+    "rev": 155,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6677,7 +7217,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000184"
+    "lastKey": "k-0000184",
+    "xp": 1526,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6693,7 +7236,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 157,
+    "rev": 155,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6714,7 +7257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000184"
+    "lastKey": "k-0000184",
+    "xp": 1526,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6730,7 +7276,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 157,
+    "rev": 155,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6751,7 +7297,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000184"
+    "lastKey": "k-0000184",
+    "xp": 1526,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6767,7 +7316,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 158,
+    "rev": 156,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6788,7 +7337,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000188"
+    "lastKey": "k-0000188",
+    "xp": 1534,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6804,14 +7356,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 159,
+    "rev": 157,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 417,
     "energy": 100,
     "at": 1809998334021,
@@ -6825,7 +7377,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000189"
+    "lastKey": "k-0000189",
+    "xp": 1544,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6841,7 +7396,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 160,
+    "rev": 158,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6862,7 +7417,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000190"
+    "lastKey": "k-0000190",
+    "xp": 1552,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6878,7 +7436,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 161,
+    "rev": 159,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6899,7 +7457,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000191"
+    "lastKey": "k-0000191",
+    "xp": 1565,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6915,7 +7476,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 161,
+    "rev": 159,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6936,7 +7497,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000191"
+    "lastKey": "k-0000191",
+    "xp": 1565,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6952,7 +7516,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 161,
+    "rev": 159,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -6973,7 +7537,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000191"
+    "lastKey": "k-0000191",
+    "xp": 1565,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -6989,14 +7556,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 162,
+    "rev": 160,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 114,
     "energy": 0,
     "at": 1810447669726,
@@ -7010,7 +7577,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000194"
+    "lastKey": "k-0000194",
+    "xp": 1575,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7026,14 +7596,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 163,
+    "rev": 161,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 299,
+    "food": 331,
     "love": 263,
     "energy": 0,
     "at": 1810447795525,
@@ -7047,7 +7617,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000195"
+    "lastKey": "k-0000195",
+    "xp": 1588,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7063,14 +7636,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 164,
+    "rev": 162,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 594,
+    "food": 653,
     "love": 260,
     "energy": 0,
     "at": 1810448233523,
@@ -7084,7 +7657,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000196"
+    "lastKey": "k-0000196",
+    "xp": 1598,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7100,14 +7676,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 165,
+    "rev": 163,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 593,
+    "food": 650,
     "love": 509,
     "energy": 0,
     "at": 1810448367539,
@@ -7121,7 +7697,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000197"
+    "lastKey": "k-0000197",
+    "xp": 1606,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7137,14 +7716,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 165,
+    "rev": 163,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 593,
+    "food": 650,
     "love": 509,
     "energy": 0,
     "at": 1810448367539,
@@ -7158,7 +7737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000197"
+    "lastKey": "k-0000197",
+    "xp": 1606,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7174,14 +7756,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 166,
+    "rev": 164,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 587,
+    "food": 635,
     "love": 505,
     "energy": 500,
     "at": 1810448910611,
@@ -7195,7 +7777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000199"
+    "lastKey": "k-0000199",
+    "xp": 1616,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7211,14 +7796,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 167,
+    "rev": 165,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 128,
+    "food": 0,
     "love": 199,
     "energy": 796,
     "at": 1810485654028,
@@ -7232,7 +7817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000200"
+    "lastKey": "k-0000200",
+    "xp": 1626,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7248,14 +7836,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 167,
+    "rev": 165,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 128,
+    "food": 0,
     "love": 199,
     "energy": 796,
     "at": 1810485654028,
@@ -7269,7 +7857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000200"
+    "lastKey": "k-0000200",
+    "xp": 1626,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7285,14 +7876,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 167,
+    "rev": 165,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 128,
+    "food": 0,
     "love": 199,
     "energy": 796,
     "at": 1810485654028,
@@ -7306,7 +7897,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000200"
+    "lastKey": "k-0000200",
+    "xp": 1626,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7322,7 +7916,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 168,
+    "rev": 166,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -7343,7 +7937,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000203"
+    "lastKey": "k-0000203",
+    "xp": 1634,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7359,7 +7956,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 169,
+    "rev": 167,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -7380,7 +7977,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000204"
+    "lastKey": "k-0000204",
+    "xp": 1644,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7396,14 +7996,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 170,
+    "rev": 168,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 196,
     "energy": 1000,
     "at": 1810521153642,
@@ -7417,7 +8017,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000205"
+    "lastKey": "k-0000205",
+    "xp": 1654,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7433,14 +8036,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 171,
+    "rev": 169,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 249,
+    "food": 331,
     "love": 195,
     "energy": 1000,
     "at": 1810521279314,
@@ -7454,7 +8057,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000206"
+    "lastKey": "k-0000206",
+    "xp": 1669,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7470,14 +8076,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 172,
+    "rev": 170,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 40,
+    "food": 0,
     "love": 56,
     "energy": 1000,
     "at": 1810538012601,
@@ -7491,7 +8097,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000207"
+    "lastKey": "k-0000207",
+    "xp": 1679,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7507,7 +8116,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 173,
+    "rev": 171,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -7528,7 +8137,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000208"
+    "lastKey": "k-0000208",
+    "xp": 1687,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7544,7 +8156,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 174,
+    "rev": 172,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -7565,7 +8177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000209"
+    "lastKey": "k-0000209",
+    "xp": 1695,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7581,7 +8196,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 175,
+    "rev": 173,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -7602,7 +8217,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000210"
+    "lastKey": "k-0000210",
+    "xp": 1703,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7618,14 +8236,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 176,
+    "rev": 174,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 150,
     "energy": 0,
     "at": 1811674063129,
@@ -7639,7 +8257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000211"
+    "lastKey": "k-0000211",
+    "xp": 1718,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7655,14 +8276,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 177,
+    "rev": 175,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 327,
+    "food": 171,
     "love": 251,
     "energy": 0,
     "at": 1811679944814,
@@ -7676,7 +8297,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000212"
+    "lastKey": "k-0000212",
+    "xp": 1726,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7692,14 +8316,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 178,
+    "rev": 176,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 287,
+    "food": 81,
     "love": 374,
     "energy": 0,
     "at": 1811683199031,
@@ -7713,7 +8337,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000213"
+    "lastKey": "k-0000213",
+    "xp": 1734,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7729,7 +8356,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 179,
+    "rev": 177,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -7750,7 +8377,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000214"
+    "lastKey": "k-0000214",
+    "xp": 1742,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7766,7 +8396,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 180,
+    "rev": 178,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -7787,7 +8417,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000215"
+    "lastKey": "k-0000215",
+    "xp": 1750,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7803,14 +8436,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 181,
+    "rev": 179,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 397,
     "energy": 0,
     "at": 1812269354975,
@@ -7824,7 +8457,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000216"
+    "lastKey": "k-0000216",
+    "xp": 1760,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7840,14 +8476,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 182,
+    "rev": 180,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 4,
+    "food": 0,
     "love": 200,
     "energy": 500,
     "at": 1812293058476,
@@ -7861,7 +8497,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000217"
+    "lastKey": "k-0000217",
+    "xp": 1775,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7877,14 +8516,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 183,
+    "rev": 181,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 253,
+    "food": 334,
     "love": 249,
     "energy": 500,
     "at": 1812293187098,
@@ -7898,7 +8537,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000218"
+    "lastKey": "k-0000218",
+    "xp": 1785,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7914,14 +8556,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 184,
+    "rev": 182,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 50,
     "energy": 307,
     "at": 1812328020088,
@@ -7935,7 +8577,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000219"
+    "lastKey": "k-0000219",
+    "xp": 1795,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7951,7 +8596,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 185,
+    "rev": 183,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -7972,7 +8617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000220"
+    "lastKey": "k-0000220",
+    "xp": 1803,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -7988,7 +8636,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 186,
+    "rev": 184,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8009,7 +8657,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000221"
+    "lastKey": "k-0000221",
+    "xp": 1813,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8025,7 +8676,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 186,
+    "rev": 184,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8046,7 +8697,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000221"
+    "lastKey": "k-0000221",
+    "xp": 1813,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8062,14 +8716,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 187,
+    "rev": 185,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 156,
     "energy": 474,
     "at": 1812388295240,
@@ -8083,7 +8737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000223"
+    "lastKey": "k-0000223",
+    "xp": 1828,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8099,14 +8756,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 188,
+    "rev": 186,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 611,
+    "food": 334,
     "love": 30,
     "energy": 390,
     "at": 1812403439945,
@@ -8120,7 +8777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000224"
+    "lastKey": "k-0000224",
+    "xp": 1838,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8136,7 +8796,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 189,
+    "rev": 187,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8157,7 +8817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000225"
+    "lastKey": "k-0000225",
+    "xp": 1846,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8173,7 +8836,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 190,
+    "rev": 188,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8194,7 +8857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000226"
+    "lastKey": "k-0000226",
+    "xp": 1854,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8210,7 +8876,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 190,
+    "rev": 188,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8231,7 +8897,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000226"
+    "lastKey": "k-0000226",
+    "xp": 1854,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8247,7 +8916,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 191,
+    "rev": 189,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8268,7 +8937,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000228"
+    "lastKey": "k-0000228",
+    "xp": 1862,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8284,7 +8956,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 192,
+    "rev": 190,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8305,7 +8977,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000229"
+    "lastKey": "k-0000229",
+    "xp": 1872,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8321,7 +8996,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 193,
+    "rev": 191,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8342,7 +9017,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000230"
+    "lastKey": "k-0000230",
+    "xp": 1885,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8358,7 +9036,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 194,
+    "rev": 192,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8379,7 +9057,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000231"
+    "lastKey": "k-0000231",
+    "xp": 1893,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8395,7 +9076,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 195,
+    "rev": 193,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8416,7 +9097,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000232"
+    "lastKey": "k-0000232",
+    "xp": 1901,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8432,7 +9116,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 196,
+    "rev": 194,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8453,7 +9137,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000233"
+    "lastKey": "k-0000233",
+    "xp": 1911,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8469,7 +9156,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 197,
+    "rev": 195,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8490,7 +9177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000234"
+    "lastKey": "k-0000234",
+    "xp": 1919,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8506,7 +9196,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 198,
+    "rev": 196,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8527,7 +9217,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000235"
+    "lastKey": "k-0000235",
+    "xp": 1927,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8543,7 +9236,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 199,
+    "rev": 197,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8564,7 +9257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000236"
+    "lastKey": "k-0000236",
+    "xp": 1935,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8580,7 +9276,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 200,
+    "rev": 198,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8601,7 +9297,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000237"
+    "lastKey": "k-0000237",
+    "xp": 1945,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8617,7 +9316,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 201,
+    "rev": 199,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -8638,7 +9337,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000238"
+    "lastKey": "k-0000238",
+    "xp": 1953,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8654,14 +9356,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 202,
+    "rev": 200,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 923,
     "energy": 845,
     "at": 1814854485073,
@@ -8675,7 +9377,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000239"
+    "lastKey": "k-0000239",
+    "xp": 1968,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8691,14 +9396,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 203,
+    "rev": 201,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 201,
+    "food": 114,
     "love": 1000,
     "energy": 801,
     "at": 1814862417385,
@@ -8712,7 +9417,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000240"
+    "lastKey": "k-0000240",
+    "xp": 1976,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8728,14 +9436,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 204,
+    "rev": 202,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 457,
+    "food": 334,
     "love": 904,
     "energy": 737,
     "at": 1814873943099,
@@ -8749,7 +9457,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000241"
+    "lastKey": "k-0000241",
+    "xp": 1986,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8765,14 +9476,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 205,
+    "rev": 203,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 610,
     "energy": 508,
     "at": 1814915339928,
@@ -8786,7 +9497,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000242"
+    "lastKey": "k-0000242",
+    "xp": 1996,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8802,14 +9516,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 206,
+    "rev": 204,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 649,
+    "food": 665,
     "love": 609,
     "energy": 508,
     "at": 1814915483150,
@@ -8823,7 +9537,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000243"
+    "lastKey": "k-0000243",
+    "xp": 2006,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8839,14 +9556,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 207,
+    "rev": 205,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 643,
+    "food": 650,
     "love": 855,
     "energy": 505,
     "at": 1814916031295,
@@ -8860,7 +9577,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000244"
+    "lastKey": "k-0000244",
+    "xp": 2014,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8876,14 +9596,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 208,
+    "rev": 206,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 640,
+    "food": 642,
     "love": 1000,
     "energy": 504,
     "at": 1814916332016,
@@ -8897,7 +9617,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000245"
+    "lastKey": "k-0000245",
+    "xp": 2022,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8913,14 +9636,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 209,
+    "rev": 207,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 638,
+    "food": 636,
     "love": 999,
     "energy": 1000,
     "at": 1814916563868,
@@ -8934,7 +9657,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000246"
+    "lastKey": "k-0000246",
+    "xp": 2032,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8950,14 +9676,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 209,
+    "rev": 207,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 638,
+    "food": 636,
     "love": 999,
     "energy": 1000,
     "at": 1814916563868,
@@ -8971,7 +9697,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000246"
+    "lastKey": "k-0000246",
+    "xp": 2032,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -8987,14 +9716,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 209,
+    "rev": 207,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 638,
+    "food": 636,
     "love": 999,
     "energy": 1000,
     "at": 1814916563868,
@@ -9008,7 +9737,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000246"
+    "lastKey": "k-0000246",
+    "xp": 2032,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9024,7 +9756,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 210,
+    "rev": 208,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -9045,7 +9777,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000249"
+    "lastKey": "k-0000249",
+    "xp": 2040,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9061,7 +9796,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 211,
+    "rev": 209,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -9082,7 +9817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000250"
+    "lastKey": "k-0000250",
+    "xp": 2055,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9098,7 +9836,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 211,
+    "rev": 209,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -9119,7 +9857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000250"
+    "lastKey": "k-0000250",
+    "xp": 2055,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9135,7 +9876,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 212,
+    "rev": 210,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -9156,7 +9897,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000252"
+    "lastKey": "k-0000252",
+    "xp": 2063,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9172,7 +9916,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 213,
+    "rev": 211,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -9193,7 +9937,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000253"
+    "lastKey": "k-0000253",
+    "xp": 2071,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9209,14 +9956,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 214,
+    "rev": 212,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 147,
     "energy": 0,
     "at": 1815403445229,
@@ -9230,7 +9977,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000254"
+    "lastKey": "k-0000254",
+    "xp": 2081,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9246,14 +9996,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 214,
+    "rev": 212,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 300,
+    "food": 334,
     "love": 147,
     "energy": 0,
     "at": 1815403445229,
@@ -9267,7 +10017,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000254"
+    "lastKey": "k-0000254",
+    "xp": 2081,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9283,14 +10036,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 215,
+    "rev": 213,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1815439299277,
@@ -9304,7 +10057,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000256"
+    "lastKey": "k-0000256",
+    "xp": 2091,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9320,14 +10076,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 216,
+    "rev": 214,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 795,
+    "food": 657,
     "love": 0,
     "energy": 0,
     "at": 1815439726989,
@@ -9341,7 +10097,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000257"
+    "lastKey": "k-0000257",
+    "xp": 2106,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9357,14 +10116,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 217,
+    "rev": 215,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 1000,
+    "food": 989,
     "love": 50,
     "energy": 0,
     "at": 1815439825073,
@@ -9378,7 +10137,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000258"
+    "lastKey": "k-0000258",
+    "xp": 2116,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9394,14 +10156,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 218,
+    "rev": 216,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 998,
+    "food": 983,
     "love": 299,
     "energy": 0,
     "at": 1815440058884,
@@ -9415,7 +10177,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000259"
+    "lastKey": "k-0000259",
+    "xp": 2124,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9431,14 +10196,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 219,
+    "rev": 217,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 998,
+    "food": 983,
     "love": 549,
     "energy": 0,
     "at": 1815440074728,
@@ -9452,7 +10217,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000260"
+    "lastKey": "k-0000260",
+    "xp": 2132,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9466,30 +10234,33 @@
     "day": "2027-07-13",
     "key": "k-0000261"
    },
-   "outcome": "applied",
+   "outcome": "ignored",
    "after": {
-    "rev": 220,
+    "rev": 217,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 1000,
-    "love": 545,
-    "energy": 100,
-    "at": 1815440572985,
+    "food": 983,
+    "love": 549,
+    "energy": 0,
+    "at": 1815440074728,
     "sleepUntil": 0,
-    "lastAt": 1815440572985,
+    "lastAt": 1815440074728,
     "careDays": 57,
     "bothDays": 36,
     "day": "2027-07-13",
     "dayA": true,
     "dayB": true,
     "lastBy": "11111111-1111-1111-1111-111111111111",
-    "lastKind": "feed",
-    "lastItem": "mirtillo",
-    "lastKey": "k-0000261"
+    "lastKind": "cuddle",
+    "lastItem": null,
+    "lastKey": "k-0000260",
+    "xp": 2132,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9503,30 +10274,33 @@
     "day": "2027-07-13",
     "key": "k-0000262"
    },
-   "outcome": "applied",
+   "outcome": "ignored",
    "after": {
-    "rev": 221,
+    "rev": 217,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 1000,
-    "love": 530,
-    "energy": 57,
-    "at": 1815448378434,
+    "food": 983,
+    "love": 549,
+    "energy": 0,
+    "at": 1815440074728,
     "sleepUntil": 0,
-    "lastAt": 1815448378434,
+    "lastAt": 1815440074728,
     "careDays": 57,
     "bothDays": 36,
     "day": "2027-07-13",
     "dayA": true,
     "dayB": true,
-    "lastBy": "22222222-2222-2222-2222-222222222222",
-    "lastKind": "feed",
-    "lastItem": "lampone",
-    "lastKey": "k-0000262"
+    "lastBy": "11111111-1111-1111-1111-111111111111",
+    "lastKind": "cuddle",
+    "lastItem": null,
+    "lastKey": "k-0000260",
+    "xp": 2132,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9542,15 +10316,15 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 222,
+    "rev": 218,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 997,
-    "love": 678,
+    "food": 746,
+    "love": 628,
     "energy": 0,
     "at": 1815448624875,
     "sleepUntil": 0,
@@ -9563,7 +10337,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000263"
+    "lastKey": "k-0000263",
+    "xp": 2140,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9579,15 +10356,15 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 222,
+    "rev": 218,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 997,
-    "love": 678,
+    "food": 746,
+    "love": 628,
     "energy": 0,
     "at": 1815448624875,
     "sleepUntil": 0,
@@ -9600,7 +10377,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000263"
+    "lastKey": "k-0000263",
+    "xp": 2140,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9616,15 +10396,15 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 223,
+    "rev": 219,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 243,
-    "love": 325,
+    "food": 0,
+    "love": 275,
     "energy": 0,
     "at": 1815508992604,
     "sleepUntil": 0,
@@ -9637,7 +10417,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000265"
+    "lastKey": "k-0000265",
+    "xp": 2148,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9653,15 +10436,15 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 224,
+    "rev": 220,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 643,
-    "love": 325,
+    "food": 334,
+    "love": 275,
     "energy": 0,
     "at": 1815509010776,
     "sleepUntil": 0,
@@ -9674,7 +10457,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000266"
+    "lastKey": "k-0000266",
+    "xp": 2158,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9690,15 +10476,15 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 225,
+    "rev": 221,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 1000,
-    "love": 325,
+    "food": 668,
+    "love": 275,
     "energy": 0,
     "at": 1815509010776,
     "sleepUntil": 0,
@@ -9711,7 +10497,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000267"
+    "lastKey": "k-0000267",
+    "xp": 2168,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9727,15 +10516,15 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 226,
+    "rev": 222,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 827,
-    "love": 210,
+    "food": 283,
+    "love": 160,
     "energy": 500,
     "at": 1815522888671,
     "sleepUntil": 1815528288671,
@@ -9748,7 +10537,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000268"
+    "lastKey": "k-0000268",
+    "xp": 2178,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9764,14 +10556,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 227,
+    "rev": 223,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 329,
+    "food": 0,
     "love": 0,
     "energy": 779,
     "at": 1815562803605,
@@ -9785,7 +10577,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000269"
+    "lastKey": "k-0000269",
+    "xp": 2188,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9801,14 +10596,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 227,
+    "rev": 223,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 329,
+    "food": 0,
     "love": 0,
     "energy": 779,
     "at": 1815562803605,
@@ -9822,7 +10617,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000269"
+    "lastKey": "k-0000269",
+    "xp": 2188,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9838,14 +10636,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 228,
+    "rev": 224,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 0,
     "energy": 100,
     "at": 1815900069083,
@@ -9859,7 +10657,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000271"
+    "lastKey": "k-0000271",
+    "xp": 2198,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9875,14 +10676,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 229,
+    "rev": 225,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 197,
+    "food": 328,
     "love": 150,
     "energy": 0,
     "at": 1815900310251,
@@ -9896,7 +10697,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000272"
+    "lastKey": "k-0000272",
+    "xp": 2211,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9912,14 +10716,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 230,
+    "rev": 226,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 90,
+    "food": 89,
     "love": 79,
     "energy": 500,
     "at": 1815908930202,
@@ -9933,7 +10737,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000273"
+    "lastKey": "k-0000273",
+    "xp": 2221,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9949,14 +10756,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 231,
+    "rev": 227,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 88,
+    "food": 85,
     "love": 78,
     "energy": 1000,
     "at": 1815909097293,
@@ -9970,7 +10777,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000274"
+    "lastKey": "k-0000274",
+    "xp": 2231,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -9986,14 +10796,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 231,
+    "rev": 227,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 88,
+    "food": 85,
     "love": 78,
     "energy": 1000,
     "at": 1815909097293,
@@ -10007,7 +10817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000274"
+    "lastKey": "k-0000274",
+    "xp": 2231,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10023,14 +10836,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 232,
+    "rev": 228,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 400,
+    "food": 334,
     "love": 0,
     "energy": 0,
     "at": 1816324694520,
@@ -10044,7 +10857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000276"
+    "lastKey": "k-0000276",
+    "xp": 2241,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10060,14 +10876,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 233,
+    "rev": 229,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 600,
+    "food": 668,
     "love": 0,
     "energy": 100,
     "at": 1816324717202,
@@ -10081,7 +10897,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000277"
+    "lastKey": "k-0000277",
+    "xp": 2251,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10097,14 +10916,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 233,
+    "rev": 229,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 600,
+    "food": 668,
     "love": 0,
     "energy": 100,
     "at": 1816324717202,
@@ -10118,7 +10937,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000277"
+    "lastKey": "k-0000277",
+    "xp": 2251,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10134,14 +10956,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 233,
+    "rev": 229,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 600,
+    "food": 668,
     "love": 0,
     "energy": 100,
     "at": 1816324717202,
@@ -10155,7 +10977,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000277"
+    "lastKey": "k-0000277",
+    "xp": 2251,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10171,14 +10996,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 234,
+    "rev": 230,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 313,
+    "food": 334,
     "love": 0,
     "energy": 100,
     "at": 1816363692600,
@@ -10192,7 +11017,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000280"
+    "lastKey": "k-0000280",
+    "xp": 2266,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10208,14 +11036,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 235,
+    "rev": 231,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 503,
+    "food": 423,
     "love": 0,
     "energy": 51,
     "at": 1816372517345,
@@ -10229,7 +11057,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mora",
-    "lastKey": "k-0000281"
+    "lastKey": "k-0000281",
+    "xp": 2276,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10245,14 +11076,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 236,
+    "rev": 232,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 240,
+    "food": 0,
     "love": 0,
     "energy": 500,
     "at": 1816393620459,
@@ -10266,7 +11097,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000282"
+    "lastKey": "k-0000282",
+    "xp": 2286,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10282,14 +11116,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 236,
+    "rev": 232,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 240,
+    "food": 0,
     "love": 0,
     "energy": 500,
     "at": 1816393620459,
@@ -10303,7 +11137,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000282"
+    "lastKey": "k-0000282",
+    "xp": 2286,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10319,14 +11156,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 237,
+    "rev": 233,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 232,
+    "food": 0,
     "love": 150,
     "energy": 397,
     "at": 1816394319379,
@@ -10340,7 +11177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000284"
+    "lastKey": "k-0000284",
+    "xp": 2299,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10356,7 +11196,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 238,
+    "rev": 234,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -10377,7 +11217,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000285"
+    "lastKey": "k-0000285",
+    "xp": 2307,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10393,14 +11236,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 239,
+    "rev": 235,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 247,
     "energy": 370,
     "at": 1816417401681,
@@ -10414,7 +11257,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000286"
+    "lastKey": "k-0000286",
+    "xp": 2317,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10430,14 +11276,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 240,
+    "rev": 236,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 198,
+    "food": 329,
     "love": 246,
     "energy": 869,
     "at": 1816417591938,
@@ -10451,7 +11297,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000287"
+    "lastKey": "k-0000287",
+    "xp": 2327,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10467,7 +11316,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 241,
+    "rev": 237,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -10488,7 +11337,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000288"
+    "lastKey": "k-0000288",
+    "xp": 2335,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10504,7 +11356,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 241,
+    "rev": 237,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -10525,7 +11377,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000288"
+    "lastKey": "k-0000288",
+    "xp": 2335,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10541,7 +11396,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 241,
+    "rev": 237,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -10562,7 +11417,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000288"
+    "lastKey": "k-0000288",
+    "xp": 2335,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10578,7 +11436,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 241,
+    "rev": 237,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -10599,7 +11457,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000288"
+    "lastKey": "k-0000288",
+    "xp": 2335,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10615,14 +11476,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 242,
+    "rev": 238,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 50,
     "energy": 0,
     "at": 1817922468817,
@@ -10636,7 +11497,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000292"
+    "lastKey": "k-0000292",
+    "xp": 2345,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10652,14 +11516,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 243,
+    "rev": 239,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 247,
+    "food": 328,
     "love": 48,
     "energy": 500,
     "at": 1817922715359,
@@ -10673,7 +11537,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000293"
+    "lastKey": "k-0000293",
+    "xp": 2355,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10689,14 +11556,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 244,
+    "rev": 240,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 495,
+    "food": 657,
     "love": 97,
     "energy": 499,
     "at": 1817922929313,
@@ -10710,7 +11577,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000294"
+    "lastKey": "k-0000294",
+    "xp": 2370,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10726,14 +11596,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 245,
+    "rev": 241,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 68,
+    "food": 0,
     "love": 250,
     "energy": 309,
     "at": 1817957149525,
@@ -10747,7 +11617,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000295"
+    "lastKey": "k-0000295",
+    "xp": 2378,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10763,14 +11636,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 245,
+    "rev": 241,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 68,
+    "food": 0,
     "love": 250,
     "energy": 309,
     "at": 1817957149525,
@@ -10784,7 +11657,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000295"
+    "lastKey": "k-0000295",
+    "xp": 2378,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10800,14 +11676,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 246,
+    "rev": 242,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 57,
+    "food": 0,
     "love": 493,
     "energy": 304,
     "at": 1817958049932,
@@ -10821,7 +11697,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000297"
+    "lastKey": "k-0000297",
+    "xp": 2391,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10837,14 +11716,14 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 246,
+    "rev": 242,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 57,
+    "food": 0,
     "love": 493,
     "energy": 304,
     "at": 1817958049932,
@@ -10858,7 +11737,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000297"
+    "lastKey": "k-0000297",
+    "xp": 2391,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10874,7 +11756,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 247,
+    "rev": 243,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -10895,7 +11777,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000299"
+    "lastKey": "k-0000299",
+    "xp": 2399,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10911,14 +11796,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 248,
+    "rev": 244,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 200,
+    "food": 334,
     "love": 148,
     "energy": 100,
     "at": 1818361806399,
@@ -10932,7 +11817,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "mirtillo",
-    "lastKey": "k-0000300"
+    "lastKey": "k-0000300",
+    "xp": 2414,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10948,14 +11836,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 249,
+    "rev": 245,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 197,
+    "food": 326,
     "love": 296,
     "energy": 0,
     "at": 1818362108076,
@@ -10969,7 +11857,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000301"
+    "lastKey": "k-0000301",
+    "xp": 2422,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -10985,14 +11876,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 250,
+    "rev": 246,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 597,
+    "food": 659,
     "love": 296,
     "energy": 0,
     "at": 1818362179079,
@@ -11006,7 +11897,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "feed",
     "lastItem": "pesca",
-    "lastKey": "k-0000302"
+    "lastKey": "k-0000302",
+    "xp": 2432,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -11022,14 +11916,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 251,
+    "rev": 247,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 597,
+    "food": 658,
     "love": 296,
     "energy": 500,
     "at": 1818362244211,
@@ -11043,7 +11937,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000303"
+    "lastKey": "k-0000303",
+    "xp": 2442,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -11059,14 +11956,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 252,
+    "rev": 248,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 163,
+    "food": 0,
     "love": 257,
     "energy": 308,
     "at": 1818396971729,
@@ -11080,7 +11977,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "cuddle",
     "lastItem": null,
-    "lastKey": "k-0000304"
+    "lastKey": "k-0000304",
+    "xp": 2450,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -11096,7 +11996,7 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 253,
+    "rev": 249,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -11117,7 +12017,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000305"
+    "lastKey": "k-0000305",
+    "xp": 2463,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -11133,7 +12036,7 @@
    },
    "outcome": "ignored",
    "after": {
-    "rev": 253,
+    "rev": 249,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
@@ -11154,7 +12057,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "play",
     "lastItem": null,
-    "lastKey": "k-0000305"
+    "lastKey": "k-0000305",
+    "xp": 2463,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -11170,14 +12076,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 254,
+    "rev": 250,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 250,
+    "food": 334,
     "love": 50,
     "energy": 0,
     "at": 1819148461161,
@@ -11191,7 +12097,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "feed",
     "lastItem": "lampone",
-    "lastKey": "k-0000307"
+    "lastKey": "k-0000307",
+    "xp": 2473,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -11207,14 +12116,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 255,
+    "rev": 251,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 236,
+    "food": 303,
     "love": 41,
     "energy": 500,
     "at": 1819149592657,
@@ -11228,7 +12137,10 @@
     "lastBy": "22222222-2222-2222-2222-222222222222",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000308"
+    "lastKey": "k-0000308",
+    "xp": 2488,
+    "outfit": {},
+    "outfitAt": 0
    }
   },
   {
@@ -11244,14 +12156,14 @@
    },
    "outcome": "applied",
    "after": {
-    "rev": 256,
+    "rev": 252,
     "hatchedAt": 1794564005000,
     "hatchedBy": "22222222-2222-2222-2222-222222222222",
     "touchesA": 3,
     "touchesB": 1,
     "name": null,
     "nameAt": 0,
-    "food": 235,
+    "food": 301,
     "love": 41,
     "energy": 1000,
     "at": 1819149697433,
@@ -11265,7 +12177,10 @@
     "lastBy": "11111111-1111-1111-1111-111111111111",
     "lastKind": "sleep",
     "lastItem": null,
-    "lastKey": "k-0000309"
+    "lastKey": "k-0000309",
+    "xp": 2498,
+    "outfit": {},
+    "outfitAt": 0
    }
   }
  ]

@@ -104,3 +104,13 @@ if (recFile) {
   fs.writeFileSync(path.join(root, "supabase", "sessione11-recupero.sql"), head + "\n" + fs.readFileSync(path.join(dir, recFile), "utf8"));
   console.log("supabase/sessione11-recupero.sql: solo la migrazione della sessione 11");
 }
+
+// Solo la migrazione della sessione 11 (pet: 3 pezzi di cibo, esperienza e livelli, guardaroba).
+const petLvFile = files.find((f) => f.includes("_pet_livelli"));
+if (petLvFile) {
+  const head = `-- Fragolina · SOLO LA MIGRAZIONE DELLA SESSIONE 11 (pet): cibo a 3 pezzi, esperienza e livelli, guardaroba.
+-- Generato da scripts/build-sql.mjs: non modificarlo a mano. Rieseguibile.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione11-pet-livelli.sql"), head + "\n" + fs.readFileSync(path.join(dir, petLvFile), "utf8"));
+  console.log("supabase/sessione11-pet-livelli.sql: solo la migrazione del pet (livelli)");
+}

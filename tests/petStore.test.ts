@@ -120,7 +120,7 @@ describe("pet: cure in due", () => {
     const { A, B } = await paired();
     await hatch(A, B);
     const seq = B.store.getState().petIncomingSeq;
-    tick(5000);
+    tick(5 * 3600_000); // la pancia, piena alla nascita, scende e torna ad avere fame
     expect(A.store.getState().petAct("feed", "mora")).toEqual({ ok: true });
     await settle();
     expect(B.store.getState().petIncomingSeq).toBe(seq + 1);

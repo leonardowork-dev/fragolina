@@ -464,6 +464,7 @@ check(
 
   // 2) cure, pausa, idempotenza
   const base = (await db.query(`select ${nowSql} as n`)).rows[0].n;
+  await db.query("update pets set food = 0, at = 0"); // la pancia (piena alla nascita) è vuota: i frutti entrano
   const f1 = await act(P1, "feed", "mora", 1, "pet-key-0020", `${base} - 100000`);
   check("P1 dà una mora", f1.ok && f1.pet.last_kind === "feed" && f1.pet.last_item === "mora" && f1.pet.last_by === P1, JSON.stringify(f1));
   const f2 = await act(P1, "feed", "pesca", 1, "pet-key-0021", `${base} - 90000`);
@@ -515,7 +516,7 @@ check(
     let last;
     // cure distanziate di 50 s nel tempo "del telefono" ma tutte nello stesso minuto vero: la pausa passa, il limite no
     for (let i = 0; i < 62; i++)
-      last = await act(R1, "feed", "mora", 1, `rate-key-${String(i).padStart(4, "0")}`, `${base} - 4000000 + ${i * 50000}`);
+      last = await act(R1, "cuddle", null, 1, `rate-key-${String(i).padStart(4, "0")}`, `${base} - 4000000 + ${i * 50000}`);
     check("più di 60 cure al minuto: rate_limited", last.error === "rate_limited", JSON.stringify(last));
   }
 
@@ -526,6 +527,26 @@ check(
     let r;
     for (let i = 0; i < 4; i++) r = await act(L, "touch", null, 10, `solo-key-${String(i).padStart(4, "0")}`);
     check("40 tocchi di una persona sola: si schiude", r.ok && r.pet.hatched_at !== null && r.pet.touches_a === 40, JSON.stringify(r));
+  }
+
+  // 7b) sessione 11: tre pezzi, esperienza, livelli, guardaroba
+  {
+    const px = (await db.query("select xp, food from pets where couple_id=$1", [pcid])).rows[0];
+    check("pet: la mora dà 10 punti esperienza e 1/3 di pancia", px.xp >= 10 && px.food >= 334, JSON.stringify(px));
+    await db.query("update pets set food = 1000, at = $2 where couple_id=$1", [pcid, (await db.query(`select ${nowSql} as n`)).rows[0].n]);
+    const full = await act(P1, "feed", "mora", 1, "pet-key-9001");
+    check("pet: pieno (3 pezzi) il frutto si rifiuta (ignorato, niente punti)", full.ok && full.ignored === true, JSON.stringify(full).slice(0, 100));
+    const nowMs = (await db.query(`select ${nowSql} as n`)).rows[0].n;
+    await db.query("update pets set xp = 0 where couple_id=$1", [pcid]);
+    check("pet: indumento non sbloccato rifiutato (cap = livello 2)", (await rpc(P1, `public.set_pet_outfit('{"head":"cap"}'::jsonb, ${nowMs}, 'outf-key-0001')`)).error === "locked");
+    await db.query("update pets set xp = 100 where couple_id=$1", [pcid]);
+    const o1 = await rpc(P1, `public.set_pet_outfit('{"head":"cap","neck":"scarf"}'::jsonb, ${nowMs}, 'outf-key-0002')`);
+    check("pet: con il livello giusto si veste (testa + collo)", o1.ok && o1.pet.outfit.head === "cap" && o1.pet.outfit.neck === "scarf", JSON.stringify(o1).slice(0, 120));
+    check("pet: l'altra persona vede lo stesso guardaroba", (await rpc(P2, "public.get_pet()")).pet.outfit.head === "cap");
+    check("pet: la modifica più vecchia perde (LWW)", (await rpc(P2, `public.set_pet_outfit('{"head":"bow"}'::jsonb, ${nowMs - 60000}, 'outf-key-0003')`)).pet.outfit.head === "cap");
+    check("pet: la più nuova vince", (await rpc(P2, `public.set_pet_outfit('{"head":"bow"}'::jsonb, ${nowMs + 0}, 'outf-key-0004')`)).pet.outfit.head === "bow");
+    check("pet: posto o indumento inventati rifiutati", (await rpc(P1, `public.set_pet_outfit('{"hand":"cap"}'::jsonb, ${nowMs}, 'outf-key-0005')`)).error === "invalid_content" && (await rpc(P1, `public.set_pet_outfit('{"head":"tutu"}'::jsonb, ${nowMs}, 'outf-key-0006')`)).error === "invalid_content");
+    check("pet: uno sconosciuto non può vestirlo", (await rpc(S, `public.set_pet_outfit('{}'::jsonb, ${nowMs}, 'outf-key-0007')`)).error === "not_paired");
   }
 
   // 8) parità con TypeScript: la stessa sequenza (tests/fixtures/pet-sequence.json) passa da _pet_step
