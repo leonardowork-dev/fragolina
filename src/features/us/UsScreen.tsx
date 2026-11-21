@@ -15,6 +15,7 @@ import {
 } from "@/design";
 import { Screen } from "@/design/layout/Screen";
 import { DistanceCard } from "@/features/distance/DistanceCard";
+import { UpdateCard } from "./UpdateCard";
 import { RecoveryCard } from "./RecoveryCard";
 import { ExpiryCard } from "@/features/expiry/ExpiryCard";
 import { PairingPanel } from "@/features/pairing/PairingPanel";
@@ -201,6 +202,7 @@ export function UsScreen() {
         </View>
       </Sticker>
 
+      <UpdateCard />
       <ExpiryCard />
       <RecoveryCard />
       {coupleId ? <DistanceCard /> : null}
