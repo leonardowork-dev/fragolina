@@ -207,3 +207,19 @@ describe("zona: le animazioni non restano e non escono dalla zona (bug dei buoni
     expect(src).toContain("!active || !inZone");
   });
 });
+
+describe("recupero del posto (finto server)", () => {
+  it("il nuovo accesso riprende il posto con il codice, una volta sola", async () => {
+    const t = memoryTransport();
+    const mk = (uid: string) => new MockBackend(t, { uid, latencyMs: [0, 0], sleep: async () => {}, clock: () => 1_000_000 });
+    const A = mk("ua"), B = mk("ub"), NEW = mk("unew"), NEW2 = mk("unew2");
+    const c = await A.createCouple("Leonardo", null);
+    await B.joinCouple(c.code, "Nikole");
+    const r = await A.createRecoveryCode();
+    expect(r.code).toMatch(/^[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/);
+    await expect(NEW.redeemRecoveryCode("AAAA-AAAA-AAAA")).rejects.toBeTruthy();
+    await NEW.redeemRecoveryCode(r.code.toLowerCase());
+    expect((await NEW.getState("2026-11-22", 0)).members.length).toBe(2);
+    await expect(NEW2.redeemRecoveryCode(r.code)).rejects.toBeTruthy();
+  });
+});

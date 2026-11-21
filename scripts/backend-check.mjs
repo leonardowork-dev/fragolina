@@ -669,8 +669,28 @@ try {
     }
   }
 
+  // sessione 11: codice di recupero del posto (coppia di PROVA, mai quella vera)
+  let heir = null;
+  {
+    const rc = await rpc(A.c, "create_recovery_code");
+    if (rc.error && /create_recovery_code|PGRST202|Could not find/i.test(String(rc.error))) {
+      rows.push(["MANCA", "recupero: migrazione sessione11-recupero.sql non applicata", ""]);
+    } else {
+      check("recupero: A crea un codice (XXXX-XXXX-XXXX)", rc.ok && /^[A-HJKMNP-Z2-9]{4}(-[A-HJKMNP-Z2-9]{4}){2}$/.test(rc.code ?? ""), JSON.stringify(rc).slice(0, 80));
+      const N = await signIn("N (nuovo telefono)");
+      check("recupero: codice sbagliato rifiutato", (await rpc(N.c, "redeem_recovery_code", { p_code: "AAAA-AAAA-AAAA" })).error === "invalid_code");
+      const ok = await rpc(N.c, "redeem_recovery_code", { p_code: rc.code });
+      check("recupero: il nuovo accesso prende il posto di A", ok.ok === true, JSON.stringify(ok));
+      const st = await rpc(N.c, "get_state", { p_day: day, p_day_start: new Date().toISOString() });
+      check("recupero: il nuovo vede la coppia, A non più", st.paired === true && (await rpc(A.c, "get_state", { p_day: day, p_day_start: new Date().toISOString() })).paired === false);
+      check("recupero: il codice è a uso singolo", (await rpc((await signIn("N2")).c, "redeem_recovery_code", { p_code: rc.code })).error === "invalid_code");
+      heir = N;
+    }
+  }
+
   // pulizia: entrambi escono (la coppia si cancella da sola)
   await rpc(A.c, "leave_couple");
+  if (heir) await rpc(heir.c, "leave_couple");
   await rpc(B.c, "leave_couple");
   const gone = await rpc(A.c, "get_state", { p_day: day, p_day_start: new Date().toISOString() });
   check("pulizia: A e B sono usciti, nessuna traccia", gone.paired === false);

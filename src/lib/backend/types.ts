@@ -133,6 +133,10 @@ export interface Backend {
   setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void>;
   /** Crea (o cambia) il token con cui il widget legge il feed. Il token in chiaro esiste solo qui e nel container del widget. */
   rotateWidgetToken(): Promise<string>;
+  /** Codice di recupero del posto (una volta, 14 giorni): `expiresAt` in ms. */
+  createRecoveryCode(): Promise<{ code: string; expiresAt: number }>;
+  /** Il nuovo accesso anonimo prende il posto del vecchio membro con il codice. */
+  redeemRecoveryCode(code: string): Promise<void>;
   /** Zona privata: fotografia (null = il server non ha la migrazione), una operazione, e il segnale "è cambiato qualcosa" (solo un contatore). */
   zoneGet(): Promise<ZSnapshot | null>;
   zoneApply(op: ZOp): Promise<void>;

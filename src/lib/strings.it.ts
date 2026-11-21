@@ -802,6 +802,28 @@ export const S = {
     body: "Per accendere Manca poco, la domanda vera e i Ricordi serve incollare un file su Supabase, una volta sola. È in MANUAL_TODO.md, sezione «Sessione 7».",
   },
   lab: { title: "Laboratorio" },
+  // Codice di recupero del posto e aggiornamenti (sessione 11)
+  recovery: {
+    title: "Codice di recupero",
+    body: "Serve se cambi il modo di installare l'app o perdi il telefono: con questo codice ti riprendi il tuo posto, senza perdere niente. Vale 14 giorni e una volta sola.",
+    make: "Crea il codice",
+    shown: "Scrivilo o copialo ADESSO: non si vede più.",
+    copy: "Copia",
+    copied: "Copiato",
+    share: "Condividi",
+    expires: (d: string) => `Vale fino al ${d}`,
+    restoreTitle: "Ho un codice di recupero",
+    restoreBody: "Hai installato di nuovo Fragolina? Scrivi il codice che avevi creato e riprendi il tuo posto.",
+    restoreField: "Codice di recupero",
+    restoreAction: "Riprendi il mio posto",
+    restoreOk: "Fatto. Bentornato!",
+    restoreBad: "Codice non valido o scaduto.",
+    updateTitle: "Aggiornamento disponibile",
+    updateBody: (n: number) => `C'è una versione nuova (build ${n}). Si installa da SideStore, senza PC.`,
+    updateAction: "Aggiorna con SideStore",
+    updateNone: "Sei all'ultima versione.",
+    updateHint: "Se non si apre SideStore, aprilo a mano e scegli Fragolina.",
+  },
   // Zona privata (sessione 10). Giocosa ma di buon gusto: il repository è pubblico, niente di crudo.
   zone: {
     title: "Solo noi",

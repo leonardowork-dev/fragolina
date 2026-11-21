@@ -217,6 +217,10 @@ export type CoupleState = SyncedState &
     applyRemote: (input: RemoteInput) => void;
     createCouple: () => Promise<ActionResult>;
     joinCouple: (code: string) => Promise<ActionResult>;
+    /** Riprende il proprio posto con un codice di recupero (nuova installazione). */
+    restoreSeat: (code: string) => Promise<ActionResult>;
+    /** Genera il codice di recupero (si mostra una volta). */
+    makeRecoveryCode: () => Promise<{ ok: true; code: string; expiresAt: number } | { ok: false; error: string }>;
     renewCode: () => Promise<ActionResult>;
     leaveCouple: () => Promise<ActionResult>;
     releasePartner: () => Promise<ActionResult>;
@@ -1277,6 +1281,31 @@ export function createCoupleStore(deps: CoupleDeps) {
               return failure(e);
             } finally {
               set({ busy: false });
+            }
+          },
+          restoreSeat: async (code) => {
+            set({ busy: true });
+            try {
+              const bad = await sessionReady();
+              if (bad) return bad;
+              await backend.redeemRecoveryCode(code);
+              set({ sessionLost: false, link: "live" });
+              started = true;
+              await after();
+              return { ok: true };
+            } catch (e) {
+              return failure(e);
+            } finally {
+              set({ busy: false });
+            }
+          },
+          makeRecoveryCode: async () => {
+            try {
+              const r = await backend.createRecoveryCode();
+              return { ok: true as const, code: r.code, expiresAt: r.expiresAt };
+            } catch (e) {
+              const f = failure(e);
+              return { ok: false as const, error: f.ok ? "unknown" : (f as { error: string }).error };
             }
           },
           renewCode: async () => {

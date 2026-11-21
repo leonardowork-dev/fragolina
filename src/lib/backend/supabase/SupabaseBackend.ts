@@ -512,6 +512,14 @@ export class SupabaseBackend implements Backend {
   async setLocation(p: { latE2: number; lonE2: number; at: number }) {
     await this.rpc("set_location", { p_lat_e2: p.latE2, p_lon_e2: p.lonE2, p_at: Math.round(p.at) });
   }
+  async createRecoveryCode() {
+    const d = await this.rpc<{ code?: string; expires_at?: number }>("create_recovery_code");
+    if (!d.code) throw new BackendError("unknown", "risposta senza codice");
+    return { code: d.code, expiresAt: d.expires_at ?? Date.now() + 14 * 86_400_000 };
+  }
+  async redeemRecoveryCode(code: string) {
+    await this.rpc("redeem_recovery_code", { p_code: code });
+  }
   async zoneGet(): Promise<ZSnapshot | null> {
     try {
       return zoneSnapshotFromJson(await this.rpc<object>("z_get"));

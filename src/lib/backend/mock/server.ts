@@ -72,6 +72,8 @@ export type MockState = {
   }[];
   locations?: Record<string, { coupleId: string; sharing: boolean; latE2: number | null; lonE2: number | null; at: number }>;
   widgetTokens?: Record<string, string>;
+  /** Codici di recupero (sessione 11): hash finto = il codice normalizzato. */
+  recovery?: Record<string, { userId: string; expiresAt: number }>;
   /** Zona privata (sessione 10): una base dati per coppia. */
   zone?: Record<string, ZoneDb>;
   /** Scadenza dell'app per persona (sessione 9), ms. */
@@ -658,6 +660,36 @@ export class MockServer {
     s.locations![uid] = { ...cur, latE2: p.latE2, lonE2: p.lonE2, at: t };
     this.storage.write(s);
     this.emit({ coupleId: cid, actor: uid, event: { type: "location" } });
+    return { ok: true };
+  }
+
+  createRecoveryCode(uid: string): Res<{ code: string; expiresAt: number }> {
+    const s = this.storage.read();
+    if (!this.coupleOf(s, uid)) return { ok: false, error: "not_paired" };
+    const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    let raw = "";
+    for (let i = 0; i < 12; i++) raw += A[Math.floor(this.rng() * A.length)];
+    s.recovery ??= {};
+    for (const k of Object.keys(s.recovery)) if (s.recovery[k]!.userId === uid) delete s.recovery[k];
+    const expiresAt = this.clock() + 14 * 86_400_000;
+    s.recovery[raw] = { userId: uid, expiresAt };
+    this.storage.write(s);
+    return { ok: true, code: `${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8)}`, expiresAt };
+  }
+
+  redeemRecoveryCode(uid: string, code: string): Res<object> {
+    const s = this.storage.read();
+    if (this.coupleOf(s, uid)) return { ok: false, error: "already_paired" };
+    const norm = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const rec = s.recovery?.[norm];
+    if (!rec || rec.expiresAt <= this.clock() || rec.userId === uid) return { ok: false, error: "invalid_code" };
+    const old = rec.userId;
+    delete s.recovery![norm];
+    for (const m of s.members) if (m.userId === old) m.userId = uid;
+    for (const m of s.moods) if (m.userId === old) m.userId = uid;
+    for (const p of s.pings) if (p.fromUser === old) p.fromUser = uid;
+    for (const a of s.answers) if (a.userId === old) a.userId = uid;
+    this.storage.write(s);
     return { ok: true };
   }
 

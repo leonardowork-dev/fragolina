@@ -309,6 +309,15 @@ export class MockBackend implements Backend {
   setLocation(p: { latE2: number; lonE2: number; at: number }): Promise<void> {
     return this.wire(() => void this.ok(this.server.setLocation(this.uid, p)));
   }
+  createRecoveryCode(): Promise<{ code: string; expiresAt: number }> {
+    return this.wire(() => {
+      const r = this.ok(this.server.createRecoveryCode(this.uid));
+      return { code: r.code, expiresAt: r.expiresAt };
+    });
+  }
+  redeemRecoveryCode(code: string): Promise<void> {
+    return this.wire(() => void this.ok(this.server.redeemRecoveryCode(this.uid, code)));
+  }
   zoneGet(): Promise<ZSnapshot | null> {
     return this.wire(() => this.ok(this.server.zoneGet(this.uid)).snapshot);
   }

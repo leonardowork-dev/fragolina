@@ -613,7 +613,7 @@ check(
   `);
   await db2.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona") && !x.includes("_recupero")).sort())
     await db2.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -792,6 +792,41 @@ check(
   check("anon non legge notes/locations/widget_tokens", (await anonTry("select * from notes")) === null && (await anonTry("select * from locations")) === null && (await anonTry("select * from widget_tokens")) === null);
   check("le funzioni interne non sono chiamabili", (await anonTry("select public._set_location('" + N1 + "', 1, 1, 1)")) === null && (await tryq(N1, "select public._note_latest($1,$2,false)", [mk.couple_id, N1])).ok === false);
 
+  // ---- codice di recupero del posto (sessione 11) ----
+  {
+    const R1 = await newUser(), R2 = await newUser();
+    const rmk = await rpc(R1, "public.create_couple('Recupero')");
+    await rpc(R2, `public.join_couple('${rmk.code}', 'Altro')`);
+    check("recupero: uno sconosciuto non può generare il codice", (await rpc(S, "public.create_recovery_code()")).error === "not_paired");
+    const rc = await rpc(R1, "public.create_recovery_code()");
+    check("recupero: il membro riceve un codice di 12 caratteri (XXXX-XXXX-XXXX)", rc.ok && /^[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/.test(rc.code), JSON.stringify(rc));
+    check("recupero: nel database c'è solo l'hash", await (async () => { const r = (await db.query("select code_hash from recovery_codes where user_id=$1", [R1])).rows[0]; return r && !rc.code.replace(/-/g, "").includes(r.code_hash) && /^[0-9a-f]{64}$/.test(r.code_hash) && (await db.query("select count(*)::int n from recovery_codes where code_hash = $1", [rc.code])).rows[0].n === 0; })());
+    check("recupero: i client non leggono la tabella", !(await tryq(R1, "select * from recovery_codes")).ok);
+    const NEW = await newUser();
+    await rpc(R1, "public.send_note('text', '{\"text\":\"ciao\",\"bg\":\"blush\"}'::jsonb, 'recup-key-0001')");
+    await rpc(R1, "public.z_wish('d001', true)");
+    check("recupero: codice sbagliato rifiutato", (await rpc(NEW, "public.redeem_recovery_code('AAAA-AAAA-AAAA')")).error === "invalid_code");
+    check("recupero: chi è già in una coppia non può riscattare", (await rpc(N3, `public.redeem_recovery_code('${rc.code}')`)).error === "already_paired");
+    const rr = await rpc(NEW, `public.redeem_recovery_code('${rc.code.toLowerCase()}')`);
+    check("recupero: il nuovo accesso prende il posto (maiuscole/trattini indifferenti)", rr.ok === true && (rr.role === "a" || rr.role === "b"), JSON.stringify(rr));
+    const gs = await rpc(NEW, "public.get_state(current_date, now())");
+    check("recupero: il nuovo utente è nella coppia con l'altra persona", gs.paired === true, JSON.stringify(gs).slice(0, 120));
+    check("recupero: il vecchio utente non ha più il posto", (await rpc(R1, "public.get_state(current_date, now())")).paired === false);
+    check("recupero: i dati passano al nuovo (biglietto, desideri)", (await db.query("select count(*)::int n from notes where user_id=$1", [NEW])).rows[0].n >= 1 && (await db.query("select count(*)::int n from z_wishes where user_id=$1", [NEW])).rows[0].n === 1);
+    check("recupero: l'altra persona vede ancora tutto", (await rpc(R2, "public.get_state(current_date, now())")).paired === true);
+    const NEW2 = await newUser();
+    check("recupero: il codice è a uso singolo", (await rpc(NEW2, `public.redeem_recovery_code('${rc.code}')`)).error === "invalid_code");
+    const rc2 = await rpc(NEW, "public.create_recovery_code()");
+    await db.query("update recovery_codes set expires_at = now() - interval '1 minute'");
+    check("recupero: scaduto non vale", (await rpc(NEW2, `public.redeem_recovery_code('${rc2.code}')`)).error === "invalid_code");
+    let lim = null;
+    for (let i = 0; i < 6; i++) lim = await rpc(NEW2, "public.redeem_recovery_code('BBBB-BBBB-BBBB')");
+    check("recupero: dopo 5 errori il tentativo è fermato (anche col codice giusto)", lim.error === "rate_limited");
+    check("recupero: anon non può chiamare le funzioni", (await (async () => { try { await asAnon(() => db.query("select public.create_recovery_code()")); return false; } catch { return true; } })()));
+  }
+
+  await db.query("delete from z_wishes");
+
   // ---- zona privata (sessione 10) ----
   {
     const u = () => crypto.randomUUID();
@@ -915,7 +950,7 @@ check(
   `);
   await db3.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona") && !x.includes("_recupero")).sort())
     await db3.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -1068,7 +1103,7 @@ check(
   `);
   await db4.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona") && !x.includes("_recupero")).sort())
     await db4.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true, why = "";
   try {
@@ -1185,7 +1220,7 @@ check(
     await dbm.exec(STORAGE_STUB);
     await dbm.exec("create extension if not exists pgcrypto with schema extensions");
     const dir = path.join(root, "supabase", "migrations");
-    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7") && !x.includes("_zona") && !x.includes("_rifinitura")).sort()) await dbm.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7") && !x.includes("_zona") && !x.includes("_recupero") && !x.includes("_rifinitura")).sort()) await dbm.exec(fs.readFileSync(path.join(dir, f), "utf8"));
     const u1 = (await dbm.query("insert into auth.users default values returning id")).rows[0].id;
     const u2 = (await dbm.query("insert into auth.users default values returning id")).rows[0].id;
     const cc = (await dbm.query("insert into couples default values returning id")).rows[0].id;
@@ -1299,7 +1334,7 @@ check(
     await dbs.exec(STORAGE_STUB);
     await dbs.exec("create extension if not exists pgcrypto with schema extensions");
     const dir = path.join(root, "supabase", "migrations");
-    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7") && !x.includes("_zona")).sort()) await dbs.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7") && !x.includes("_zona") && !x.includes("_recupero")).sort()) await dbs.exec(fs.readFileSync(path.join(dir, f), "utf8"));
     let ok = true, why = "";
     try {
       const solo = fs.readFileSync(path.join(root, "supabase", "sessione7-extra.sql"), "utf8");
@@ -1332,6 +1367,13 @@ check(
       why = "";
     } catch (e) { ok = false; why = String(e.message); }
     check("sessione10-piccante.sql da solo (e rieseguibile)", ok, why);
+    try {
+      const solo11 = fs.readFileSync(path.join(root, "supabase", "sessione11-recupero.sql"), "utf8");
+      await dbs.exec(solo11); await dbs.exec(solo11);
+      ok = (await dbs.query("select count(*)::int n from pg_proc where proname in ('create_recovery_code','redeem_recovery_code')")).rows[0].n === 2;
+      why = "";
+    } catch (e) { ok = false; why = String(e.message); }
+    check("sessione11-recupero.sql da solo (e rieseguibile)", ok, why);
   }
 }
 

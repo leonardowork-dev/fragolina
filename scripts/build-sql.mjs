@@ -94,3 +94,13 @@ if (zonaFile) {
   fs.writeFileSync(path.join(root, "supabase", "sessione10-piccante.sql"), head + "\n" + fs.readFileSync(path.join(dir, zonaFile), "utf8"));
   console.log("supabase/sessione10-piccante.sql: solo la migrazione della sessione 10");
 }
+
+// Solo la migrazione della sessione 11 (codice di recupero del posto).
+const recFile = files.find((f) => f.includes("_recupero"));
+if (recFile) {
+  const head = `-- Fragolina · SOLO LA MIGRAZIONE DELLA SESSIONE 11: codice di recupero del posto (cambio di identità del telefono).
+-- Generato da scripts/build-sql.mjs: non modificarlo a mano. Rieseguibile.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione11-recupero.sql"), head + "\n" + fs.readFileSync(path.join(dir, recFile), "utf8"));
+  console.log("supabase/sessione11-recupero.sql: solo la migrazione della sessione 11");
+}
