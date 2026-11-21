@@ -515,8 +515,13 @@ try {
     // domanda del giorno vera: il segreto sul server vero
     const qchan = B.c.channel("chk7-qa-" + uuid().slice(0, 6));
     let qaAns = 0, qaTxt = 0;
-    qchan.on("postgres_changes", { event: "*", schema: "public", table: "qa_answers", filter: `couple_id=eq.${cid}` }, () => qaAns++).on("postgres_changes", { event: "*", schema: "public", table: "qa_texts", filter: `couple_id=eq.${cid}` }, () => qaTxt++);
+    // due canali separati: la tabella qa_texts NON è nella publication (voluto) e un binding su di lei non deve rovinare l'altro
+    const qchan2 = B.c.channel("chk7-qt-" + uuid().slice(0, 6));
+    qchan.on("postgres_changes", { event: "*", schema: "public", table: "qa_answers", filter: `couple_id=eq.${cid}` }, () => qaAns++);
+    qchan2.on("postgres_changes", { event: "*", schema: "public", table: "qa_texts", filter: `couple_id=eq.${cid}` }, () => qaTxt++);
+    qchan2.subscribe(() => {});
     await new Promise((r) => qchan.subscribe((st) => st === "SUBSCRIBED" && r()));
+    await new Promise((r) => setTimeout(r, 2500)); // il filtro sulle righe ci mette un attimo a essere attivo dopo SUBSCRIBED
     await new Promise((r) => setTimeout(r, 800));
     const q1 = await rpc(A.c, "get_qa", { p_today_ref: "q007" });
     const q2 = await rpc(B.c, "get_qa", { p_today_ref: "q200" });
@@ -544,6 +549,7 @@ try {
     await new Promise((r) => setTimeout(r, 500));
     check("domanda realtime: qa_answers arriva (solo 'ha risposto'), qa_texts MAI", qaAns >= 1 && qaTxt === 0, `qa_answers=${qaAns} qa_texts=${qaTxt}`);
     await B.c.removeChannel(qchan);
+    await B.c.removeChannel(qchan2);
 
     // ricordi e Storage vero (bucket privato)
     const JPG = Buffer.from("/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=", "base64");
