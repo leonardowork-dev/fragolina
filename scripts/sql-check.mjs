@@ -613,7 +613,7 @@ check(
   `);
   await db2.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_pet") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona")).sort())
     await db2.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -792,6 +792,90 @@ check(
   check("anon non legge notes/locations/widget_tokens", (await anonTry("select * from notes")) === null && (await anonTry("select * from locations")) === null && (await anonTry("select * from widget_tokens")) === null);
   check("le funzioni interne non sono chiamabili", (await anonTry("select public._set_location('" + N1 + "', 1, 1, 1)")) === null && (await tryq(N1, "select public._note_latest($1,$2,false)", [mk.couple_id, N1])).ok === false);
 
+  // ---- zona privata (sessione 10) ----
+  {
+    const u = () => crypto.randomUUID();
+    const day = new Date().toISOString().slice(0, 10);
+    const ids = [u(), u(), u()];
+    check("zona: uno sconosciuto non legge (not_paired)", (await rpc(S, "public.z_get()")).error === "not_paired");
+    for (const id of ids) await rpc(N1, `public.z_log('${id}', '${day}', ${Date.now()}, 'letto', 'a', 4, 'ok')`);
+    const g2 = await rpc(N2, "public.z_get()");
+    check("zona: N1 segna 3 volte, N2 vede 3 cuoricini", g2.ok && g2.entries.filter((e) => e.day === day).length === 3, JSON.stringify(g2.entries?.length));
+    check("zona: stessa chiave = nessun duplicato", (await rpc(N1, `public.z_log('${ids[0]}', '${day}', ${Date.now()}, 'divano', 'both', 5, null)`)).ok && (await rpc(N2, "public.z_get()")).entries.length === 3);
+    check("zona: la riga si modifica (luogo e voto)", (await rpc(N2, "public.z_get()")).entries.some((e) => e.id === ids[0] && e.place === "divano" && e.rating === 5 && e.starter === "both"));
+    check("zona: contenuti non validi rifiutati (futuro, voto 9, luogo, nota lunga)", (await rpc(N1, `public.z_log('${u()}', '2099-01-01', 1, null, null, null, null)`)).error === "invalid_content" && (await rpc(N1, `public.z_log('${u()}', '${day}', 1, null, null, 9, null)`)).error === "invalid_content" && (await rpc(N1, `public.z_log('${u()}', '${day}', 1, 'cucina', null, null, null)`)).error === "invalid_content" && (await rpc(N1, `public.z_log('${u()}', '${day}', 1, null, null, null, '${"x".repeat(141)}')`)).error === "invalid_content");
+    check("zona: le tabelle non si leggono né si scrivono dai client", !(await tryq(N1, "select * from z_entries")).ok && !(await tryq(N1, "select * from z_wishes")).ok && !(await tryq(N1, "select * from z_tonight")).ok && !(await tryq(N1, "insert into z_entries(id) values (gen_random_uuid())")).ok && !(await tryq(N1, "select * from z_signals")).ok && !(await tryq(N1, "select * from z_vouchers")).ok);
+    check("zona: l'altra coppia non vede niente", (await rpc(N3, "public.z_get()")).entries.length === 0);
+    check("zona: l'altra coppia non può toccare le nostre righe", (await rpc(N3, `public.z_log_delete('${ids[1]}')`)).ok === true && (await rpc(N2, "public.z_get()")).entries.length === 3);
+    check("zona: anon non può chiamare le funzioni", (await (async () => { try { await asAnon(() => db.query("select public.z_get()")); return false; } catch { return true; } })()) && (await (async () => { try { await asAnon(() => db.query("select public.z_wipe()")); return false; } catch { return true; } })()));
+    // desideri a sorpresa
+    await rpc(N1, "public.z_wish('d001', true)");
+    const w1 = await rpc(N2, "public.z_get()");
+    check("desideri: scelto da uno solo, l'altro non vede niente (né scelta né match)", !JSON.stringify(w1).includes("d001") && w1.matches.length === 0 && w1.wishesMine.length === 0);
+    await rpc(N1, "public.z_wish('d002', true)");
+    await rpc(N2, "public.z_wish('d001', true)");
+    const w2 = await rpc(N2, "public.z_get()"), w2a = await rpc(N1, "public.z_get()");
+    check("desideri: scelto da entrambi = match, per tutti e due", w2.matches.includes("d001") && w2a.matches.includes("d001"));
+    check("desideri: quello scelto da uno solo resta segreto per sempre", !w2.matches.includes("d002") && !JSON.stringify(w2).includes("d002") && w2a.wishesMine.includes("d002"));
+    check("desideri: id non valido rifiutato", (await rpc(N1, "public.z_wish('xyz', true)")).error === "invalid_content" && (await rpc(N1, `public.z_wish('c-${u()}', true)`)).error === "invalid_content");
+    await rpc(N2, "public.z_wish('d001', false)");
+    check("desideri: togliere la scelta toglie il match", (await rpc(N1, "public.z_get()")).matches.length === 0);
+    const cid1 = u();
+    await rpc(N1, `public.z_idea_add('${cid1}', 'Una serata solo nostra', 'dolce')`);
+    const ci = await rpc(N2, "public.z_get()");
+    check("idea nuova: l'altro la vede come carta (senza autore) e non è ancora scelta da lui", ci.ideas.some((i) => i.id === `c-${cid1}` && i.mine === false && !("by" in i) && !("user_id" in i)) && ci.matches.length === 0);
+    await rpc(N2, `public.z_wish('c-${cid1}', true)`);
+    check("idea nuova: chi la scrive la vuole già, l'altro la sceglie = match", (await rpc(N1, "public.z_get()")).matches.includes(`c-${cid1}`));
+    check("idea nuova: solo l'autore la cancella", (await rpc(N2, `public.z_idea_delete('${cid1}')`)).ok && (await rpc(N1, "public.z_get()")).ideas.length === 1 && (await rpc(N1, `public.z_idea_delete('${cid1}')`)).ok && (await rpc(N1, "public.z_get()")).ideas.length === 0);
+    // stasera?
+    await rpc(N1, "public.z_tonight('yes')");
+    const t1 = await rpc(N2, "public.z_get()");
+    check("stasera: l'altro vede solo che ha risposto, non cosa", t1.tonight.otherAnswered === true && t1.tonight.mine === null && t1.tonight.result === null && !JSON.stringify(t1.tonight).includes("yes"));
+    await rpc(N2, "public.z_tonight('no')");
+    const t2 = await rpc(N1, "public.z_get()");
+    check("stasera: sì + no = nessun esito che dica chi ha detto cosa", t2.tonight.result === "nomatch" && (await rpc(N2, "public.z_get()")).tonight.result === "nomatch");
+    check("stasera: a risposte date da entrambi non si cambia più", (await rpc(N1, "public.z_tonight('yes')")).error === "already_answered");
+    check("stasera: valore non valido rifiutato", (await rpc(N1, "public.z_tonight('boh')")).error !== undefined);
+    await db.query("delete from z_tonight");
+    await rpc(N1, "public.z_tonight('maybe')"); await rpc(N2, "public.z_tonight('yes')");
+    check("stasera: forse + sì = match", (await rpc(N1, "public.z_get()")).tonight.result === "match");
+    // segnale
+    await rpc(N1, "public.z_signal(2)");
+    const sg = await rpc(N2, "public.z_get()");
+    check("ho voglia: l'altro lo vede con il livello; chi lo manda vede il proprio", sg.signal.incoming?.level === 2 && (await rpc(N1, "public.z_get()")).signal.mine?.level === 2 && (await rpc(N1, "public.z_get()")).signal.incoming === null);
+    check("ho voglia: livello non valido rifiutato", (await rpc(N1, "public.z_signal(7)")).error === "invalid_content");
+    await db.query("update z_signals set expires_at = 1");
+    check("ho voglia: si spegne da solo alla scadenza", (await rpc(N2, "public.z_get()")).signal.incoming === null);
+    await rpc(N1, "public.z_signal(1)"); await rpc(N1, "public.z_signal_clear()");
+    check("ho voglia: chi lo manda lo toglie", (await rpc(N2, "public.z_get()")).signal.incoming === null);
+    // buoni
+    const vid = u();
+    check("buono: si regala (solo all'altra persona)", (await rpc(N1, `public.z_voucher_add('${vid}', 'Un massaggio', null)`)).ok === true);
+    const vN2 = (await rpc(N2, "public.z_get()")).vouchers[0];
+    check("buono: l'altro lo vede come ricevuto, non riscattato", vN2.fromMe === false && vN2.redeemedAt === null && vN2.title === "Un massaggio");
+    check("buono: chi lo regala non può riscattarlo", (await rpc(N1, `public.z_voucher_redeem('${vid}')`)).error === "not_found");
+    check("buono: chi lo riceve lo riscatta (una volta sola, ripetuto va bene)", (await rpc(N2, `public.z_voucher_redeem('${vid}')`)).ok && (await rpc(N2, `public.z_voucher_redeem('${vid}')`)).ok && (await rpc(N1, "public.z_get()")).vouchers[0].redeemedAt > 0);
+    const vid2 = u();
+    await rpc(N1, `public.z_voucher_add('${vid2}', 'Serata a tema', (current_date - 1))`);
+    await db.query("update z_vouchers set expires = current_date - 5 where id = $1", [vid2]);
+    check("buono: scaduto non si riscatta", (await rpc(N2, `public.z_voucher_redeem('${vid2}')`)).error === "expired");
+    check("buono: titolo troppo corto rifiutato", (await rpc(N1, `public.z_voucher_add('${u()}', 'x', null)`)).error === "invalid_content");
+    check("buono: solo chi lo ha scritto lo cancella", (await rpc(N2, `public.z_voucher_delete('${vid2}')`)).ok && (await rpc(N1, "public.z_get()")).vouchers.length === 2 && (await rpc(N1, `public.z_voucher_delete('${vid2}')`)).ok && (await rpc(N1, "public.z_get()")).vouchers.length === 1);
+    // widget e realtime
+    const fz = await feed(k1b.token);
+    check("zona: widget_feed non porta niente della zona", JSON.stringify(Object.keys(fz).sort()) === JSON.stringify(["events", "note", "now", "ok", "partner"]) && !/z_|piccant|desider|massaggio/i.test(JSON.stringify(fz)), JSON.stringify(fz).slice(0, 300));
+    check("zona: get_state non porta niente della zona", !/massaggio|z_entries|wish/i.test(JSON.stringify(await rpc(N1, `public.get_state(current_date, now())`))));
+    const pubz = (await db.query("select tablename from pg_publication_tables where pubname='supabase_realtime' and tablename like 'z\\_%'")).rows.map((r) => r.tablename);
+    check("zona: nel realtime passa SOLO il contatore (z_pulse), nessun contenuto", pubz.length === 1 && pubz[0] === "z_pulse", pubz.join());
+    const pl = (await db.query("select * from z_pulse")).rows[0];
+    check("zona: il contatore non contiene contenuti", pl && Object.keys(pl).sort().join() === "at,couple_id,n");
+    // cancella tutto
+    await rpc(N1, "public.z_wish('d005', true)");
+    check("cancella tutto: svuota la zona per entrambi", (await rpc(N2, "public.z_wipe()")).ok && await (async () => { const a = await rpc(N1, "public.z_get()"); const b = await rpc(N2, "public.z_get()"); return a.entries.length === 0 && b.entries.length === 0 && a.vouchers.length === 0 && a.wishesMine.length === 0 && b.matches.length === 0 && (await db.query("select (select count(*) from z_entries)+(select count(*) from z_wishes)+(select count(*) from z_tonight)+(select count(*) from z_vouchers)+(select count(*) from z_signals)+(select count(*) from z_ideas) as n")).rows[0].n == 0; })());
+    check("cancella tutto: l'altra coppia non è toccata", (await rpc(N3, `public.z_log('${u()}', '${day}', 1, null, null, null, null)`)).ok === true && (await rpc(N1, "public.z_wipe()")).ok && (await rpc(N3, "public.z_get()")).entries.length === 1);
+    await rpc(N1, "public.z_wish('d009', true)"); await rpc(N1, "public.z_tonight('yes')");
+  }
+
   // ---- scadenza dell'app (sessione 9) ----
   const expMs = Date.now() + 5 * 86_400_000;
   check("scadenza: uno sconosciuto non la scrive (not_paired)", (await rpc(S, `public.set_app_expiry(${expMs})`)).error === "not_paired");
@@ -808,6 +892,7 @@ check(
   // uscire dalla coppia: token e posizione spariscono
   await rpc(N2, "public.leave_couple()");
   check("chi esce perde il token: il suo widget non legge più", (await feed(k2.token)).error === "invalid_token");
+  check("zona: chi esce porta via le proprie scelte segrete", (await db.query("select count(*)::int n from z_wishes where user_id=$1", [N2])).rows[0].n === 0 && (await db.query("select count(*)::int n from z_tonight where user_id=$1", [N2])).rows[0].n === 0);
   check("…e la sua posizione sparisce dal server", (await db.query("select count(*)::int n from locations where user_id=$1", [N2])).rows[0].n === 0);
   check("l'altro (da solo) ha ancora il suo token e vede partner = null", await (async () => { const f = await feed(k1b.token); return f.ok && f.partner === null; })());
   const pub = (await db.query("select tablename from pg_publication_tables where pubname='supabase_realtime'")).rows.map((r) => r.tablename);
@@ -830,7 +915,7 @@ check(
   `);
   await db3.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_note") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona")).sort())
     await db3.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true;
   let why = "";
@@ -983,7 +1068,7 @@ check(
   `);
   await db4.exec("create extension if not exists pgcrypto with schema extensions");
   const dir = path.join(root, "supabase", "migrations");
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_giochi") && !x.includes("_extra7")).sort())
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_giochi") && !x.includes("_extra7") && !x.includes("_zona")).sort())
     await db4.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   let ok = true, why = "";
   try {
@@ -1100,7 +1185,7 @@ check(
     await dbm.exec(STORAGE_STUB);
     await dbm.exec("create extension if not exists pgcrypto with schema extensions");
     const dir = path.join(root, "supabase", "migrations");
-    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7") && !x.includes("_rifinitura")).sort()) await dbm.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7") && !x.includes("_zona") && !x.includes("_rifinitura")).sort()) await dbm.exec(fs.readFileSync(path.join(dir, f), "utf8"));
     const u1 = (await dbm.query("insert into auth.users default values returning id")).rows[0].id;
     const u2 = (await dbm.query("insert into auth.users default values returning id")).rows[0].id;
     const cc = (await dbm.query("insert into couples default values returning id")).rows[0].id;
@@ -1214,7 +1299,7 @@ check(
     await dbs.exec(STORAGE_STUB);
     await dbs.exec("create extension if not exists pgcrypto with schema extensions");
     const dir = path.join(root, "supabase", "migrations");
-    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7")).sort()) await dbs.exec(fs.readFileSync(path.join(dir, f), "utf8"));
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".sql") && !x.includes("_extra7") && !x.includes("_zona")).sort()) await dbs.exec(fs.readFileSync(path.join(dir, f), "utf8"));
     let ok = true, why = "";
     try {
       const solo = fs.readFileSync(path.join(root, "supabase", "sessione7-extra.sql"), "utf8");
@@ -1239,6 +1324,14 @@ check(
       why = "";
     } catch (e) { ok = false; why = String(e.message); }
     check("sessione9-scadenza.sql da solo (e rieseguibile)", ok, why);
+    try {
+      const solo10 = fs.readFileSync(path.join(root, "supabase", "sessione10-piccante.sql"), "utf8");
+      await dbs.exec(solo10); await dbs.exec(solo10);
+      ok = (await dbs.query("select count(*)::int n from pg_proc where proname like 'z\\_%'")).rows[0].n === 13
+        && (await dbs.query("select count(*)::int n from pg_tables where tablename like 'z\\_%'")).rows[0].n === 7;
+      why = "";
+    } catch (e) { ok = false; why = String(e.message); }
+    check("sessione10-piccante.sql da solo (e rieseguibile)", ok, why);
   }
 }
 

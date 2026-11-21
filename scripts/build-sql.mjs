@@ -84,3 +84,13 @@ if (scadFile) {
   fs.writeFileSync(path.join(root, "supabase", "sessione9-scadenza.sql"), head + "\n" + fs.readFileSync(path.join(dir, scadFile), "utf8"));
   console.log("supabase/sessione9-scadenza.sql: solo la migrazione della sessione 9");
 }
+
+// Solo la migrazione della sessione 10 (zona privata di coppia).
+const zonaFile = files.find((f) => f.includes("_zona"));
+if (zonaFile) {
+  const head = `-- Fragolina · SOLO LA MIGRAZIONE DELLA SESSIONE 10: zona privata di coppia (tabelle z_*, senza policy: si passa solo dalle funzioni).
+-- Generato da scripts/build-sql.mjs: non modificarlo a mano. Rieseguibile.
+`;
+  fs.writeFileSync(path.join(root, "supabase", "sessione10-piccante.sql"), head + "\n" + fs.readFileSync(path.join(dir, zonaFile), "utf8"));
+  console.log("supabase/sessione10-piccante.sql: solo la migrazione della sessione 10");
+}
