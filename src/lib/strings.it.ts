@@ -87,7 +87,7 @@ export const S = {
           : v.days === 1
             ? `Quella di ${name} scade domani (${v.dayLabel})`
             : `Quella di ${name} scade tra ${v.days} giorni (${v.dayLabel})`,
-    hint: "Con l'Apple ID gratuito l'app dura 7 giorni. Si rinnova dal PC (o con SideStore).",
+    hint: "Con l'Apple ID gratuito l'app dura 7 giorni. Si rinnova con SideStore o con Sideloadly.",
     guide: "Come si rinnova",
     guideLabel: "Apri la guida al rinnovo",
     nudge: (days: number) =>

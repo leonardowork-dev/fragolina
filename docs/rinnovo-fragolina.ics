@@ -1,0 +1,19 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Fragolina//Rinnovo//IT
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:rinnovo-fragolina@fragolina.app
+DTSTAMP:20261121T100000Z
+DTSTART;VALUE=DATE:20261127
+DTEND;VALUE=DATE:20261128
+RRULE:FREQ=DAILY;INTERVAL=6
+SUMMARY:Rinnova Fragolina
+DESCRIPTION:Apri LocalDevVPN (Connect)\, poi SideStore e tocca il contatore 7 DAYS di Fragolina. Guida: https://github.com/leonardowork-dev/fragolina/blob/main/RINNOVO.md
+BEGIN:VALARM
+TRIGGER:PT10H
+ACTION:DISPLAY
+DESCRIPTION:Rinnova Fragolina
+END:VALARM
+END:VEVENT
+END:VCALENDAR
