@@ -73,3 +73,121 @@ describe("zona: mazzo dei desideri", () => {
     for (const d of DECK) expect(bad.test(d.text), d.text).toBe(false);
   });
 });
+
+import fs from "node:fs";
+import path from "node:path";
+import { MockBackend, memoryTransport } from "@/lib/backend/mock/MockBackend";
+import { type ZoneCtx, emptyZoneDb, zoneApply, zoneSnapshot } from "@/lib/zone/engine";
+import { replayZone } from "@/lib/zone/replay";
+import { zoneSnapshotFromJson } from "@/lib/zone/wire";
+import { emptyZSnapshot } from "@/lib/zone/types";
+
+const members = [{ userId: "ua", role: "a" as const }, { userId: "ub", role: "b" as const }];
+const ctx = (uid: string, now = 1_000_000): ZoneCtx => ({ uid, members, now, today: "2026-11-22" });
+const L = (id: string, day = "2026-11-22") => ({ kind: "log" as const, key: "k" + id, id, day, at: 1, place: null, starter: null, rating: null, note: null });
+
+describe("zona: motore (specchio SQL)", () => {
+  it("A segna 3 volte, B vede 3 cuoricini", () => {
+    const db = emptyZoneDb();
+    for (const id of ["a", "b", "c"]) zoneApply(db, ctx("ua"), L(id));
+    expect(zoneSnapshot(db, ctx("ub")).entries).toHaveLength(3);
+  });
+  it("desiderio scelto da uno solo resta segreto, da entrambi = match", () => {
+    const db = emptyZoneDb();
+    zoneApply(db, ctx("ua"), { kind: "wish", key: "1", idea: "d001", on: true });
+    zoneApply(db, ctx("ua"), { kind: "wish", key: "2", idea: "d002", on: true });
+    const b1 = zoneSnapshot(db, ctx("ub"));
+    expect(b1.matches).toEqual([]);
+    expect(JSON.stringify(b1)).not.toContain("d00");
+    zoneApply(db, ctx("ub"), { kind: "wish", key: "3", idea: "d001", on: true });
+    expect(zoneSnapshot(db, ctx("ua")).matches).toEqual(["d001"]);
+    expect(zoneSnapshot(db, ctx("ub")).matches).toEqual(["d001"]);
+    expect(JSON.stringify(zoneSnapshot(db, ctx("ub")))).not.toContain("d002");
+  });
+  it("stasera: si rivela solo se sì+sì o sì+forse; l'altro non vede cosa hai detto", () => {
+    const db = emptyZoneDb();
+    zoneApply(db, ctx("ua"), { kind: "tonight", key: "1", answer: "yes" });
+    const b = zoneSnapshot(db, ctx("ub"));
+    expect(b.tonight).toMatchObject({ otherAnswered: true, mine: null, result: null });
+    zoneApply(db, ctx("ub"), { kind: "tonight", key: "2", answer: "maybe" });
+    expect(zoneSnapshot(db, ctx("ua")).tonight.result).toBe("match");
+    expect(zoneApply(db, ctx("ua"), { kind: "tonight", key: "3", answer: "no" })).toEqual({ ok: false, error: "already_answered" });
+    const db2 = emptyZoneDb();
+    zoneApply(db2, ctx("ua"), { kind: "tonight", key: "1", answer: "maybe" });
+    zoneApply(db2, ctx("ub"), { kind: "tonight", key: "2", answer: "maybe" });
+    expect(zoneSnapshot(db2, ctx("ub")).tonight.result).toBe("nomatch");
+  });
+  it("ho voglia: l'altro lo vede, scade da solo", () => {
+    const db = emptyZoneDb();
+    zoneApply(db, ctx("ua"), { kind: "signal", key: "1", level: 3 });
+    expect(zoneSnapshot(db, ctx("ub")).signal.incoming?.level).toBe(3);
+    expect(zoneSnapshot(db, ctx("ub", 1_000_000 + 2 * 3_600_000)).signal.incoming).toBeNull();
+  });
+  it("buoni: solo chi riceve riscatta; cancella tutto svuota", () => {
+    const db = emptyZoneDb();
+    zoneApply(db, ctx("ua"), { kind: "voucherAdd", key: "1", id: "v1", title: "Un massaggio", expires: null });
+    expect(zoneApply(db, ctx("ua"), { kind: "voucherRedeem", key: "2", id: "v1" })).toEqual({ ok: false, error: "not_found" });
+    expect(zoneApply(db, ctx("ub"), { kind: "voucherRedeem", key: "3", id: "v1" }).ok).toBe(true);
+    zoneApply(db, ctx("ua"), L("x"));
+    zoneApply(db, ctx("ub"), { kind: "wipe", key: "w" });
+    const s = zoneSnapshot(db, ctx("ua"));
+    expect(s.entries).toHaveLength(0);
+    expect(s.vouchers).toHaveLength(0);
+  });
+  it("valori non validi rifiutati", () => {
+    const db = emptyZoneDb();
+    expect(zoneApply(db, ctx("ua"), { ...L("a"), rating: 9 }).ok).toBe(false);
+    expect(zoneApply(db, ctx("ua"), { ...L("a"), day: "2099-01-01" }).ok).toBe(false);
+    expect(zoneApply(db, ctx("ua"), { ...L("a"), note: "x".repeat(141) }).ok).toBe(false);
+  });
+});
+
+describe("zona: vista ottimistica e lettura del server", () => {
+  it("la coda si vede subito sopra la fotografia, senza inventare match", () => {
+    const v = replayZone(emptyZSnapshot(), [L("a"), { kind: "wish", key: "w", idea: "d001", on: true }, { kind: "tonight", key: "t", answer: "yes" }], { role: "a" }, 5);
+    expect(v.entries).toHaveLength(1);
+    expect(v.wishesMine).toEqual(["d001"]);
+    expect(v.matches).toEqual([]);
+    expect(v.tonight.mine).toBe("yes");
+    expect(v.tonight.result).toBeNull();
+  });
+  it("zoneSnapshotFromJson non lancia mai", () => {
+    expect(zoneSnapshotFromJson(null).entries).toEqual([]);
+    expect(zoneSnapshotFromJson({ entries: "x", tonight: 3 }).entries).toEqual([]);
+    expect(zoneSnapshotFromJson({ ok: true, entries: [{ id: "a", day: "2026-11-01", by: "a" }] }).entries).toHaveLength(1);
+  });
+});
+
+describe("zona: Backend finto a due telefoni", () => {
+  it("passa dal server finto, solo il segnale arriva in tempo reale", async () => {
+    const t = memoryTransport();
+    const mk = (uid: string) => new MockBackend(t, { uid, latencyMs: [0, 0], sleep: async () => {}, clock: () => Date.UTC(2026, 10, 22, 10) });
+    const A = mk("ua"), B = mk("ub");
+    const c = await A.createCouple("Leonardo", null);
+    await B.joinCouple(c.code, "Nikole");
+    let pulses = 0;
+    const off = B.subscribeZone(c.coupleId, () => pulses++);
+    for (const id of ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222", "33333333-3333-4333-8333-333333333333"]) await A.zoneApply(L(id, "2026-11-22"));
+    await new Promise((r) => setTimeout(r, 5));
+    expect(pulses).toBeGreaterThan(0);
+    expect((await B.zoneGet())!.entries).toHaveLength(3);
+    off();
+  });
+});
+
+describe("zona: privacy (mai nei widget, nel feed, nei log)", () => {
+  const root = path.resolve(__dirname, "..");
+  const read = (p: string) => fs.readFileSync(path.join(root, p), "utf8");
+  it("lo snapshot e il codice del widget non nominano la zona", () => {
+    for (const f of ["src/lib/widgetPayload.ts", "src/features/widgetSync/writeSnapshot.ts", "src/lib/widgetBridge.ts"]) expect(/zone|zona|piccant/i.test(read(f)), f).toBe(false);
+    for (const f of fs.readdirSync(path.join(root, "targets/widget")).filter((x) => x.endsWith(".swift"))) expect(/z_get|zone|piccant|\bwish/i.test(read(`targets/widget/${f}`)), f).toBe(false);
+  });
+  it("niente console.* nei file della zona", () => {
+    for (const f of fs.readdirSync(path.join(root, "src/features/zone"))) expect(/console\./.test(read(`src/features/zone/${f}`)), f).toBe(false);
+    for (const f of fs.readdirSync(path.join(root, "src/lib/zone"))) expect(/console\./.test(read(`src/lib/zone/${f}`)), f).toBe(false);
+  });
+  it("il feed SQL del widget non cita le tabelle z_", () => {
+    const m = fs.readdirSync(path.join(root, "supabase/migrations")).filter((f) => !f.includes("_zona")).map((f) => read(`supabase/migrations/${f}`)).join("\n");
+    expect(/\bz_(entries|wishes|tonight|signals|vouchers|ideas)\b/.test(m)).toBe(false);
+  });
+});
