@@ -11,7 +11,7 @@ import type { IdeaLevel } from "@/lib/zone/types";
 import { useCouple } from "@/state/coupleStore";
 import { selectZoneView, useZone } from "@/state/zoneStore";
 
-import { useHeat } from "./HeatBurst";
+import { useHeat } from "./heatStore";
 import { HeartArt, LipsArt } from "./ZoneArt";
 
 type Card = { id: string; text: string; level: IdeaLevel; own: boolean };

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
 import { usePathname } from "expo-router";
-import { create } from "zustand";
+import { useHeat } from "./heatStore";
 
 import { Text, useTheme } from "@/design";
 import { motion } from "@/design/tokens";
@@ -19,23 +19,6 @@ import { BedArt, CherryArt, CreamArt, HeartArt, LipsArt, SteamArt, WinkStrawberr
  * Solo transform e opacity, molle per ciò che nasce dal tocco, ease-out per il resto, mai scala da 0.
  * "Meno movimento": il disegno compare fermo (con la faccia che cambia) e svanisce, niente particelle.
  */
-type HeatState = { seq: number; variant: number; kind: "plus" | "milestone" | "match"; label: string | null; /** Visibile in questo momento? Si spegne da solo e fuori dalla zona. */ active: boolean; clear: () => void; fire: (kind?: "plus" | "milestone" | "match", label?: string | null) => void };
-export const useHeat = create<HeatState>((set, get) => ({
-  seq: 0,
-  variant: 0,
-  kind: "plus",
-  label: null,
-  active: false,
-  clear: () => set({ active: false, label: null }),
-  fire: (kind = "plus", label = null) => {
-    const seq = get().seq + 1;
-    // la variante non si ripete due volte di fila
-    let v = Math.floor(seeded(seq * 7919 + Date.now() % 1000) * 5);
-    if (v === get().variant) v = (v + 1) % 5;
-    set({ seq, variant: v, kind, label, active: true });
-  },
-}));
-
 const COUNT = 16;
 const DURATION = 1700;
 

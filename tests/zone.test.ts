@@ -194,7 +194,7 @@ describe("zona: privacy (mai nei widget, nel feed, nei log)", () => {
 
 describe("zona: le animazioni non restano e non escono dalla zona (bug dei buoni)", () => {
   it("lo stato dell'animazione si accende con fire e si spegne con clear (scritta compresa)", async () => {
-    const { useHeat } = await import("@/features/zone/HeatBurst");
+    const { useHeat } = await import("@/features/zone/heatStore");
     useHeat.getState().fire("match", "Riscattato!");
     expect(useHeat.getState()).toMatchObject({ active: true, label: "Riscattato!" });
     useHeat.getState().clear();

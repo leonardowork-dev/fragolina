@@ -12,7 +12,7 @@ import { uuid } from "@/lib/uuid";
 import { useCouple } from "@/state/coupleStore";
 import { selectZoneView, useZone } from "@/state/zoneStore";
 
-import { useHeat } from "./HeatBurst";
+import { useHeat } from "./heatStore";
 import { DieFace, HeartArt } from "./ZoneArt";
 
 function useView() {

@@ -13,7 +13,7 @@ import { useCouple } from "@/state/coupleStore";
 import { selectZoneView, useZone } from "@/state/zoneStore";
 
 import { FlameArt, HeartArt } from "./ZoneArt";
-import { useHeat } from "./HeatBurst";
+import { useHeat } from "./heatStore";
 
 const WEEK = ["L", "M", "M", "G", "V", "S", "D"];
 
