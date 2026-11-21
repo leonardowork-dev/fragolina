@@ -9,10 +9,14 @@ import type { PetFace } from "@/design/mascot/PetArt";
 import { palette } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
 import { play } from "@/lib/sound";
-import { type FoodId, SLEEP_MS, stageProgress } from "@/lib/pet/rules";
+import { type FoodId, SLEEP_MS, isFull, levelOf, stageProgress } from "@/lib/pet/rules";
 import { S } from "@/lib/strings.it";
+import { useCelebrated } from "@/state/celebratedStore";
 import { useCouple } from "@/state/coupleStore";
 
+import { EatFx } from "./EatFx";
+import { PetLevel } from "./PetLevel";
+import { Wardrobe } from "./Wardrobe";
 import { FoodTray } from "./FoodTray";
 import { Glyph } from "./Glyphs";
 import { NameSheet } from "./NameSheet";
@@ -167,6 +171,12 @@ function PetMain() {
     setReaction({ face, nonce: nonce.current });
   }, []);
   const [tray, setTray] = useState(false);
+  const [wardrobeOpen, setWardrobeOpen] = useState(false);
+  const [eat, setEat] = useState<{ nonce: number; food: FoodId; burp: boolean }>({ nonce: 0, food: "mora", burp: false });
+  const eatSeq = useRef(0);
+  const swallowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (swallowTimer.current) clearTimeout(swallowTimer.current); }, []);
+  const setPetOutfit = useCouple((s) => s.setPetOutfit);
   const [playOpen, setPlayOpen] = useState(false);
   const [nameOpen, setNameOpen] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -212,6 +222,22 @@ function PetMain() {
     if (hatched && before !== "egg" && before !== stage) play("grow");
   }, [stage, hatched]);
 
+  // Un livello nuovo è un momento raro: festa (una volta sola per livello, anche dopo un riavvio).
+  const level = levelOf(pet.xp);
+  const prevLevel = useRef(level);
+  const firstTime = useCelebrated((s) => s.firstTime);
+  useEffect(() => {
+    const before = prevLevel.current;
+    prevLevel.current = level;
+    if (!hatched || level <= before || !firstTime(`lvl|${level}`)) return;
+    const { width, height } = Dimensions.get("window");
+    useEffectsBus.getState().fireConfetti(width / 2, height * 0.3);
+    haptics.success();
+    play("grow");
+    react("love");
+    say(S.pet.levelUp(level));
+  }, [level, hatched, firstTime, react, say]);
+
   // L'altra persona cura il pet mentre sei qui: il pet reagisce (il toast lo mostra la radice dell'app).
   const lastIncoming = useRef(incomingSeq);
   useEffect(() => {
@@ -236,9 +262,21 @@ function PetMain() {
     return false;
   };
   const feed = (id: FoodId) => {
+    // pieno (3 pezzi): il quarto frutto si rifiuta con una faccina "sono pieno"
+    if (isFull(needs.food)) {
+      haptics.light();
+      react("surprised");
+      say(S.pet.full);
+      return;
+    }
     if (result(petAct("feed", id))) {
       react("eat");
       play("chew");
+      eatSeq.current += 1;
+      setEat({ nonce: eatSeq.current, food: id, burp: eatSeq.current % 3 === 0 });
+      // guance piene, poi deglutisce e fa la faccia felice
+      if (swallowTimer.current) clearTimeout(swallowTimer.current);
+      swallowTimer.current = setTimeout(() => react("happy"), 1000);
     }
   };
   const cuddle = () => {
@@ -301,7 +339,9 @@ function PetMain() {
         </Text>
       )}
 
+      <View>
       <PetStageView
+        outfit={pet.outfit}
         stage={stage}
         mood={mood}
         crack={crack}
@@ -313,6 +353,8 @@ function PetMain() {
         a11yLabel={hatched ? S.pet.a11y.pet(petName, S.pet.say[mood], S.pet.stages[stage]) : S.pet.a11y.egg}
         a11yHint={hatched ? S.pet.cuddleHint : undefined}
       />
+      <EatFx nonce={eat.nonce} food={eat.food} size={232} burp={eat.burp} />
+      </View>
 
       {hatched && tray ? <FoodTray petRef={petRef} onFeed={feed} /> : null}
 
@@ -340,6 +382,7 @@ function PetMain() {
       ) : (
         <>
           <NeedStickers needs={needs} />
+          <PetLevel xp={pet.xp} onWardrobe={() => setWardrobeOpen(true)} />
           <View style={{ flexDirection: "row", gap: 10 }}>
             <ActionButton kind="feed" active={tray} onPress={() => setTray((v) => !v)} />
             <ActionButton kind="cuddle" onPress={cuddle} />
@@ -359,6 +402,7 @@ function PetMain() {
       )}
       {queued > 0 && link !== "live" ? <Text variant="caption">{S.pet.queued(queued)}</Text> : null}
 
+      <Wardrobe visible={wardrobeOpen} onClose={() => setWardrobeOpen(false)} xp={pet.xp} outfit={pet.outfit} onChange={(o) => setPetOutfit(o)} />
       <PlaySheet
         visible={playOpen}
         onClose={() => setPlayOpen(false)}

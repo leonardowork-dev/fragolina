@@ -1,10 +1,11 @@
 import React from "react";
 import Svg, { Circle, Ellipse, G, Path } from "react-native-svg";
 
-import type { PetStage } from "@/lib/pet/rules";
+import type { Outfit, PetStage } from "@/lib/pet/rules";
 
 import { palette } from "../tokens";
 import { BODY, HEART, LEAVES, SEEDS } from "./Mascot";
+import { OutfitBack, OutfitFront } from "./PetOutfit";
 
 /**
  * Il pet: la stessa fragola adesivo della mascotte, in quattro stadi (semino, germoglio, fragolina, fragolona) più
@@ -212,9 +213,11 @@ export type PetArtProps = {
   crack?: number;
   blink?: boolean;
   shadow?: boolean;
+  /** Cosa indossa (guardaroba). */
+  outfit?: Outfit;
 };
 
-export function PetArt({ stage, face, size = 260, crack = 0, blink = false, shadow = true }: PetArtProps) {
+export function PetArt({ stage, face, size = 260, crack = 0, blink = false, shadow = true, outfit }: PetArtProps) {
   const sw = (2.5 * 220) / size;
   const h = size * (250 / 220);
   if (stage === "egg") {
@@ -258,6 +261,7 @@ export function PetArt({ stage, face, size = 260, crack = 0, blink = false, shad
   return (
     <Svg width={size} height={h} viewBox="0 0 220 250">
       <G transform={`translate(110 228) scale(${s}) translate(-110 -228)`}>
+        <OutfitBack outfit={outfit} sw={swe} />
         {shadow ? <G transform={`translate(${5 / s} ${5 / s})`}>{body}</G> : null}
         {body}
         <Path d={BODY} fill="#fff" stroke="#fff" strokeWidth={border} strokeLinejoin="round" />
@@ -282,6 +286,7 @@ export function PetArt({ stage, face, size = 260, crack = 0, blink = false, shad
         ))}
         {stage === "big" ? <Flower sw={swe} /> : null}
         <Face face={face} blink={blink} sw={swe} />
+        <OutfitFront outfit={outfit} sw={swe} />
       </G>
       {face === "love" ? (
         <>

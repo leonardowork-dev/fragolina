@@ -19,7 +19,7 @@ import { type PetFace, PetArt, STAGE_SCALE, faceForMood } from "@/design/mascot/
 import { motion } from "@/design/tokens";
 import { haptics } from "@/lib/haptics";
 import { useScreenFocused } from "@/lib/useScreenFocused";
-import type { PetMood, PetStage } from "@/lib/pet/rules";
+import type { Outfit, PetMood, PetStage } from "@/lib/pet/rules";
 
 /**
  * Il palcoscenico del pet: pannello adesivo con il pet grande al centro. Il pet respira (dondolio lento), ammicca,
@@ -51,7 +51,9 @@ export function PetStageView({
   petRef,
   a11yLabel,
   a11yHint,
+  outfit,
 }: {
+  outfit?: Outfit;
   stage: PetStage;
   mood: PetMood;
   crack?: number;
@@ -254,7 +256,7 @@ export function PetStageView({
             }}
           />
           <Animated.View ref={petRef} style={[bodyStyle, { transformOrigin: "50% 100%" }]}>
-            <PetArt stage={stage} face={face} size={size} crack={crack} blink={blink} />
+            <PetArt stage={stage} face={face} size={size} crack={crack} blink={blink} outfit={outfit} />
           </Animated.View>
         </View>
       </GestureDetector>

@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, w
 
 import { Sticker, Text, useTheme } from "@/design";
 import { motion, palette } from "@/design/tokens";
-import { LOW_NEED, NEED_MAX, type NeedId, type Needs } from "@/lib/pet/rules";
+import { LOW_NEED, NEED_MAX, foodPieces, type NeedId, type Needs } from "@/lib/pet/rules";
 import { S } from "@/lib/strings.it";
 
 import { Glyph } from "./Glyphs";
@@ -52,6 +52,13 @@ function Need({ id, value }: { id: NeedId; value: number }) {
           accessibilityLabel={S.pet.a11y.need(label, word)}
         >
           <Glyph kind={look.glyph} size={38} level={value / NEED_MAX} fill={look.level} id={`need-${id}`} />
+          {id === "food" ? (
+            <View style={{ flexDirection: "row", gap: 5 }} accessibilityLabel={S.pet.belly(foodPieces(value))}>
+              {[0, 1, 2].map((i) => (
+                <View key={i} style={{ width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: palette.ink, backgroundColor: i < foodPieces(value) ? palette.strawberry : palette.white }} />
+              ))}
+            </View>
+          ) : null}
           <Text variant="caption" align="center" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.15}>
             {label}
           </Text>
