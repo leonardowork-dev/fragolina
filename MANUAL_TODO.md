@@ -429,3 +429,33 @@ Di' a Claude: **"Nikole è entrata, chiudi la coppia"** → `npm run couple:clos
 
 ### S9-4. ATTENZIONE: coppia sul server
 `npm run couple:status` (21/11/2026) mostra **una sola coppia**, con membri **"Alfa" e "Nikole"** (creata 21/11 alle 11:02 UTC, 1 pensiero, 1 umore): sembra una coppia di PROVA rimasta, **non quella di Leonardo**. Se l'app di Leonardo dice "Questo telefono non è più nel posto", il posto vero non esiste più sul server: serve un nuovo codice (Noi → crea). Claude non ha cancellato nulla.
+
+
+## Sessione 10 — Zona piccante (passo-passo)
+
+### S10-0. Già fatto da Claude
+- Database: `sessione10-piccante.sql` applicato (`db:apply`); `backend:sqltest` 371/371; `backend:check` 155/156 (l'unica riga rossa è il ping realtime, intermittente, già nota).
+- Niente da incollare, niente da fare sul telefono di Nikole.
+
+### S10-1. Installa la nuova app (Sideloadly)
+Cavo, `Fragolina-release.ipa` (Desktop → Fragolina-build), stesso Apple ID, **"Remove extensions" spento**, "Automatic Refresh via Sideloadly Daemon" acceso. È un'installazione "sopra": i dati restano. Al primo ingresso nella zona iOS chiede il permesso Face ID: rispondi Consenti.
+
+### S10-2. Come si entra
+In **Noi**, accanto al titolo c'è un cuoricino: **3 tocchi rapidi** (entro 1,2 s l'uno dall'altro) → Face ID (o il codice del telefono). Se Face ID non c'è, la prima volta scegli un PIN di 4 cifre. Se non siete ancora in due, la zona parte in **PROVA** con una persona finta (solo sul tuo telefono).
+Interruttore "Mostra la zona piccante" in Noi → Impostazioni: se spento, il gesto non fa niente. "Cancella tutto" (doppia conferma) è DENTRO la zona, in fondo.
+
+### S10-3. Come provare da solo
+Senza Nikole entri in PROVA: la persona finta ha scelto ~30 desideri (i match compaiono), risponde "sì" a "Stasera?" e ti ha regalato un buono. Cuoricini, +1, "Ops, tolgo", statistiche, traguardi, dadi, buoni, "Ho voglia" funzionano come sul vero (la persona finta non vive sul server).
+
+### S10-4. Checklist sul telefono
+- [ ] Gesto + Face ID funzionano; PIN se non c'è Face ID.
+- [ ] Esci dall'app e rientra dopo > 1 minuto: la zona è richiusa; nel selettore delle app si vede la fragola che dorme.
+- [ ] "+1": animazione diversa a ogni giro (5 varianti), vibrazione, cuoricino nel calendario; "Ops, tolgo" entro 10 s.
+- [ ] Tocca un giorno: dove, chi ha iniziato, fiammelle, nota; si può aggiungere a un giorno passato.
+- [ ] Traguardo (es. la prima volta, 5 in un giorno): festa più grande con la scritta.
+- [ ] Desideri: scelta tua; con Nikole, un match fa "smack". Quello scelto da uno solo non si vede mai all'altro.
+- [ ] "Ho voglia": fuori dalla zona arriva solo "Nikole ti ha mandato una fragola".
+- [ ] "Stasera?": si scopre solo se siete d'accordo.
+- [ ] Buoni e dadi.
+- [ ] Con "Meno movimento" le animazioni sono statiche.
+- [ ] Niente della zona nei widget, in Home, nei Ricordi, in "Il nostro mese".

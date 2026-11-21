@@ -85,3 +85,10 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 **Basso**
 - Icona con il vostro disegno, varianti scura/tinted; stagioni per i suoni e i cibi del pet; transizioni condivise; test su albero di accessibilità vero.
 - Mesiversari personalizzati, ripetizione annuale degli eventi, distanza "vicinissimi" con festa.
+
+## Idee dalla sessione 10 (zona)
+- Suoni piccanti dedicati (generati con `make-sounds.mjs`), spenti col telefono in silenzioso.
+- Cuoricini del calendario con colore per fiammelle, "momento dell'anno" (mese più caldo) e riepilogo di fine anno.
+- Mazzo dei desideri più grande a livelli stagionali; "mazzo vostro" scritto in due; cestino dei match "fatto!" con data.
+- Widget privato? NO (regola di privacy): mai.
+- Blocco della zona con timeout personalizzabile e con "panic": tre scosse = copertura immediata.

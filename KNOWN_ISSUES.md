@@ -67,3 +67,9 @@
 58. **SideStore non provato con Fragolina:** App Group dopo la ri-firma, conteggio App ID con l'estensione, rinnovo in background (la documentazione non dà frequenza né dice se serve la VPN accesa), secondo iPhone con altro Apple ID. Piano B: Sideloadly.
 59. **Coppia sul server (21/11/2026):** `couple:status` mostra una sola coppia, membri "Alfa"/"Nikole", 1 pensiero: pare una coppia di prova rimasta, non quella di Leonardo. Da chiarire con Leonardo (MANUAL_TODO S9-4).
 60. `backend:check`: la riga "realtime: B riceve il ping" ha fallito una volta su due (stesso flake del punto 12); al secondo giro 144/144.
+
+61. **Zona piccante non verificata su telefono né nel browser a due schede:** gesto, Face ID, copertura/richiusura, animazioni, layout. Provati: logica (engine, replay, deck, statistiche), SQL (371 prove), server vero (`backend:check`), bundle web (`expo export`). **Manca l'e2e a due schede** e non ci sono screenshot né due giri di revisione grafica.
+62. **Solo lo scheletro dei suoni:** nessun suono piccante nuovo (riuso di pop/tok/festa).
+63. **Dadi personalizzati e testo dei dadi:** facce modificabili solo in memoria (si perdono alla chiusura). La fisica è molla + rotazione, non un motore fisico.
+64. **Stato sul disco:** la coda della zona (poche righe con note/idee) sta in AsyncStorage non cifrato finché non viene spedita; la fotografia non si salva mai.
+65. **Il contatore realtime può svegliare il telefono** per un "ho voglia" anche se l'altro non ha cambiato nulla di visibile (è voluto: è il segnale).

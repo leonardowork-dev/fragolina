@@ -84,3 +84,10 @@ File da incollare: `supabase/sessione7-extra.sql` (rieseguibile; crea anche il b
 **Migrazione delle risposte a/b** (`daily_answers` → `qa_answers`/`qa_texts` con `choice`): nessuna risposta persa, segreto invariato; la vecchia tabella resta.
 
 **Spazio (piano gratuito):** 1 GB di Storage ≈ 2600 foto da 400 KB (≈ 2100 al tetto di 500 KB); le foto non occupano il database (500 MB).
+
+## Zona privata (sessione 10) — modello dei dati e privacy
+Tabelle `z_entries` (cuoricini), `z_ideas` (idee scritte da voi), `z_wishes` (desideri scelti), `z_tonight` ("stasera?"), `z_signals` ("ho voglia"), `z_vouchers` (buoni), `z_pulse` (contatore). **RLS attiva, nessuna policy, nessun privilegio ai client**: si legge e si scrive solo con le funzioni `z_get`, `z_log`, `z_log_delete`, `z_wish`, `z_idea_add/delete`, `z_tonight`, `z_signal(_clear)`, `z_voucher_add/redeem/delete`, `z_wipe` (security definer, solo membri della coppia; anon senza accesso).
+- **Segreti:** `z_get` restituisce MAI le scelte dell'altro: solo le tue (`wishesMine`) e i `matches` (idee scelte da entrambi). "Stasera?": l'altro vede solo "ha risposto"; l'esito (`match` se sì+sì o sì+forse, altrimenti `nomatch`) esce solo quando hanno risposto entrambi e dopo non si cambia più. Le idee scritte da voi sono carte visibili a entrambi senza autore (chi la scrive la sceglie in automatico).
+- **Realtime:** nella publication c'è SOLO `z_pulse` (un numero e un orario, nessun contenuto): il telefono rilegge con `z_get` quando cambia. Il contatore non cambia se scegli un desiderio che l'altro non ha scelto.
+- **Fuori dalla zona:** `widget_feed`, `get_state`, snapshot del widget, Ricordi, "Il nostro mese" non toccano queste tabelle (provato in `backend:sqltest` e `backend:check`). L'avviso del "ho voglia" è solo "X ti ha mandato una fragola".
+- **Cancella tutto:** `z_wipe` svuota tutte le tabelle z_* della coppia. Chi esce dalla coppia porta via desideri, risposte e segnali (trigger `tg_z_member_cleanup`).
