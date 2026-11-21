@@ -51,7 +51,12 @@ TypeScript strict, ESLint (`--max-warnings=0`) e `tsc` puliti prima di ogni comm
 6. Mini giochi (**fatto, sessione 6**; manca la migrazione `sessione6-giochi.sql` e la prova sul telefono: `MANUAL_TODO.md` "Sessione 6"). Funzionano da soli con la "Prova con la Fragolina".
 7. Extra: countdown, domanda del giorno vera, ricordi, "Il nostro mese" (**fatto, sessione 7**; manca la migrazione `sessione7-extra.sql` e la prova sul telefono: `MANUAL_TODO.md` "Sessione 7"). La distanza era già della sessione 5.
 8. Rifinitura: suoni, transizioni, casi limite, icona (**fatto, sessione 8**; manca solo la prova sul telefono: `MANUAL_TODO.md` "Sessione 8").
-9. Installazione sul telefono di Nikole + routine di rinnovo settimanale.
+9. Scadenza visibile + rinnovo (**fatto, sessione 9**; manca la prova sul telefono: `MANUAL_TODO.md` "Sessione 9"). Metodo scelto: SideStore per Nikole (Leonardo resta con Sideloadly finché non è provato), vedi `docs/RENEWAL.md`, `RINNOVO.md`. `npm run couple:close|open|status`.
+10. Sessione 10: zona privata. 11. Installazione sul telefono di Nikole (`NIKOLE.md`) + ultimi ritocchi + `couple:close`.
+
+## Sessione 9 — regole utili
+- Scadenza: `src/lib/expiry.ts` (pura) ↔ `Model.swift` (`cleanExpiry`, `effectiveExpiry`, `isRenewLastDay`, `renewTimelineDate`); snapshot **v7** (`appExpiresAt`, in fondo); il widget usa il MAX fra il proprio profilo (`GroupResolver.provisionExpiryMs`) e lo snapshot. Nativo: `GroupResolver.expirationDate()`. Server: `set_app_expiry`, `get_partner_expiry` (migrazione `20261121000001_scadenza.sql`, file `sessione9-scadenza.sql`). Stato a schermo: `src/state/expiryStore.ts` + `useExpirySync` (radice); UI `src/features/expiry/*` (Noi, Home).
+- `backend:check` riapre da solo la coppia se è chiusa (`couple:close`) e la richiude alla fine (serve `SUPABASE_DB_URL`).
 
 ## Sessione 3 — regole utili
 - `ship.mjs` (dalla sessione 4) non committa mai da solo: se l'albero non è pulito si ferma e elenca i file (solo `--commit` salva tutto). Push solo se HEAD non è su origin; i ritentativi ricompilano lo stesso SHA; `.ship.lock` impedisce due catene (KNOWN_ISSUES 23 risolto). Prima di `npm run ship*`: tutto committato e pushato. Durante una catena attiva puoi lavorare, ma non toccare HEAD/branch: la build parte dallo SHA già pubblicato.

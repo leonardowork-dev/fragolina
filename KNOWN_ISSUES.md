@@ -62,3 +62,8 @@
 55. **Server in pausa:** "Il server dorme" compare dopo 3 tentativi falliti con rete presente; un server lento o una rete scarsissima possono farlo comparire per errore (sparisce al primo tentativo riuscito). Il keepalive su GitHub evita la pausa vera finché i runner girano (GitHub sospende i workflow programmati dopo 60 giorni senza commit nel repository: basta un commit).
 56. **Pulizia dei pensieri:** `sessione8-rifinitura.sql` ridefinisce `get_state` e `get_month`; riapplicare a mano un file più vecchio (sessione 7) li riporta alla versione senza archivio finché non si rilancia anche questo (`db:apply` lo fa da solo, nell'ordine giusto).
 
+
+57. **Sessione 9 — scadenza/rinnovo non verificati su telefono:** lettura del profilo (`ExpirationDate`), adesivo "rinnovami" (layout SwiftUI solo sintassi + parità logica), voce di timeline all'ultimo giorno, link alla guida da Home/Noi. L'app scaduta non si apre e il widget non serve.
+58. **SideStore non provato con Fragolina:** App Group dopo la ri-firma, conteggio App ID con l'estensione, rinnovo in background (la documentazione non dà frequenza né dice se serve la VPN accesa), secondo iPhone con altro Apple ID. Piano B: Sideloadly.
+59. **Coppia sul server (21/11/2026):** `couple:status` mostra una sola coppia, membri "Alfa"/"Nikole", 1 pensiero: pare una coppia di prova rimasta, non quella di Leonardo. Da chiarire con Leonardo (MANUAL_TODO S9-4).
+60. `backend:check`: la riga "realtime: B riceve il ping" ha fallito una volta su due (stesso flake del punto 12); al secondo giro 144/144.

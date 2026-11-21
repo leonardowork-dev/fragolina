@@ -406,3 +406,26 @@ Per controllare che il keepalive funzioni: GitHub → repository `fragolina` →
 ### S8-7. Cosa NON posso fare da solo (e perché)
 - **Sentire i suoni e vedere i movimenti sul telefono:** non ho un iPhone né un Mac. Ho provato file, tempi, regole e schermate nel browser; l'orecchio e il dito sono tuoi (checklist S8-2).
 - **Premere Start in Sideloadly:** richiede l'iPhone collegato, sbloccato e la tua password Apple (non la tengo io, giustamente).
+
+
+## Sessione 9 — Scadenza visibile e rinnovo (passo-passo)
+
+### S9-0. Già fatto da Claude
+- Migrazione `sessione9-scadenza.sql` applicata (`db:apply`), `backend:check` 144/144, `backend:sqltest` 330/330, `npm test`, `tsc`, `eslint`, parità Swift.
+- Guide pronte per la **sessione 11** (non fare nulla ora sul telefono di Nikole): `NIKOLE.md`, `docs/nikole.html`, `RINNOVO.md`, `docs/rinnovo-fragolina.ics`, `docs/RENEWAL.md`.
+
+### S9-1. Installa la nuova app sul tuo iPhone (Sideloadly)
+Come sempre: cavo, `Fragolina-release.ipa` (Desktop → Fragolina-build), stesso Apple ID, **"Remove extensions" spento**, **spunta "Automatic Refresh via Sideloadly Daemon"** (e in iTunes: "Sincronizza con questo iPhone via Wi-Fi"). In **Noi** deve comparire "Rinnovo: Fragolina scade tra 7 giorni (…)".
+
+### S9-2. Cosa guardare
+- [ ] Noi → scheda **Rinnovo** con la data giusta (7 giorni dopo l'installazione).
+- [ ] Home: l'adesivo giallo "Rinnova Fragolina…" compare solo quando mancano ≤ 2 giorni; toccandolo si apre la guida.
+- [ ] Widget (Giorni, Umore, Penso a te, Pet, Biglietto, Distanza, Manca poco): nell'ultimo giorno un piccolo "rinnovami" in alto a sinistra. **Il layout non è visto su schermo**: se copre qualcosa, scrivi a Claude cosa e dove.
+- [ ] Dopo un rinnovo il "rinnovami" sparisce dal widget anche senza aprire l'app.
+- Da **scaduta** l'app non si apre e il widget non serve: va rinnovata (i dati restano).
+
+### S9-3. Quando Nikole è dentro (sessione 11)
+Di' a Claude: **"Nikole è entrata, chiudi la coppia"** → `npm run couple:close`. Poi `npm run couple:status` per vedere membri, scadenze e ultima attività; `npm run couple:open` per riaprire.
+
+### S9-4. ATTENZIONE: coppia sul server
+`npm run couple:status` (21/11/2026) mostra **una sola coppia**, con membri **"Alfa" e "Nikole"** (creata 21/11 alle 11:02 UTC, 1 pensiero, 1 umore): sembra una coppia di PROVA rimasta, **non quella di Leonardo**. Se l'app di Leonardo dice "Questo telefono non è più nel posto", il posto vero non esiste più sul server: serve un nuovo codice (Noi → crea). Claude non ha cancellato nulla.

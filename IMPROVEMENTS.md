@@ -69,3 +69,19 @@ Una riga per idea. Niente da fare in sessione 2 se non è qui sotto già fatto.
 - **Icona:** il tuo disegno al posto della fragola (`assets/user-art/app-icon.png`), e una variante scura (iOS 18) e una "tinted".
 - **Dati brutti:** nomi con emoji disegnati con un font con emoji a colori nei display (oggi Bagel non le ha: iOS usa il carattere di sistema).
 
+
+
+## Raccolta finale, per valore (sessione 9)
+**Alto valore**
+- Notifica locale "Fragolina scade domani" (nessun server: `expo-notifications` locale, gratis) — oggi solo adesivo in Home e widget.
+- Esportazione JSON di sicurezza (coppia, ricordi, domande) da Noi, per la perdita del progetto gratuito o della coppia.
+- Prova automatica del feed del widget con un finto server locale.
+- Notifiche push vere (APNs): richiedono account a pagamento, fuori budget.
+**Medio**
+- Cancellazioni e `member-left` in tempo reale (canale Broadcast); keepalive che fa un commit ogni 50 giorni.
+- Widget "Un anno fa oggi", widget con foto o disegno del giorno, AppIntent interattivi su iOS 17+.
+- Più giochi (Memory con le vostre foto, "Più o meno"), mazzi scritti da voi due, premio ogni 5 partite.
+- Domanda del giorno con foto/disegno, archivio per categoria, libro delle risposte in PDF.
+**Basso**
+- Icona con il vostro disegno, varianti scura/tinted; stagioni per i suoni e i cibi del pet; transizioni condivise; test su albero di accessibilità vero.
+- Mesiversari personalizzati, ripetizione annuale degli eventi, distanza "vicinissimi" con festa.
