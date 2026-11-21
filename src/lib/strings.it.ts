@@ -906,6 +906,8 @@ export const S = {
     couponSend: "Regala",
     couponRedeem: "Riscatta",
     couponRedeemed: "Riscattato",
+    couponRedeemedFx: "Riscattato!",
+    couponUsedTitle: "Usati",
     couponFromYou: "da te",
     couponToYou: "per te",
     couponExpired: "Scaduto",

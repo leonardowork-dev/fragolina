@@ -1,12 +1,14 @@
 import React, { useEffect } from "react";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
+import { usePathname } from "expo-router";
 import { create } from "zustand";
 
 import { Text, useTheme } from "@/design";
 import { motion } from "@/design/tokens";
 import { hashString, seeded } from "@/lib/hash";
 import { S } from "@/lib/strings.it";
+import { useZone } from "@/state/zoneStore";
 
 import { BedArt, CherryArt, CreamArt, HeartArt, LipsArt, SteamArt, WinkStrawberry } from "./ZoneArt";
 
@@ -17,18 +19,20 @@ import { BedArt, CherryArt, CreamArt, HeartArt, LipsArt, SteamArt, WinkStrawberr
  * Solo transform e opacity, molle per ciò che nasce dal tocco, ease-out per il resto, mai scala da 0.
  * "Meno movimento": il disegno compare fermo (con la faccia che cambia) e svanisce, niente particelle.
  */
-type HeatState = { seq: number; variant: number; kind: "plus" | "milestone" | "match"; label: string | null; fire: (kind?: "plus" | "milestone" | "match", label?: string | null) => void };
+type HeatState = { seq: number; variant: number; kind: "plus" | "milestone" | "match"; label: string | null; /** Visibile in questo momento? Si spegne da solo e fuori dalla zona. */ active: boolean; clear: () => void; fire: (kind?: "plus" | "milestone" | "match", label?: string | null) => void };
 export const useHeat = create<HeatState>((set, get) => ({
   seq: 0,
   variant: 0,
   kind: "plus",
   label: null,
+  active: false,
+  clear: () => set({ active: false, label: null }),
   fire: (kind = "plus", label = null) => {
     const seq = get().seq + 1;
     // la variante non si ripete due volte di fila
     let v = Math.floor(seeded(seq * 7919 + Date.now() % 1000) * 5);
     if (v === get().variant) v = (v + 1) % 5;
-    set({ seq, variant: v, kind, label });
+    set({ seq, variant: v, kind, label, active: true });
   },
 }));
 
@@ -97,11 +101,26 @@ function Hero({ seq, variant }: { seq: number; variant: number }) {
 
 /** Montare UNA volta nella radice (sopra tutto, senza intercettare i tocchi). */
 export function HeatBurstLayer() {
+  const pathname = usePathname();
+  const unlocked = useZone((s) => s.unlocked);
+  const active = useHeat((s) => s.active);
   const seq = useHeat((s) => s.seq);
+  const kind0 = useHeat((s) => s.kind);
+  // PRIVACY: l'animazione (e la sua scritta) esiste SOLO dentro la zona aperta e si spegne da sola.
+  const inZone = pathname === "/zone" && unlocked;
+  useEffect(() => {
+    if (!active) return;
+    if (!inZone) {
+      useHeat.getState().clear();
+      return;
+    }
+    const t = setTimeout(() => useHeat.getState().clear(), kind0 === "plus" ? 2100 : 2700);
+    return () => clearTimeout(t);
+  }, [active, seq, inZone, kind0]);
   const variant = useHeat((s) => s.variant);
   const kind = useHeat((s) => s.kind);
   const label = useHeat((s) => s.label);
-  if (seq === 0) return null;
+  if (seq === 0 || !active || !inZone) return null;
   const bigger = kind !== "plus";
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { zIndex: 50 }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

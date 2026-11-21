@@ -94,7 +94,7 @@ export function CouponsTab() {
     zone.enqueue({ kind: "voucherRedeem", id });
     haptics.success();
     play("festa");
-    useHeat.getState().fire("match", S.zone.couponRedeemed);
+    useHeat.getState().fire("match", S.zone.couponRedeemedFx);
   };
   return (
     <View style={{ gap: 14 }}>
@@ -103,7 +103,7 @@ export function CouponsTab() {
       <Button label={S.zone.couponNew} onPress={() => setAdding(true)} disabled={!paired && !zone.practice} />
       {!paired && !zone.practice ? <Text variant="caption">{S.zone.couponNoPartner}</Text> : null}
       {view.vouchers.length === 0 ? <Text variant="body">{S.zone.couponNone}</Text> : null}
-      {view.vouchers.map((v) => {
+      {view.vouchers.filter((v) => !v.redeemedAt).map((v) => {
         const expired = !!v.expires && !!today && v.expires < today;
         return (
           <Sticker key={v.id} id={`cp-${v.id}`} fill={v.redeemedAt ? colors.surface : v.fromMe ? colors.butterSoft : colors.blush} radius={22} offset={4} padding={14} tiltMax={1.6} style={{ marginRight: 6, opacity: v.redeemedAt || expired ? 0.65 : 1 }}>
@@ -116,6 +116,17 @@ export function CouponsTab() {
           </Sticker>
         );
       })}
+      {view.vouchers.some((v) => v.redeemedAt) ? (
+        <View style={{ gap: 10, marginTop: 8 }} testID="coupons-used">
+          <Text variant="title" accessibilityRole="header">{S.zone.couponUsedTitle}</Text>
+          {view.vouchers.filter((v) => v.redeemedAt).map((v) => (
+            <Sticker key={v.id} id={`cu-${v.id}`} fill={colors.surface} radius={18} offset={0} padding={12} tiltMax={0.6} style={{ marginRight: 6, opacity: 0.7 }}>
+              <Text variant="bodyStrong">{v.title}</Text>
+              <Text variant="caption">{`${S.zone.couponRedeemed} · ${v.fromMe ? S.zone.couponFromYou : S.zone.couponToYou}`}</Text>
+            </Sticker>
+          ))}
+        </View>
+      ) : null}
       <Sheet visible={adding} onClose={() => setAdding(false)} title={S.zone.couponNew}>
         <View style={{ gap: 12, marginTop: 8 }}>
           <TextField label={S.zone.couponTitle} value={title} onChange={setTitle} maxLength={40} placeholder={S.zone.couponPlaceholder} autoCapitalize="sentences" />

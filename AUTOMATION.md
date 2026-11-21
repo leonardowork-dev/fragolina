@@ -36,3 +36,12 @@
 `.github/workflows/keepalive.yml` gira da solo **ogni 3 giorni** (e a mano da Actions → Keepalive Supabase → Run workflow). Fa UNA chiamata leggera (`rpc/widget_feed` con un token finto) con la chiave **pubblica** dei secret già usati dalla build (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`): risponde subito `invalid_token` ma passa dal database, quindi il progetto gratuito non va in pausa dopo 7 giorni. Mai la `service_role`. Se risponde diverso da 200 il workflow **fallisce** e GitHub manda una mail: è il segnale che il progetto è in pausa (Supabase → Restore project, vedi MANUAL_TODO S8-5). Costo zero (pochi secondi di runner Linux). Se mancano i secret, `npm run ship` li rimette (vedi sopra) oppure: `gh secret set EXPO_PUBLIC_SUPABASE_URL` e `gh secret set EXPO_PUBLIC_SUPABASE_ANON_KEY` (si leggono da `.env.local`).
 GitHub sospende i workflow programmati dopo 60 giorni senza attività nel repository: basta un commit (qualsiasi sessione di lavoro lo è).
 
+
+## Installare l'IPA sull'iPhone di Leonardo con meno clic (22/11/2026)
+Metodo che funziona (nessun commit/git necessario):
+1. Telefono collegato col cavo e sbloccato. IPA: `C:\Users\UTENTE\OneDrive\Desktop\Fragolina-build\Fragolina-release.ipa` (controllare con `gh run list --workflow build-ipa.yml` che sia l'ultima build verde).
+2. Da WSL, aprire Sideloadly **con l'IPA già caricato**: `powershell.exe -NoProfile -Command "Start-Process -FilePath \"$env:LOCALAPPDATA\Sideloadly\sideloadly.exe\" -ArgumentList '\"C:\Users\UTENTE\OneDrive\Desktop\Fragolina-build\Fragolina-release.ipa\"'"` (Sideloadly v0.72 accetta il percorso dell'IPA come argomento; riconosce da solo l'iPhone e l'Apple ID già salvato).
+3. Controllare la finestra con uno screenshot della sola finestra (PowerShell + `CopyFromScreen`): deve mostrare l'IPA, l'iPhone e l'Apple ID, e "Start" attivo.
+4. Leonardo preme **Start** (password Apple e codice a 6 cifre li chiede Sideloadly). "Remove extensions" resta spento (impostazione già salvata in Sideloadly), stesso Apple ID = stesso bundle id `app.fragolina.couple`, i dati restano.
+Non usato: Sideloader CLI (Dadoum): ultima versione 1.0-pre4 di ottobre 2024 (non mantenuto), usa server anisette di terzi (rischio blocco dell'Apple ID) e può cambiare il bundle id dell'app (rischio dati/App Group). Non provato.
+Non verificabile da WSL: se l'app è davvero installata (nessun `ideviceinstaller` disponibile): si vede dalla scheda Noi → "Versione 1.0.0 (build 72, …)".

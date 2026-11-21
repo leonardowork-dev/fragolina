@@ -1,4 +1,11 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+import { MockBackend, memoryTransport } from "@/lib/backend/mock/MockBackend";
+import { type ZoneCtx, emptyZoneDb, zoneApply, zoneSnapshot } from "@/lib/zone/engine";
+import { replayZone } from "@/lib/zone/replay";
+import { zoneSnapshotFromJson } from "@/lib/zone/wire";
+import { emptyZSnapshot } from "@/lib/zone/types";
 
 import { DECK, DECK_BY_ID } from "@/lib/zone/deck";
 import { countsByDay, heartsFor, milestones, monthGrid, newMilestone, zoneStats } from "@/lib/zone/stats";
@@ -74,13 +81,6 @@ describe("zona: mazzo dei desideri", () => {
   });
 });
 
-import fs from "node:fs";
-import path from "node:path";
-import { MockBackend, memoryTransport } from "@/lib/backend/mock/MockBackend";
-import { type ZoneCtx, emptyZoneDb, zoneApply, zoneSnapshot } from "@/lib/zone/engine";
-import { replayZone } from "@/lib/zone/replay";
-import { zoneSnapshotFromJson } from "@/lib/zone/wire";
-import { emptyZSnapshot } from "@/lib/zone/types";
 
 const members = [{ userId: "ua", role: "a" as const }, { userId: "ub", role: "b" as const }];
 const ctx = (uid: string, now = 1_000_000): ZoneCtx => ({ uid, members, now, today: "2026-11-22" });
@@ -189,5 +189,21 @@ describe("zona: privacy (mai nei widget, nel feed, nei log)", () => {
   it("il feed SQL del widget non cita le tabelle z_", () => {
     const m = fs.readdirSync(path.join(root, "supabase/migrations")).filter((f) => !f.includes("_zona")).map((f) => read(`supabase/migrations/${f}`)).join("\n");
     expect(/\bz_(entries|wishes|tonight|signals|vouchers|ideas)\b/.test(m)).toBe(false);
+  });
+});
+
+describe("zona: le animazioni non restano e non escono dalla zona (bug dei buoni)", () => {
+  it("lo stato dell'animazione si accende con fire e si spegne con clear (scritta compresa)", async () => {
+    const { useHeat } = await import("@/features/zone/HeatBurst");
+    useHeat.getState().fire("match", "Riscattato!");
+    expect(useHeat.getState()).toMatchObject({ active: true, label: "Riscattato!" });
+    useHeat.getState().clear();
+    expect(useHeat.getState()).toMatchObject({ active: false, label: null });
+  });
+  it("il livello esiste SOLO nella zona aperta e si spegne da solo (controllo statico)", () => {
+    const src = fs.readFileSync(path.resolve(__dirname, "../src/features/zone/HeatBurst.tsx"), "utf8");
+    expect(src).toContain('pathname === "/zone" && unlocked');
+    expect(src).toContain("setTimeout(() => useHeat.getState().clear()");
+    expect(src).toContain("!active || !inZone");
   });
 });
