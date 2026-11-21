@@ -168,16 +168,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp "out/$APP_NAME-release.ipa" out/Fragolina.ipa
-          SIZE=$(stat -f%z out/Fragolina.ipa 2>/dev/null || stat -c%s out/Fragolina.ipa)
-          VERSION=$(node -p "require('./app.config.js').expo.version")
-          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/latest-build/Fragolina.ipa"
-          node -e '
-            const [url,size,version,date,build,sha]=process.argv.slice(1);
-            const app={name:"Fragolina",bundleIdentifier:"app.fragolina.couple",developerName:"Fragolina",subtitle:"Solo per noi due",localizedDescription:"L'app privata di coppia.",version,versionDate:date,downloadURL:url,size:Number(size),
-              versions:[{version,buildVersion:build,date,downloadURL:url,size:Number(size),localizedDescription:"build "+build+" ("+sha+")"}]};
-            require("fs").writeFileSync("out/source.json",JSON.stringify({name:"Fragolina",identifier:"app.fragolina.source",apps:[app],news:[]},null,2));
-          ' "$URL" "$SIZE" "$VERSION" "$DATE" "$BUILD_NUMBER" "${GITHUB_SHA::7}"
+          node scripts/publish-update-source.mjs out/Fragolina.ipa "$GITHUB_REPOSITORY" "$BUILD_NUMBER" "${GITHUB_SHA::7}"
           gh release delete latest-build --yes --cleanup-tag || true
           gh release create latest-build out/Fragolina.ipa out/source.json --prerelease --title "build ${BUILD_NUMBER}" --notes "build=${BUILD_NUMBER} sha=${GITHUB_SHA::7}"
 
